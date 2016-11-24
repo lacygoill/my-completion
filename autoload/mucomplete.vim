@@ -2,6 +2,20 @@
 " Maintainer: Lifepillar <lifepillar@lifepillar.me>
 " License: This file is placed in the public domain
 
+" FIXME:
+" If I hit C-x C-p C-h at the end of this line:
+" License: This file
+" There's the following error:
+"
+"         Error detected while processing function
+"         mucomplete#cycle[2]..<SNR>66_next_method:
+"         line    1:
+"         E121: Undefined variable: s:N
+"         Error detected while processing function
+"         mucomplete#cycle[2]..<SNR>66_next_method:
+"         line    1:
+"         E15: Invalid expression: (s:cycle ? (s:i + s:dir + s:N) % s:N : s:i + s:dir)
+
 " The methods `c-n` and `c-p` are tricky to invoke."{{{
 "
 " Indeed, we don't know in advance WHEN they will be invoked.
