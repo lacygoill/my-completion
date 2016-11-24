@@ -4,7 +4,9 @@
 
 " FIXME:
 " If I hit C-x C-p C-h at the end of this line:
-" License: This file
+"
+"     License: This file
+"
 " There's the following error:
 "
 "         Error detected while processing function
