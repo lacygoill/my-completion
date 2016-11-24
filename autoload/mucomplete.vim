@@ -2,7 +2,8 @@
 " Maintainer: Lifepillar <lifepillar@lifepillar.me>
 " License: This file is placed in the public domain
 
-" FIXME:
+" FIXME: BUG "{{{
+"
 " If I hit C-x C-p C-h at the end of this line:
 "
 "     License: This file
@@ -17,7 +18,8 @@
 "         mucomplete#cycle[2]..<SNR>66_next_method:
 "         line    1:
 "         E15: Invalid expression: (s:cycle ? (s:i + s:dir + s:N) % s:N : s:i + s:dir)
-
+"
+"}}}
 " The methods `c-n` and `c-p` are tricky to invoke."{{{
 "
 " Indeed, we don't know in advance WHEN they will be invoked.
@@ -81,8 +83,8 @@
 " `wontfix` and closed the issue.
 "
 " "}}}
-
-" FIXME:
+" FIXME: QUESTION "{{{
+"
 " Why do we need to prepend `s:exit_ctrl_x` in front of "\<c-x>\<c-l>"?
 " Here's what lifepillar commented on the patch that introduced it:
 "
@@ -100,6 +102,8 @@
 " To find the commit:
 "
 "     $ gsearch 's:cnp."\<c-x>\<c-l>"'
+"
+"}}}
 
 let s:exit_ctrl_x = "\<c-g>\<c-g>"
 let s:compl_mappings = {
