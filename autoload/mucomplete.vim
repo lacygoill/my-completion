@@ -25,8 +25,13 @@
 " `C-b` is not a valid key in C-x submode. Any invalid key makes us leave the
 " submode, and is inserted. So, we leave the submode, C-b is inserted, and BS
 " deletes it.
-" And why did lifepillar choose C-b?
-" Because by default, this key is unmapped, see: :h i_CTRL-B-gone
+" And why did lifepillar choose SPECIFICALLY C-b?
+" For 2 reasons.
+"
+"     1 - It's invalid in C-x submode, as we just saw it.
+"     2 - It's unmapped in basic insert mode, see: :h i_CTRL-B-gone
+"
+" So, C-b is a good choice because it won't cause any side-effect.
 "
 " All in all, this trick works.
 " BUT, there's a problem for me. I have remapped C-B to move the cursor back.
