@@ -78,8 +78,8 @@ let s:compl_mappings = {
                        \ 'user': "\<c-x>\<c-u>",
                        \ 'cmd' : "\<c-x>\<c-v>",
                        \ 'tags': "\<c-x>\<c-]>",
-                       \ 'ulti': "\<c-r>=mucomplete#ultisnips#complete()\<cr>",
                        \ 'path': "\<c-r>=mucomplete#path#complete()\<cr>",
+                       \ 'ulti': "\<c-r>=mucomplete#ultisnips#complete()\<cr>",
                        \ 'uspl': "\<c-o>:call mucomplete#spel#gather()\<cr>\<c-r>=mucomplete#spel#complete()\<cr>",
                        \ }
 
@@ -100,14 +100,14 @@ fu! s:act_on_textchanged() abort
         let s:completedone = 0
         let g:mucomplete_with_key = 0
         if get(s:compl_methods, s:i, '') ==# 'path' && getline('.')[col('.')-2] =~# '\m\f'
-            silent call mucomplete#path#complete()
+            sil call mucomplete#path#complete()
         elseif get(s:compl_methods, s:i, '') ==# 'file' && getline('.')[col('.')-2] =~# '\m\f'
-            silent call feedkeys("\<c-x>\<c-f>", 'i')
+            sil call feedkeys("\<c-x>\<c-f>", 'i')
         endif
     elseif !&g:paste && match(strpart(getline('.'), 0, col('.') - 1),
-                \  get(g:mucomplete#trigger_auto_pattern, getbufvar("%", "&ft"),
+                \  get(g:mucomplete#trigger_auto_pattern, getbufvar('%', '&ft'),
                 \      g:mucomplete#trigger_auto_pattern['default'])) > -1
-        silent call feedkeys("\<plug>(MUcompleteAuto)", 'i')
+        sil call feedkeys("\<plug>(MUcompleteAuto)", 'i')
     endif
 endfu
 
@@ -133,10 +133,10 @@ endfu
 fu! mucomplete#toggle_auto() abort
     if exists('#MUcompleteAuto')
         call mucomplete#disable_auto()
-        echomsg '[MUcomplete] Auto off'
+        echom '[MUcomplete] Auto off'
     else
         call mucomplete#enable_auto()
-        echomsg '[MUcomplete] Auto on'
+        echom '[MUcomplete] Auto on'
     endif
 endfu
 
@@ -183,7 +183,7 @@ fu! s:act_on_pumvisible() abort
 endfu
 
 fu! s:can_complete() abort
-    return get(get(g:mucomplete#can_complete, getbufvar("%","&ft"), {}),
+    return get(get(g:mucomplete#can_complete, getbufvar('%','&ft'), {}),
                 \          s:compl_methods[s:i],
                 \          get(g:mucomplete#can_complete['default'], s:compl_methods[s:i], s:yes_you_can)
                 \ )(s:compl_text)
@@ -201,7 +201,8 @@ fu! s:next_method() abort
         let s:i = (s:cycle ? (s:i + s:dir + s:N) % s:N : s:i + s:dir)
     endwhile
     if (s:i+1) % (s:N+1) != 0
-        return s:compl_mappings[s:compl_methods[s:i]] . "\<c-r>\<c-r>=pumvisible()?mucomplete#yup():''\<cr>\<plug>(MUcompleteNxt)"
+        return s:compl_mappings[s:compl_methods[s:i]] .
+                    \ "\<c-r>\<c-r>=pumvisible()?mucomplete#yup():''\<cr>\<plug>(MUcompleteNxt)"
     endif
     return ''
 endfu
@@ -231,7 +232,7 @@ fu! mucomplete#complete(dir) abort
     endif
     let [s:dir, s:cycle] = [a:dir, 0]
     let s:compl_methods = get(b:, 'mucomplete_chain',
-                \ get(g:mucomplete#chains, getbufvar("%", "&ft"), g:mucomplete#chains['default']))
+                \ get(g:mucomplete#chains, getbufvar('%', '&ft'), g:mucomplete#chains['default']))
     let s:N = len(s:compl_methods)
     let s:i = s:dir > 0 ? -1 : s:N
     return s:next_method()
