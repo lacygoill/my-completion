@@ -82,6 +82,25 @@
 "
 " "}}}
 
+" FIXME:
+" Why do we need to prepend `s:exit_ctrl_x` in front of "\<c-x>\<c-l>"?
+" Here's what lifepillar commented on the patch that introduced it:
+"
+"     Fix 'line' completion method inserting a new line.
+
+"     Line completion seems to work differently from other completion methods:
+"     typing a character that does not belong to an entry does not exit
+"     completion. Before this commit, with autocompletion on such behaviour
+"     resulted in µcomplete inserting a new line while the user was typing,
+"     because µcomplete would insert <c-x><c-l> while in ctrl-x submode.
+
+"     To fix that, we use the same trick as with 'c-p': make sure that we are
+"     out of ctrl-x submode before typing <c-x><c-l>.
+"
+" To find the commit:
+"
+"     $ gsearch 's:cnp."\<c-x>\<c-l>"'
+
 let s:exit_ctrl_x = "\<c-g>\<c-g>"
 let s:compl_mappings = {
                        \ 'c-n' : s:exit_ctrl_x."\<c-n>",
