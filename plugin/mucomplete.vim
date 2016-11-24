@@ -7,9 +7,6 @@ if exists("g:loaded_mucomplete")
 endif
 let g:loaded_mucomplete = 1
 
-let s:save_cpo = &cpo
-set cpo&vim
-
 imap <expr> <silent> <plug>(MUcompleteCycFwd) pumvisible()?mucomplete#cycle( 1):"\<plug>(MUcompleteFwdKey)"
 imap <expr> <silent> <plug>(MUcompleteCycBwd) pumvisible()?mucomplete#cycle(-1):"\<plug>(MUcompleteBwdKey)"
 imap <expr> <silent> <plug>(MUcompleteNxt) mucomplete#verify_completion()
@@ -53,6 +50,3 @@ if exists('##TextChangedI') && exists('##CompleteDone')
     MUcompleteAutoOn
   endif
 endif
-
-let &cpo = s:save_cpo
-unlet s:save_cpo
