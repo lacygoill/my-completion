@@ -13,24 +13,16 @@ imap <expr> <silent> <plug>(MUcompleteNxt)    mucomplete#verify_completion()
 imap <expr> <silent> <plug>(MUcompleteAuto)   mucomplete#complete(1)
 imap <expr> <silent> <plug>(MUcompleteFwd)    mucomplete#tab_complete( 1)
 imap <expr> <silent> <plug>(MUcompleteBwd)    mucomplete#tab_complete(-1)
-inoremap    <silent> <plug>(MUcompleteTab)    <tab>
-inoremap    <silent> <plug>(MUcompleteCtd)    <c-d>
+ino         <silent> <plug>(MUcompleteTab)    <tab>
+ino         <silent> <plug>(MUcompleteCtd)    <c-d>
 
 imap              <tab>                    <plug>(MUcompleteFwd)
 imap              <s-tab>                  <plug>(MUcompleteBwd)
-inoremap <silent> <plug>(MUcompleteFwdKey) <c-l>
+ino      <silent> <plug>(MUcompleteFwdKey) <c-l>
 imap              <c-l>                    <plug>(MUcompleteCycFwd)
-inoremap <silent> <plug>(MUcompleteBwdKey) <c-h>
+ino      <silent> <plug>(MUcompleteBwdKey) <c-h>
 imap              <c-h>                    <plug>(MUcompleteCycBwd)
 
-if !exists(":MUcompleteAutoOn")
-    command -nargs=0 MUcompleteAutoOn :call mucomplete#enable_auto()
-endif
-
-if !exists(":MUcompleteAutoOff")
-    command -nargs=0 MUcompleteAutoOff :call mucomplete#disable_auto()
-endif
-
-if !exists(":MUcompleteAutoToggle")
-    command -nargs=0 MUcompleteAutoToggle :call mucomplete#toggle_auto()
-endif
+com! -nargs=0 MUcompleteAutoOn     call mucomplete#enable_auto()
+com! -nargs=0 MUcompleteAutoOff    call mucomplete#disable_auto()
+com! -nargs=0 MUcompleteAutoToggle call mucomplete#toggle_auto()
