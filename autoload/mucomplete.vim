@@ -126,18 +126,18 @@ let s:compl_mappings = {
                        \ 'ulti': "\<c-r>=mucomplete#ultisnips#complete()\<cr>",
                        \ 'uspl': "\<c-o>:call mucomplete#spel#gather()\<cr>\<c-r>=mucomplete#spel#complete()\<cr>",
                        \ }
-
 unlet s:exit_ctrl_x
-let s:select_entry = { 'c-p' : "\<c-p>\<down>", 'keyp': "\<c-p>\<down>" }
-let s:pathsep = exists('+shellslash') && !&shellslash ? '\\' : '/'
+
+let s:select_entry  = { 'c-p' : "\<c-p>\<down>", 'keyp': "\<c-p>\<down>" }
+let s:pathsep       = exists('+shellslash') && !&shellslash ? '\\' : '/'
 " Internal state
 let s:compl_methods = []
-let s:compl_text = ''
-let s:auto = 0
-let s:dir = 1
-let s:cycle = 0
-let s:i = 0
-let s:pumvisible = 0
+let s:compl_text    = ''
+let s:auto          = 0
+let s:dir           = 1
+let s:cycle         = 0
+let s:i             = 0
+let s:pumvisible    = 0
 
 fu! s:act_on_textchanged() abort
     if s:completedone
