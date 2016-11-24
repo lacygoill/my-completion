@@ -13,7 +13,7 @@
 " <c-x><c-o> would do a different thing).
 
 let s:cnp = "\<c-x>" . get(g:, 'mucomplete#exit_ctrlx_keys', "\<c-b>\<bs>")
-let s:compl_mappings = extend({
+let s:compl_mappings = {
             \ 'c-n' : s:cnp."\<c-n>", 'c-p' : s:cnp."\<c-p>",
             \ 'cmd' : "\<c-x>\<c-v>", 'defs': "\<c-x>\<c-d>",
             \ 'dict': "\<c-x>\<c-k>", 'file': "\<c-x>\<c-f>",
@@ -24,7 +24,7 @@ let s:compl_mappings = extend({
             \ 'user': "\<c-x>\<c-u>", 'ulti': "\<c-r>=mucomplete#ultisnips#complete()\<cr>",
             \ 'path': "\<c-r>=mucomplete#path#complete()\<cr>",
             \ 'uspl': "\<c-o>:call mucomplete#spel#gather()\<cr>\<c-r>=mucomplete#spel#complete()\<cr>"
-            \ }, get(g:, 'mucomplete#user_mappings', {}), 'error')
+            \ }
 
 unlet s:cnp
 let s:select_entry = { 'c-p' : "\<c-p>\<down>", 'keyp': "\<c-p>\<down>" }
