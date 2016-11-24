@@ -86,6 +86,21 @@
 " FIXME: QUESTION "{{{
 "
 " Why do we need to prepend `s:exit_ctrl_x` in front of "\<c-x>\<c-l>"?
+"
+" When we reach the end of a line which is present twice in the buffer, if we
+" hit `C-x C-l` twice, it inserts a newline.
+"
+" What happens here?
+"
+"     We have 2 identical lines:    L1 and L1'
+"     After L1, there's L2.
+"     The cursor is at the end of L1'.
+"     The first `C-x C-l` invocation only suggests L1.
+"     The second one inserts a newline and suggests L2.
+"
+" According to lifepillar, this can cause a problem, when autocompletion
+" is enabled. I don't see how. I can't reproduce. Ask him a MWE.
+"
 " Here's what lifepillar commented on the patch that introduced it:
 "
 "     Fix 'line' completion method inserting a new line.
