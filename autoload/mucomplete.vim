@@ -38,7 +38,7 @@ let s:i = 0
 let s:pumvisible = 0
 
 if exists('##TextChangedI') && exists('##CompleteDone')
-    fu! s:act_on_textchanged()
+    fu! s:act_on_textchanged() abort
         if s:completedone
             let s:completedone = 0
             let g:mucomplete_with_key = 0
@@ -54,7 +54,7 @@ if exists('##TextChangedI') && exists('##CompleteDone')
         endif
     endfu
 
-    fu! mucomplete#enable_auto()
+    fu! mucomplete#enable_auto() abort
         let s:completedone = 0
         let g:mucomplete_with_key = 0
         augroup MUcompleteAuto
@@ -65,7 +65,7 @@ if exists('##TextChangedI') && exists('##CompleteDone')
         let s:auto = 1
     endfu
 
-    fu! mucomplete#disable_auto()
+    fu! mucomplete#disable_auto() abort
         if exists('#MUcompleteAuto')
             autocmd! MUcompleteAuto
             augroup! MUcompleteAuto
@@ -73,7 +73,7 @@ if exists('##TextChangedI') && exists('##CompleteDone')
         let s:auto = 0
     endfu
 
-    fu! mucomplete#toggle_auto()
+    fu! mucomplete#toggle_auto() abort
         if exists('#MUcompleteAuto')
             call mucomplete#disable_auto()
             echomsg '[MUcomplete] Auto off'
@@ -116,7 +116,7 @@ else
     let g:mucomplete#can_complete = mucomplete#compat#can_complete()
 endif
 
-fu! s:act_on_pumvisible()
+fu! s:act_on_pumvisible() abort
     let s:pumvisible = 0
     return s:auto || index(['spel','uspl'], get(s:compl_methods, s:i, '')) > - 1
                 \ ? ''
@@ -126,20 +126,20 @@ fu! s:act_on_pumvisible()
                 \   )
 endfu
 
-fu! s:can_complete()
+fu! s:can_complete() abort
     return get(get(g:mucomplete#can_complete, getbufvar("%","&ft"), {}),
                 \          s:compl_methods[s:i],
                 \          get(g:mucomplete#can_complete['default'], s:compl_methods[s:i], s:yes_you_can)
                 \ )(s:compl_text)
 endfu
 
-fu! mucomplete#yup()
+fu! mucomplete#yup() abort
     let s:pumvisible = 1
     return ''
 endfu
 
 " Precondition: pumvisible() is false.
-fu! s:next_method()
+fu! s:next_method() abort
     let s:i = (s:cycle ? (s:i + s:dir + s:N) % s:N : s:i + s:dir)
     while (s:i+1) % (s:N+1) != 0  && !s:can_complete()
         let s:i = (s:cycle ? (s:i + s:dir + s:N) % s:N : s:i + s:dir)
@@ -150,25 +150,25 @@ fu! s:next_method()
     return ''
 endfu
 
-fu! mucomplete#verify_completion()
+fu! mucomplete#verify_completion() abort
     return s:pumvisible ? s:act_on_pumvisible() : s:next_method()
 endfu
 
 " Precondition: pumvisible() is true.
-fu! mucomplete#cycle(dir)
+fu! mucomplete#cycle(dir) abort
     let [s:dir, s:cycle] = [a:dir, 1]
     return "\<c-e>" . s:next_method()
 endfu
 
 " Precondition: pumvisible() is true.
-fu! mucomplete#cycle_or_select(dir)
+fu! mucomplete#cycle_or_select(dir) abort
     return get(g:, 'mucomplete#cycle_with_trigger', 0)
                 \ ? mucomplete#cycle(a:dir)
                 \ : (a:dir > 0 ? "\<c-n>" : "\<c-p>")
 endfu
 
 " Precondition: pumvisible() is false.
-fu! mucomplete#complete(dir)
+fu! mucomplete#complete(dir) abort
     let s:compl_text = matchstr(strpart(getline('.'), 0, col('.') - 1), '\S\+$')
     if strlen(s:compl_text) == 0
         return (a:dir > 0 ? "\<plug>(MUcompleteTab)" : "\<plug>(MUcompleteCtd)")
@@ -181,7 +181,7 @@ fu! mucomplete#complete(dir)
     return s:next_method()
 endfu
 
-fu! mucomplete#tab_complete(dir)
+fu! mucomplete#tab_complete(dir) abort
     if pumvisible()
         return mucomplete#cycle_or_select(a:dir)
     else
