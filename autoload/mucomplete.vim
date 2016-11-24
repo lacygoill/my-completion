@@ -2,9 +2,6 @@
 " Maintainer: Lifepillar <lifepillar@lifepillar.me>
 " License: This file is placed in the public domain
 
-let s:save_cpo = &cpo
-set cpo&vim
-
 " Note: In 'c-n' and 'c-p' below we use the fact that pressing <c-x> while in
 " ctrl-x submode doesn't do anything and any key that is not valid in ctrl-x
 " submode silently ends that mode (:h complete_CTRL-Y) and inserts the key.
@@ -192,6 +189,3 @@ fun! mucomplete#tab_complete(dir)
     return mucomplete#complete(a:dir)
   endif
 endf
-
-let &cpo = s:save_cpo
-unlet s:save_cpo
