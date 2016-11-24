@@ -25,6 +25,7 @@ let s:compl_mappings = extend({
             \ 'path': "\<c-r>=mucomplete#path#complete()\<cr>",
             \ 'uspl': "\<c-o>:call mucomplete#spel#gather()\<cr>\<c-r>=mucomplete#spel#complete()\<cr>"
             \ }, get(g:, 'mucomplete#user_mappings', {}), 'error')
+
 unlet s:cnp
 let s:select_entry = { 'c-p' : "\<c-p>\<down>", 'keyp': "\<c-p>\<down>" }
 let s:pathsep = exists('+shellslash') && !&shellslash ? '\\' : '/'
@@ -37,52 +38,50 @@ let s:cycle = 0
 let s:i = 0
 let s:pumvisible = 0
 
-if exists('##TextChangedI') && exists('##CompleteDone')
-    fu! s:act_on_textchanged() abort
-        if s:completedone
-            let s:completedone = 0
-            let g:mucomplete_with_key = 0
-            if get(s:compl_methods, s:i, '') ==# 'path' && getline('.')[col('.')-2] =~# '\m\f'
-                silent call mucomplete#path#complete()
-            elseif get(s:compl_methods, s:i, '') ==# 'file' && getline('.')[col('.')-2] =~# '\m\f'
-                silent call feedkeys("\<c-x>\<c-f>", 'i')
-            endif
-        elseif !&g:paste && match(strpart(getline('.'), 0, col('.') - 1),
-                    \  get(g:mucomplete#trigger_auto_pattern, getbufvar("%", "&ft"),
-                    \      g:mucomplete#trigger_auto_pattern['default'])) > -1
-            silent call feedkeys("\<plug>(MUcompleteAuto)", 'i')
-        endif
-    endfu
-
-    fu! mucomplete#enable_auto() abort
+fu! s:act_on_textchanged() abort
+    if s:completedone
         let s:completedone = 0
         let g:mucomplete_with_key = 0
-        augroup MUcompleteAuto
-            autocmd!
-            autocmd TextChangedI * noautocmd call s:act_on_textchanged()
-            autocmd CompleteDone * noautocmd let s:completedone = 1
-        augroup END
-        let s:auto = 1
-    endfu
-
-    fu! mucomplete#disable_auto() abort
-        if exists('#MUcompleteAuto')
-            autocmd! MUcompleteAuto
-            augroup! MUcompleteAuto
+        if get(s:compl_methods, s:i, '') ==# 'path' && getline('.')[col('.')-2] =~# '\m\f'
+            silent call mucomplete#path#complete()
+        elseif get(s:compl_methods, s:i, '') ==# 'file' && getline('.')[col('.')-2] =~# '\m\f'
+            silent call feedkeys("\<c-x>\<c-f>", 'i')
         endif
-        let s:auto = 0
-    endfu
+    elseif !&g:paste && match(strpart(getline('.'), 0, col('.') - 1),
+                \  get(g:mucomplete#trigger_auto_pattern, getbufvar("%", "&ft"),
+                \      g:mucomplete#trigger_auto_pattern['default'])) > -1
+        silent call feedkeys("\<plug>(MUcompleteAuto)", 'i')
+    endif
+endfu
 
-    fu! mucomplete#toggle_auto() abort
-        if exists('#MUcompleteAuto')
-            call mucomplete#disable_auto()
-            echomsg '[MUcomplete] Auto off'
-        else
-            call mucomplete#enable_auto()
-            echomsg '[MUcomplete] Auto on'
-        endif
-    endfu
-endif
+fu! mucomplete#enable_auto() abort
+    let s:completedone = 0
+    let g:mucomplete_with_key = 0
+    augroup MUcompleteAuto
+        autocmd!
+        autocmd TextChangedI * noautocmd call s:act_on_textchanged()
+        autocmd CompleteDone * noautocmd let s:completedone = 1
+    augroup END
+    let s:auto = 1
+endfu
+
+fu! mucomplete#disable_auto() abort
+    if exists('#MUcompleteAuto')
+        autocmd! MUcompleteAuto
+        augroup! MUcompleteAuto
+    endif
+    let s:auto = 0
+endfu
+
+fu! mucomplete#toggle_auto() abort
+    if exists('#MUcompleteAuto')
+        call mucomplete#disable_auto()
+        echomsg '[MUcomplete] Auto off'
+    else
+        call mucomplete#enable_auto()
+        echomsg '[MUcomplete] Auto on'
+    endif
+endfu
 
 " Patterns to decide when automatic completion should be triggered.
 let g:mucomplete#trigger_auto_pattern = extend({
