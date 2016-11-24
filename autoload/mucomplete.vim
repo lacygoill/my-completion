@@ -82,15 +82,15 @@
 "
 " "}}}
 
-let s:cnp = "\<c-g>\<c-g>"
+let s:exit_ctrl_x = "\<c-g>\<c-g>"
 let s:compl_mappings = {
-                       \ 'c-n' : s:cnp."\<c-n>",
-                       \ 'c-p' : s:cnp."\<c-p>",
+                       \ 'c-n' : s:exit_ctrl_x."\<c-n>",
+                       \ 'c-p' : s:exit_ctrl_x."\<c-p>",
                        \ 'defs': "\<c-x>\<c-d>",
                        \ 'file': "\<c-x>\<c-f>",
                        \ 'incl': "\<c-x>\<c-i>",
                        \ 'dict': "\<c-x>\<c-k>",
-                       \ 'line': s:cnp."\<c-x>\<c-l>",
+                       \ 'line': s:exit_ctrl_x."\<c-x>\<c-l>",
                        \ 'keyn': "\<c-x>\<c-n>",
                        \ 'omni': "\<c-x>\<c-o>",
                        \ 'keyp': "\<c-x>\<c-p>",
@@ -104,7 +104,7 @@ let s:compl_mappings = {
                        \ 'uspl': "\<c-o>:call mucomplete#spel#gather()\<cr>\<c-r>=mucomplete#spel#complete()\<cr>",
                        \ }
 
-unlet s:cnp
+unlet s:exit_ctrl_x
 let s:select_entry = { 'c-p' : "\<c-p>\<down>", 'keyp': "\<c-p>\<down>" }
 let s:pathsep = exists('+shellslash') && !&shellslash ? '\\' : '/'
 " Internal state
