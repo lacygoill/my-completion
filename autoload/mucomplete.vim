@@ -12,7 +12,7 @@
 " current mode is the ctrl-x submode. (pressing <c-p>, say, immediately after
 " <c-x><c-o> would do a different thing).
 
-let s:cnp = "\<c-x>" . get(g:, 'mucomplete#exit_ctrlx_keys', "\<c-b>\<bs>")
+let s:cnp = "\<c-x>\<c-b>\<bs>"
 let s:compl_mappings = {
             \ 'c-n' : s:cnp."\<c-n>", 'c-p' : s:cnp."\<c-p>",
             \ 'cmd' : "\<c-x>\<c-v>", 'defs': "\<c-x>\<c-d>",
