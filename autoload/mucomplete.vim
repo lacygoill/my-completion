@@ -2,29 +2,86 @@
 " Maintainer: Lifepillar <lifepillar@lifepillar.me>
 " License: This file is placed in the public domain
 
-" Note: In 'c-n' and 'c-p' below we use the fact that pressing <c-x> while in
-" ctrl-x submode doesn't do anything and any key that is not valid in ctrl-x
-" submode silently ends that mode (:h complete_CTRL-Y) and inserts the key.
-" Hence, after <c-x><c-b>, we are surely out of ctrl-x submode. The subsequent
-" <bs> is used to delete the inserted <c-b>. We use <c-b> because it is not
-" mapped (:h i_CTRL-B-gone). This trick is needed to have <c-p> (and <c-n>)
-" trigger keyword completion under all circumstances, in particular when the
-" current mode is the ctrl-x submode. (pressing <c-p>, say, immediately after
-" <c-x><c-o> would do a different thing).
+" The methods `c-n` and `c-p` are tricky to invoke."{{{
+"
+" Indeed, we don't know in advance WHEN they will be invoked.
+" As the first ones? Or after other failing methods?
+"
+" For example, if `c-n` is the first method to be invoked after hitting Tab,
+" then there's NO problem.
+" But if it's invoked after another one, there MIGHT be a problem.
+" Suppose the previous failing method left us in `C-x` submode (C-x C-…),
+" then `C-n` will be interpreted, WRONGLY, as an attempt to cycle in the menu.
+" So, we should prefix `C-n` with `C-e` to exit `C-x` submode, right?
+" Nope.
+" Because then, if the `C-n` method was the first one to be invoked, then
+" `C-e` will be interpreted as ’copy the character below the current one’.
+"
+" MUcomplete.vim chooses the solution of prefixing the trigger keys with:
+"
+"         C-x C-b BS
+"
+" What does it do?
+" `C-b` is not a valid key in C-x submode. Any invalid key makes us leave the
+" submode, and is inserted. So, we leave the submode, C-b is inserted, and BS
+" deletes it.
+" And why did lifepillar choose C-b?
+" Because by default, this key is unmapped, see: :h i_CTRL-B-gone
+"
+" All in all, this trick works.
+" BUT, there's a problem for me. I have remapped C-B to move the cursor back.
+" Because of this, the trick won't work.
+"
+" We have to choose another key. I'm going to use `C-g C-g`.
+" Why this key?
+" Because by default, C-g is used as a prefix in insert mode for various kind
+" of actions. To get a list of them, type: :h i_^g C-d
+" Currently, behind this prefix, there is:
+"
+"         CTRL-J
+"         CTRL-K
+"         Down
+"         Up
+"         j
+"         k
+"         u
+"         U
+"
+" Vim may map other actions in the future on other keys, but for the moment
+" nothing is mapped on CTRL-G.
+"
+" FIXME:
+" It seems to work, but are we sure it is as good as `C-x C-b`?
+" Ask lifepillar what he thinks, here:
+"
+"     https://github.com/lifepillar/vim-mucomplete/issues/4
+"
+" But don't ask him to integrate the change. He doesn't want. He added the tag
+" `wontfix` and closed the issue.
+"
+" "}}}
 
-let s:cnp = "\<c-x>\<c-b>\<bs>"
+let s:cnp = "\<c-g>\<c-g>"
 let s:compl_mappings = {
-            \ 'c-n' : s:cnp."\<c-n>", 'c-p' : s:cnp."\<c-p>",
-            \ 'cmd' : "\<c-x>\<c-v>", 'defs': "\<c-x>\<c-d>",
-            \ 'dict': "\<c-x>\<c-k>", 'file': "\<c-x>\<c-f>",
-            \ 'incl': "\<c-x>\<c-i>", 'keyn': "\<c-x>\<c-n>",
-            \ 'keyp': "\<c-x>\<c-p>", 'line': s:cnp."\<c-x>\<c-l>",
-            \ 'omni': "\<c-x>\<c-o>", 'spel': "\<c-x>s"     ,
-            \ 'tags': "\<c-x>\<c-]>", 'thes': "\<c-x>\<c-t>",
-            \ 'user': "\<c-x>\<c-u>", 'ulti': "\<c-r>=mucomplete#ultisnips#complete()\<cr>",
-            \ 'path': "\<c-r>=mucomplete#path#complete()\<cr>",
-            \ 'uspl': "\<c-o>:call mucomplete#spel#gather()\<cr>\<c-r>=mucomplete#spel#complete()\<cr>"
-            \ }
+                       \ 'c-n' : s:cnp."\<c-n>",
+                       \ 'c-p' : s:cnp."\<c-p>",
+                       \ 'defs': "\<c-x>\<c-d>",
+                       \ 'file': "\<c-x>\<c-f>",
+                       \ 'incl': "\<c-x>\<c-i>",
+                       \ 'dict': "\<c-x>\<c-k>",
+                       \ 'line': s:cnp."\<c-x>\<c-l>",
+                       \ 'keyn': "\<c-x>\<c-n>",
+                       \ 'omni': "\<c-x>\<c-o>",
+                       \ 'keyp': "\<c-x>\<c-p>",
+                       \ 'spel': "\<c-x>s",
+                       \ 'thes': "\<c-x>\<c-t>",
+                       \ 'user': "\<c-x>\<c-u>",
+                       \ 'cmd' : "\<c-x>\<c-v>",
+                       \ 'tags': "\<c-x>\<c-]>",
+                       \ 'ulti': "\<c-r>=mucomplete#ultisnips#complete()\<cr>",
+                       \ 'path': "\<c-r>=mucomplete#path#complete()\<cr>",
+                       \ 'uspl': "\<c-o>:call mucomplete#spel#gather()\<cr>\<c-r>=mucomplete#spel#complete()\<cr>",
+                       \ }
 
 unlet s:cnp
 let s:select_entry = { 'c-p' : "\<c-p>\<down>", 'keyp': "\<c-p>\<down>" }
