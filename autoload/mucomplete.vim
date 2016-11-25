@@ -235,7 +235,6 @@ let g:mucomplete#can_complete = {
                                 \               'omni': { t -> strlen(&l:omnifunc) > 0 },
                                 \               'spel': { t -> &l:spell && !empty(&l:spelllang) },
                                 \               'tags': { t -> !empty(tagfiles()) },
-                                \               'thes': { t -> strlen(&l:thesaurus) > 0 },
                                 \               'user': { t -> strlen(&l:completefunc) > 0 },
                                 \               'path': { t -> t =~# '\v[/~]\f*$' },
                                 \               'uspl': { t -> &l:spell && !empty(&l:spelllang) },
