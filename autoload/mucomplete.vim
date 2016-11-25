@@ -187,7 +187,7 @@ fu! s:act_on_textchanged() abort
         elseif get(s:methods_to_try, s:i, '') ==# 'file' && getline('.')[col('.')-2] =~# '\m\f'
             sil call feedkeys("\<c-x>\<c-f>", 'i')
         endif
-    elseif !&g:paste && match(strpart(getline('.'), 0, col('.') - 1),
+    elseif match(strpart(getline('.'), 0, col('.') - 1),
                 \  get(g:mucomplete#trigger_auto_pattern, &ft,
                 \      g:mucomplete#trigger_auto_pattern['default'])) > -1
         sil call feedkeys("\<plug>(MUcompleteAuto)", 'i')
