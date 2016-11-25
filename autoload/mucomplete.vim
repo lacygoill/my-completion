@@ -188,7 +188,7 @@ fu! s:act_on_textchanged() abort
             sil call feedkeys("\<c-x>\<c-f>", 'i')
         endif
     elseif !&g:paste && match(strpart(getline('.'), 0, col('.') - 1),
-                \  get(g:mucomplete#trigger_auto_pattern, getbufvar('%', '&ft'),
+                \  get(g:mucomplete#trigger_auto_pattern, &ft,
                 \      g:mucomplete#trigger_auto_pattern['default'])) > -1
         sil call feedkeys("\<plug>(MUcompleteAuto)", 'i')
     endif
@@ -277,7 +277,7 @@ fu! s:act_on_pumvisible() abort
 endfu
 
 fu! s:can_complete() abort
-    return get(get(g:mucomplete#can_complete, getbufvar('%','&ft'), {}),
+    return get(get(g:mucomplete#can_complete, &ft, {}),
                 \          s:methods_to_try[s:i],
                 \          get(g:mucomplete#can_complete['default'], s:methods_to_try[s:i], s:yes_you_can)
                 \ )(s:text_to_complete)
@@ -328,7 +328,7 @@ fu! mucomplete#complete(dir) abort
 
     let [s:dir, s:cycle] = [a:dir, 0]
     let s:methods_to_try = get(b:, 'mucomplete_chain',
-                                 \ get(g:mu_chains, getbufvar('%', '&ft'), g:mu_chains['default'])
+                                 \ get(g:mu_chains, &ft, g:mu_chains['default'])
                             \ )
 
     let s:N = len(s:methods_to_try)
