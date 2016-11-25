@@ -228,20 +228,20 @@ let g:mucomplete#chains = extend({
 "}}}
 
 let s:yes_you_can = { _ -> 1 } " Try always
-let g:mucomplete#can_complete = extend({
-            \ 'default' : extend({
-            \     'dict':  { t -> strlen(&l:dictionary) > 0 },
-            \     'file':  { t -> t =~# '\v[/~]\f*$' },
-            \     'omni':  { t -> strlen(&l:omnifunc) > 0 },
-            \     'spel':  { t -> &l:spell && !empty(&l:spelllang) },
-            \     'tags':  { t -> !empty(tagfiles()) },
-            \     'thes':  { t -> strlen(&l:thesaurus) > 0 },
-            \     'user':  { t -> strlen(&l:completefunc) > 0 },
-            \     'path':  { t -> t =~# '\v[/~]\f*$' },
-            \     'uspl':  { t -> &l:spell && !empty(&l:spelllang) },
-            \     'ulti':  { t -> get(g:, 'did_plugin_ultisnips', 0) }
-            \   }, get(get(g:, 'mucomplete#can_complete', {}), 'default', {}))
-            \ }, get(g:, 'mucomplete#can_complete', {}), 'keep')
+let g:mucomplete#can_complete = {
+                                \ 'default' : {
+                                \               'dict': { t -> strlen(&l:dictionary) > 0 },
+                                \               'file': { t -> t =~# '\v[/~]\f*$' },
+                                \               'omni': { t -> strlen(&l:omnifunc) > 0 },
+                                \               'spel': { t -> &l:spell && !empty(&l:spelllang) },
+                                \               'tags': { t -> !empty(tagfiles()) },
+                                \               'thes': { t -> strlen(&l:thesaurus) > 0 },
+                                \               'user': { t -> strlen(&l:completefunc) > 0 },
+                                \               'path': { t -> t =~# '\v[/~]\f*$' },
+                                \               'uspl': { t -> &l:spell && !empty(&l:spelllang) },
+                                \               'ulti': { t -> get(g:, 'did_plugin_ultisnips', 0) },
+                                \             },
+                                \ }
 
 fu! s:act_on_pumvisible() abort
     let s:pumvisible = 0
