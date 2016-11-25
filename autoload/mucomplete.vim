@@ -143,23 +143,23 @@ let s:compl_mappings = {
                        \ }
 unlet s:exit_ctrl_x
 
-let s:select_entry  = { 'c-p' : "\<c-p>\<down>", 'keyp': "\<c-p>\<down>" }
+let s:select_entry     = { 'c-p' : "\<c-p>\<down>", 'keyp': "\<c-p>\<down>" }
 " Internal state
-let s:compl_methods = []
-let s:compl_text    = ''
-let s:auto          = 0
-let s:dir           = 1
-let s:cycle         = 0
-let s:i             = 0
-let s:pumvisible    = 0
+let s:methods_to_try   = []
+let s:text_to_complete = ''
+let s:auto             = 0
+let s:dir              = 1
+let s:cycle            = 0
+let s:i                = 0
+let s:pumvisible       = 0
 
 fu! s:act_on_textchanged() abort
     if s:completedone
         let s:completedone = 0
         let g:mucomplete_with_key = 0
-        if get(s:compl_methods, s:i, '') ==# 'path' && getline('.')[col('.')-2] =~# '\m\f'
+        if get(s:methods_to_try, s:i, '') ==# 'path' && getline('.')[col('.')-2] =~# '\m\f'
             sil call mucomplete#path#complete()
-        elseif get(s:compl_methods, s:i, '') ==# 'file' && getline('.')[col('.')-2] =~# '\m\f'
+        elseif get(s:methods_to_try, s:i, '') ==# 'file' && getline('.')[col('.')-2] =~# '\m\f'
             sil call feedkeys("\<c-x>\<c-f>", 'i')
         endif
     elseif !&g:paste && match(strpart(getline('.'), 0, col('.') - 1),
@@ -232,10 +232,10 @@ let g:mucomplete#can_complete = {
                                 \ 'default' : {
                                 \               'dict': { t -> strlen(&l:dictionary) > 0 },
                                 \               'file': { t -> t =~# '\v[/~]\f*$' },
+                                \               'path': { t -> t =~# '\v[/~]\f*$' },
                                 \               'omni': { t -> strlen(&l:omnifunc) > 0 },
                                 \               'tags': { t -> !empty(tagfiles()) },
                                 \               'user': { t -> strlen(&l:completefunc) > 0 },
-                                \               'path': { t -> t =~# '\v[/~]\f*$' },
                                 \               'uspl': { t -> &l:spell && !empty(&l:spelllang) },
                                 \               'ulti': { t -> get(g:, 'did_plugin_ultisnips', 0) },
                                 \             },
@@ -243,19 +243,19 @@ let g:mucomplete#can_complete = {
 
 fu! s:act_on_pumvisible() abort
     let s:pumvisible = 0
-    return s:auto || index(['spel','uspl'], get(s:compl_methods, s:i, '')) > - 1
+    return s:auto || index(['spel','uspl'], get(s:methods_to_try, s:i, '')) > - 1
                 \ ? ''
                 \ : (stridx(&l:completeopt, 'noselect') == -1
                 \     ? (stridx(&l:completeopt, 'noinsert') == - 1 ? '' : "\<up>\<c-n>")
-                \     : get(s:select_entry, s:compl_methods[s:i], "\<c-n>\<up>")
+                \     : get(s:select_entry, s:methods_to_try[s:i], "\<c-n>\<up>")
                 \   )
 endfu
 
 fu! s:can_complete() abort
     return get(get(g:mucomplete#can_complete, getbufvar('%','&ft'), {}),
-                \          s:compl_methods[s:i],
-                \          get(g:mucomplete#can_complete['default'], s:compl_methods[s:i], s:yes_you_can)
-                \ )(s:compl_text)
+                \          s:methods_to_try[s:i],
+                \          get(g:mucomplete#can_complete['default'], s:methods_to_try[s:i], s:yes_you_can)
+                \ )(s:text_to_complete)
 endfu
 
 fu! mucomplete#yup() abort
@@ -270,7 +270,7 @@ fu! s:next_method() abort
         let s:i = (s:cycle ? (s:i + s:dir + s:N) % s:N : s:i + s:dir)
     endwhile
     if (s:i+1) % (s:N+1) != 0
-        return s:compl_mappings[s:compl_methods[s:i]] .
+        return s:compl_mappings[s:methods_to_try[s:i]] .
                     \ "\<c-r>\<c-r>=pumvisible()?mucomplete#yup():''\<cr>\<plug>(MUcompleteNxt)"
     endif
     return ''
@@ -295,14 +295,14 @@ endfu
 
 " Precondition: pumvisible() is false.
 fu! mucomplete#complete(dir) abort
-    let s:compl_text = matchstr(strpart(getline('.'), 0, col('.') - 1), '\S\+$')
-    if strlen(s:compl_text) == 0
+    let s:text_to_complete = matchstr(strpart(getline('.'), 0, col('.') - 1), '\S\+$')
+    if strlen(s:text_to_complete) == 0
         return (a:dir > 0 ? "\<plug>(MUcompleteTab)" : "\<plug>(MUcompleteCtd)")
     endif
     let [s:dir, s:cycle] = [a:dir, 0]
-    let s:compl_methods = get(b:, 'mucomplete_chain',
+    let s:methods_to_try = get(b:, 'mucomplete_chain',
                 \ get(g:mucomplete#chains, getbufvar('%', '&ft'), g:mucomplete#chains['default']))
-    let s:N = len(s:compl_methods)
+    let s:N = len(s:methods_to_try)
     let s:i = s:dir > 0 ? -1 : s:N
     return s:next_method()
 endfu
