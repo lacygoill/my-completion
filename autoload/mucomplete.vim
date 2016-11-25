@@ -311,13 +311,6 @@ fu! mucomplete#cycle(dir) abort
     return "\<c-e>" . s:next_method()
 endfu
 
-" Precondition: pumvisible() is true.
-fu! mucomplete#cycle_or_select(dir) abort
-    return get(g:, 'mucomplete#cycle_with_trigger', 0)
-                \ ? mucomplete#cycle(a:dir)
-                \ : (a:dir > 0 ? "\<c-n>" : "\<c-p>")
-endfu
-
 " Precondition: pumvisible() is false.
 fu! mucomplete#complete(dir) abort
     let s:text_to_complete = matchstr(strpart(getline('.'), 0, col('.') - 1), '\S\+$')
@@ -339,7 +332,9 @@ endfu
 
 fu! mucomplete#tab_complete(dir) abort
     if pumvisible()
-        return mucomplete#cycle_or_select(a:dir)
+        return get(g:, 'mucomplete#cycle_with_trigger', 0)
+                    \ ? mucomplete#cycle(a:dir)
+                    \ : (a:dir > 0 ? "\<c-n>" : "\<c-p>")
     else
         let g:mucomplete_with_key = 1
         return mucomplete#complete(a:dir)
