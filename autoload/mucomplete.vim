@@ -332,7 +332,7 @@ endfu
 
 fu! mucomplete#tab_complete(dir) abort
     if pumvisible()
-        return get(g:, 'mucomplete#cycle_with_trigger', 0)
+        return get(g:, 'mu_cycle_with_trigger', 0)
                     \ ? mucomplete#cycle(a:dir)
                     \ : (a:dir > 0 ? "\<c-n>" : "\<c-p>")
     else
