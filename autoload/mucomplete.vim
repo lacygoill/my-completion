@@ -233,7 +233,6 @@ let g:mucomplete#can_complete = {
                                 \               'dict': { t -> strlen(&l:dictionary) > 0 },
                                 \               'file': { t -> t =~# '\v[/~]\f*$' },
                                 \               'omni': { t -> strlen(&l:omnifunc) > 0 },
-                                \               'spel': { t -> &l:spell && !empty(&l:spelllang) },
                                 \               'tags': { t -> !empty(tagfiles()) },
                                 \               'user': { t -> strlen(&l:completefunc) > 0 },
                                 \               'path': { t -> t =~# '\v[/~]\f*$' },
