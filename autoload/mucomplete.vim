@@ -144,7 +144,6 @@ let s:compl_mappings = {
 unlet s:exit_ctrl_x
 
 let s:select_entry  = { 'c-p' : "\<c-p>\<down>", 'keyp': "\<c-p>\<down>" }
-let s:pathsep       = exists('+shellslash') && !&shellslash ? '\\' : '/'
 " Internal state
 let s:compl_methods = []
 let s:compl_text    = ''
@@ -215,13 +214,13 @@ if has('lambda')
     let g:mucomplete#can_complete = extend({
                 \ 'default' : extend({
                 \     'dict':  { t -> strlen(&l:dictionary) > 0 },
-                \     'file':  { t -> t =~# '\m\%('.s:pathsep.'\|\~\)\f*$' },
+                \     'file':  { t -> t =~# '\m\%(/\|\~\)\f*$' },
                 \     'omni':  { t -> strlen(&l:omnifunc) > 0 },
                 \     'spel':  { t -> &l:spell && !empty(&l:spelllang) },
                 \     'tags':  { t -> !empty(tagfiles()) },
                 \     'thes':  { t -> strlen(&l:thesaurus) > 0 },
                 \     'user':  { t -> strlen(&l:completefunc) > 0 },
-                \     'path':  { t -> t =~# '\m\%('.s:pathsep.'\|\~\)\f*$' },
+                \     'path':  { t -> t =~# '\m\%(/\|\~\)\f*$' },
                 \     'uspl':  { t -> &l:spell && !empty(&l:spelllang) },
                 \     'ulti':  { t -> get(g:, 'did_plugin_ultisnips', 0) }
                 \   }, get(get(g:, 'mucomplete#can_complete', {}), 'default', {}))
