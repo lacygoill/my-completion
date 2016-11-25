@@ -208,19 +208,36 @@ let g:mucomplete#chains = extend({
             \ 'default' : ['file', 'omni', 'keyn', 'dict']
             \ }, get(g:, 'mucomplete#chains', {}))
 
-" Conditions to be verified for a given method to be applied.
+" Conditions to be verified for a given method to be applied."{{{
+"
+" Explanation of the regex for the file completion method:
+"
+"     \v[/~]\f*$
+"
+" Before the cursor, there must a slash or a tilda, then zero or more characters
+" in 'isfname'.
+" By default the tilda is in 'isf', so why not simply:
+"
+"     \v/?\f*
+"
+" Because then, it would match anything. The condition would be useless.
+" At the very least, we want a slash or a tilda before the cursor.
+" The filename characters afterwards are optional, because we could try to
+" complete `some_dir/` or just `~`.
+"
+"}}}
 if has('lambda')
     let s:yes_you_can = { _ -> 1 } " Try always
     let g:mucomplete#can_complete = extend({
                 \ 'default' : extend({
                 \     'dict':  { t -> strlen(&l:dictionary) > 0 },
-                \     'file':  { t -> t =~# '\m\%(/\|\~\)\f*$' },
+                \     'file':  { t -> t =~# '\v[/~]\f*$' },
                 \     'omni':  { t -> strlen(&l:omnifunc) > 0 },
                 \     'spel':  { t -> &l:spell && !empty(&l:spelllang) },
                 \     'tags':  { t -> !empty(tagfiles()) },
                 \     'thes':  { t -> strlen(&l:thesaurus) > 0 },
                 \     'user':  { t -> strlen(&l:completefunc) > 0 },
-                \     'path':  { t -> t =~# '\m\%(/\|\~\)\f*$' },
+                \     'path':  { t -> t =~# '\v[/~]\f*$' },
                 \     'uspl':  { t -> &l:spell && !empty(&l:spelllang) },
                 \     'ulti':  { t -> get(g:, 'did_plugin_ultisnips', 0) }
                 \   }, get(get(g:, 'mucomplete#can_complete', {}), 'default', {}))
