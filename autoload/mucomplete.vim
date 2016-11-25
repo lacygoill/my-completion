@@ -204,9 +204,9 @@ let g:mucomplete#trigger_auto_pattern = extend({
             \ }, get(g:, 'mucomplete#trigger_auto_pattern', {}))
 
 " Completion chains
-let g:mucomplete#chains = extend({
-            \ 'default' : ['file', 'omni', 'keyn', 'dict']
-            \ }, get(g:, 'mucomplete#chains', {}))
+let g:mu_chains = extend({
+                         \ 'default' : ['file', 'omni', 'keyn', 'dict']
+                         \ }, get(g:, 'mu_chains', {}))
 
 " Conditions to be verified for a given method to be applied."{{{
 "
@@ -296,14 +296,18 @@ endfu
 " Precondition: pumvisible() is false.
 fu! mucomplete#complete(dir) abort
     let s:text_to_complete = matchstr(strpart(getline('.'), 0, col('.') - 1), '\S\+$')
-    if strlen(s:text_to_complete) == 0
+
+    if empty(s:text_to_complete)
         return (a:dir > 0 ? "\<plug>(MUcompleteTab)" : "\<plug>(MUcompleteCtd)")
     endif
+
     let [s:dir, s:cycle] = [a:dir, 0]
     let s:methods_to_try = get(b:, 'mucomplete_chain',
-                \ get(g:mucomplete#chains, getbufvar('%', '&ft'), g:mucomplete#chains['default']))
+                                 \ get(g:mu_chains, getbufvar('%', '&ft'), g:mu_chains['default']))
+
     let s:N = len(s:methods_to_try)
     let s:i = s:dir > 0 ? -1 : s:N
+
     return s:next_method()
 endfu
 
