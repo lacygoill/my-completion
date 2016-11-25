@@ -20,7 +20,7 @@
 "         E15: Invalid expression: (s:cycle ? (s:i + s:dir + s:N) % s:N : s:i + s:dir)
 "
 " Note:
-" C-k is use to cycle backward in the chained methods.
+" C-k is use to cycle backward in the completion chain.
 " By default, it was C-h. I changed the mapping.
 "
 "}}}
@@ -108,7 +108,7 @@
 "
 " According to lifepillar, this can cause a problem when autocompletion
 " is enabled.
-" I can see how. The user set up line completion in his chained methods.
+" I can see how. The user set up line completion in his completion chain.
 " Line completion is invoked automatically but he refuses the suggestion,
 " and goes on typing. Later, line completion is invoked a second time.
 " This time, there will be no suggestion, because the current line is likely
