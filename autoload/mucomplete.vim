@@ -83,23 +83,33 @@
 " `wontfix` and closed the issue.
 "
 " "}}}
-" FIXME: QUESTION "{{{
+" Why do we need to prepend `s:exit_ctrl_x` in front of "\<c-x>\<c-l>"? "{{{
 "
-" Why do we need to prepend `s:exit_ctrl_x` in front of "\<c-x>\<c-l>"?
+" Suppose we have the following buffer:
 "
-" When we reach the end of a line which is present twice in the buffer, if we
-" hit `C-x C-l` twice, it inserts a newline.
+"     hello world
 "
-" What happens here?
+" On another line, we write:
 "
-"     We have 2 identical lines:    L1 and L1'
-"     After L1, there's L2.
-"     The cursor is at the end of L1'.
-"     The first `C-x C-l` invocation only suggests L1.
-"     The second one inserts a newline and suggests L2.
+"     hello C-x C-l
 "
-" According to lifepillar, this can cause a problem, when autocompletion
-" is enabled. I don't see how. I can't reproduce. Ask him a MWE.
+" The line completion suggests us `hello world`, but we refuse and go on typing:
+"
+"     hello people
+"
+" If we hit C-x C-l again, the line completion will insert a newline.
+" Why?
+" It's probably one of Vim's quirks / bugs.
+" It shouldn't insert anything, because now the line is unique.
+"
+" According to lifepillar, this can cause a problem when autocompletion
+" is enabled.
+" I can see how. The user set up line completion in his chained methods.
+" Line completion is invoked automatically but he refuses the suggestion,
+" and goes on typing. Later, line completion is invoked a second time.
+" This time, there will be no suggestion, because the current line is likely
+" unique (the user typed something that was nowhere else), but line completion
+" will still insert a newline.
 "
 " Here's what lifepillar commented on the patch that introduced it:
 "
@@ -117,6 +127,17 @@
 " To find the commit:
 "
 "     $ gsearch 's:cnp."\<c-x>\<c-l>"'
+"
+" There's a case, though, where adding a newline can make sense for line
+" completion. When we're at the END of a line existing in multiple places, and
+" we hit `C-x C-l`. Invoking line completion twice inserts a newline to suggest
+" us the next line:
+"
+"     We have 2 identical lines:    L1 and L1'
+"     After L1, there's L2.
+"     The cursor is at the end of L1'.
+"     The first `C-x C-l` invocation only suggests L1.
+"     The second one inserts a newline and suggests L2.
 "
 "}}}
 
@@ -303,7 +324,8 @@ fu! mucomplete#complete(dir) abort
 
     let [s:dir, s:cycle] = [a:dir, 0]
     let s:methods_to_try = get(b:, 'mucomplete_chain',
-                                 \ get(g:mu_chains, getbufvar('%', '&ft'), g:mu_chains['default']))
+                                 \ get(g:mu_chains, getbufvar('%', '&ft'), g:mu_chains['default'])
+                            \ )
 
     let s:N = len(s:methods_to_try)
     let s:i = s:dir > 0 ? -1 : s:N
