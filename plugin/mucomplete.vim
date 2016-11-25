@@ -18,10 +18,10 @@ ino         <silent> <plug>(MUcompleteCtd)    <c-d>
 
 imap              <tab>                    <plug>(MUcompleteFwd)
 imap              <s-tab>                  <plug>(MUcompleteBwd)
-ino      <silent> <plug>(MUcompleteFwdKey) <c-l>
-imap              <c-l>                    <plug>(MUcompleteCycFwd)
-ino      <silent> <plug>(MUcompleteBwdKey) <c-h>
-imap              <c-h>                    <plug>(MUcompleteCycBwd)
+ino      <silent> <plug>(MUcompleteFwdKey) <c-j>
+imap              <c-j>                    <plug>(MUcompleteCycFwd)
+ino      <silent> <plug>(MUcompleteBwdKey) <c-k>
+imap              <c-k>                    <plug>(MUcompleteCycBwd)
 
 com! -nargs=0 MUcompleteAutoOn     call mucomplete#enable_auto()
 com! -nargs=0 MUcompleteAutoOff    call mucomplete#disable_auto()

@@ -4,7 +4,7 @@
 
 " FIXME: BUG "{{{
 "
-" If I hit C-x C-p C-h at the end of this line:
+" If I hit C-x C-p C-k at the end of this line:
 "
 "     License: This file
 "
@@ -18,6 +18,10 @@
 "         mucomplete#cycle[2]..<SNR>66_next_method:
 "         line    1:
 "         E15: Invalid expression: (s:cycle ? (s:i + s:dir + s:N) % s:N : s:i + s:dir)
+"
+" Note:
+" C-k is use to cycle backward in the chained methods.
+" By default, it was C-h. I changed the mapping.
 "
 "}}}
 " The methods `c-n` and `c-p` are tricky to invoke."{{{
