@@ -13,7 +13,7 @@
 "         Error detected while processing function
 "         mucomplete#cycle[2]..<SNR>66_next_method:
 "         line    1:
-"         E15: Invalid expression: (s:cycle ? (s:i + s:dir + s:N) % s:N : s:i + s:dir)
+"         E15: Invalid expression: (s:cycle ? (s:idx + s:dir + s:N) % s:N : s:idx + s:dir)
 "
 " Note:
 " C-k is use to cycle backward in the completion chain.
@@ -247,18 +247,20 @@ let s:word_to_complete = ''
 let s:auto             = 0
 let s:dir              = 1
 let s:cycle            = 0
-let s:i                = 0
+let s:idx              = 0
 let s:pumvisible       = 0
 
 fu! s:act_on_textchanged() abort
     if s:completedone
         let s:completedone = 0
         let g:mucomplete_with_key = 0
-        if get(s:methods_to_try, s:i, '') ==# 'path' && getline('.')[col('.')-2] =~# '\m\f'
+
+        if get(s:methods_to_try, s:idx, '') ==# 'path' && getline('.')[col('.')-2] =~# '\m\f'
             sil call mucomplete#path#complete()
-        elseif get(s:methods_to_try, s:i, '') ==# 'file' && getline('.')[col('.')-2] =~# '\m\f'
+        elseif get(s:methods_to_try, s:idx, '') ==# 'file' && getline('.')[col('.')-2] =~# '\m\f'
             sil call feedkeys("\<c-x>\<c-f>", 'i')
         endif
+
     elseif match(strpart(getline('.'), 0, col('.') - 1),
                 \  get(g:mucomplete#trigger_auto_pattern, &ft,
                 \      g:mucomplete#trigger_auto_pattern['default'])) > -1
@@ -267,8 +269,9 @@ fu! s:act_on_textchanged() abort
 endfu
 
 fu! mucomplete#enable_auto() abort
-    let s:completedone = 0
+    let s:completedone        = 0
     let g:mucomplete_with_key = 0
+
     augroup MUcompleteAuto
         autocmd!
         autocmd TextChangedI * noautocmd call s:act_on_textchanged()
@@ -338,18 +341,18 @@ let g:mucomplete#can_complete = {
 
 fu! s:act_on_pumvisible() abort
     let s:pumvisible = 0
-    return s:auto || index(['spel','uspl'], get(s:methods_to_try, s:i, '')) > - 1
+    return s:auto || index(['spel','uspl'], get(s:methods_to_try, s:idx, '')) > - 1
                 \ ? ''
                 \ : (stridx(&l:completeopt, 'noselect') == -1
                 \     ? (stridx(&l:completeopt, 'noinsert') == - 1 ? '' : "\<up>\<c-n>")
-                \     : get(s:select_entry, s:methods_to_try[s:i], "\<c-n>\<up>")
+                \     : get(s:select_entry, s:methods_to_try[s:idx], "\<c-n>\<up>")
                 \   )
 endfu
 
 fu! s:can_complete() abort
     return get(get(g:mucomplete#can_complete, &ft, {}),
-                \          s:methods_to_try[s:i],
-                \          get(g:mucomplete#can_complete['default'], s:methods_to_try[s:i], s:yes_you_can)
+                \          s:methods_to_try[s:idx],
+                \          get(g:mucomplete#can_complete['default'], s:methods_to_try[s:idx], s:yes_you_can)
                 \ )(s:word_to_complete)
 endfu
 
@@ -359,15 +362,60 @@ fu! mucomplete#yup() abort
 endfu
 
 " Precondition: pumvisible() is false.
+"
+"         s:dir   = 1     flag:                            initial direction,                  never changes
+"         s:idx   = -1    number (positive or negative):   idx of the method to try,           CHANGES
+"         s:cycle = 0     flag:                            did we ask to move in the chain ?,  never changes
+"         s:N     = 7     number (positive):               number of methods in the chain,     never changes
+"
+" s:idx = s:idx + s:dir = 1 + -1 = 0
+
 fu! s:next_method() abort
-    let s:i = (s:cycle ? (s:i + s:dir + s:N) % s:N : s:i + s:dir)
-    while (s:i+1) % (s:N+1) != 0  && !s:can_complete()
-        let s:i = (s:cycle ? (s:i + s:dir + s:N) % s:N : s:i + s:dir)
-    endwhile
-    if (s:i+1) % (s:N+1) != 0
-        return s:compl_mappings[s:methods_to_try[s:i]] .
+
+    if s:cycle
+
+        " We will get out of the loop as soon as:
+        "
+        "     the current method can be applied
+        " OR
+        "     the next idx is beyond the chain
+
+        let s:idx = (s:idx + s:dir + s:N) % s:N
+        while (s:idx+1) % (s:N+1) != 0  && !s:can_complete()
+            let s:idx = (s:idx + s:dir + s:N) % s:N
+        endwhile
+
+    else
+
+        " (s:idx+1) % (s:N+1) != 0    the next idx is not beyond the chain
+        " !s:can_complete()           the next method can't be applied
+
+        let s:idx += s:dir
+        while (s:idx+1) % (s:N+1) != 0  && !s:can_complete()
+            let s:idx += s:dir
+        endwhile
+
+    endif
+
+    " After the while loop:
+    "
+    "     if (s:idx+1) % (s:N+1) != 0
+    "
+    " … is equivalent to:
+    "
+    "     if s:can_complete()
+    "
+    " Why don't we use that, then?
+    " Probably to save some time, the function call would be slower.
+    "
+    " Valid values for `idx` are between `-s:N` and `s:N-1` (2*s:N),
+    " because its purpose is to get an item in the chain list.
+
+    if (s:idx+1) % (s:N+1) != 0
+        return s:compl_mappings[s:methods_to_try[s:idx]] .
                     \ "\<c-r>\<c-r>=pumvisible()?mucomplete#yup():''\<cr>\<plug>(MUcompleteNxt)"
     endif
+
     return ''
 endfu
 
@@ -387,7 +435,7 @@ fu! mucomplete#complete(dir) abort
     let s:methods_to_try = get(b:, 'mu_chain', g:mu_chain)
 
     let s:N = len(s:methods_to_try)
-    let s:i = s:dir > 0 ? -1 : s:N
+    let s:idx = s:dir > 0 ? -1 : s:N
 
     return s:next_method()
 endfu
