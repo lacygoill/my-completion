@@ -1,5 +1,5 @@
-imap <expr> <silent> <plug>(MUcompleteCycFwd) pumvisible()?mucomplete#cycle( 1):"\<plug>(MUcompleteFwdKey)"
-imap <expr> <silent> <plug>(MUcompleteCycBwd) pumvisible()?mucomplete#cycle(-1):"\<plug>(MUcompleteBwdKey)"
+imap <expr> <silent> <plug>(MUcompleteCycFwd) pumvisible()?mucomplete#cycle_or_select( 1):"\<plug>(MUcompleteFwdKey)"
+imap <expr> <silent> <plug>(MUcompleteCycBwd) pumvisible()?mucomplete#cycle_or_select(-1):"\<plug>(MUcompleteBwdKey)"
 imap <expr> <silent> <plug>(MUcompleteNxt)    mucomplete#verify_completion()
 imap <expr> <silent> <plug>(MUcompleteAuto)   mucomplete#complete(1)
 imap <expr> <silent> <plug>(MUcompleteFwd)    mucomplete#tab_complete( 1)

@@ -22,7 +22,7 @@
 "}}}
 "FIXME: "{{{
 "
-" Write this in `/tmp/vimrc.vim` (until 'will be stored.'):
+" Write this in `/tmp/vimrc.vim`:
 
 " let g:mucomplete#cycle_with_trigger = 1
 " let g:mu_cycle_with_trigger = 1
@@ -43,7 +43,7 @@
 " The plugin gets stuck in a loop (high cpu).
 "
 " In fact we don't even need the first 2 lines.
-" We can reproduce the bug without them, but by hitting the key to move
+" We can reproduce the bug without them, by hitting the key to move
 " forward in the completion chain (C-j, …).
 
 "}}}
@@ -301,7 +301,7 @@ let g:mucomplete#trigger_auto_pattern = extend({
             \ }, get(g:, 'mucomplete#trigger_auto_pattern', {}))
 
 " Default completion chain
-let g:mu_chain = ['file', 'omni', 'keyn', 'dict', 'uspl', 'path']
+let g:mu_chain = ['file', 'omni', 'keyn', 'dict', 'uspl', 'path', 'ulti']
 
 " Conditions to be verified for a given method to be applied."{{{
 "
@@ -394,19 +394,18 @@ endfu
 
 fu! mucomplete#tab_complete(dir) abort
     if pumvisible()
-        if get(g:, 'mu_cycle_with_trigger', 0)
-            let [s:dir, s:cycle] = [a:dir, 1]
-            return "\<c-e>" . s:next_method()
-        else
-            return (a:dir > 0 ? "\<c-n>" : "\<c-p>")
-        endif
+        return mucomplete#cycle_or_select(a:dir)
     else
         let g:mucomplete_with_key = 1
         return mucomplete#complete(a:dir)
     endif
 endfu
 
-fu! mucomplete#cycle(dir) abort
-    let [s:dir, s:cycle] = [a:dir, 1]
-    return "\<c-e>" . s:next_method()
+fu! mucomplete#cycle_or_select(dir) abort
+    if get(g:, 'mu_cycle_with_trigger', 0)
+        let [s:dir, s:cycle] = [a:dir, 1]
+        return "\<c-e>" . s:next_method()
+    else
+        return (a:dir > 0 ? "\<c-n>" : "\<c-p>")
+    endif
 endfu
