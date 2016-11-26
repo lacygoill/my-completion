@@ -171,7 +171,7 @@ unlet s:exit_ctrl_x
 let s:select_entry     = { 'c-p' : "\<c-p>\<down>", 'keyp': "\<c-p>\<down>" }
 " Internal state
 let s:methods_to_try   = []
-let s:text_to_complete = ''
+let s:word_to_complete = ''
 let s:auto             = 0
 let s:dir              = 1
 let s:cycle            = 0
@@ -280,7 +280,7 @@ fu! s:can_complete() abort
     return get(get(g:mucomplete#can_complete, &ft, {}),
                 \          s:methods_to_try[s:i],
                 \          get(g:mucomplete#can_complete['default'], s:methods_to_try[s:i], s:yes_you_can)
-                \ )(s:text_to_complete)
+                \ )(s:word_to_complete)
 endfu
 
 fu! mucomplete#yup() abort
@@ -307,9 +307,9 @@ endfu
 
 " Precondition: pumvisible() is false.
 fu! mucomplete#complete(dir) abort
-    let s:text_to_complete = matchstr(strpart(getline('.'), 0, col('.') - 1), '\S\+$')
+    let s:word_to_complete = matchstr(strpart(getline('.'), 0, col('.') - 1), '\S\+$')
 
-    if empty(s:text_to_complete)
+    if empty(s:word_to_complete)
         return (a:dir > 0 ? "\<plug>(MUcompleteTab)" : "\<plug>(MUcompleteCtd)")
     endif
 
