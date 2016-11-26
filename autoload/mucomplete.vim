@@ -1,8 +1,4 @@
-" Chained completion that works as I want!
-" Maintainer: Lifepillar <lifepillar@lifepillar.me>
-" License: This file is placed in the public domain
-
-" FIXME: BUG "{{{
+" FIXME: "{{{
 "
 " If I hit C-x C-p C-k at the end of this line:
 "
@@ -23,6 +19,29 @@
 " C-k is use to cycle backward in the completion chain.
 " By default, it was C-h. I changed the mapping.
 "
+"}}}
+"FIXME: "{{{
+"
+" Write this in `/tmp/vimrc.vim` (until 'will be stored.'):
+
+" let g:mucomplete#cycle_with_trigger = 1
+" let g:mu_cycle_with_trigger = 1
+" set cot=menuone
+" set rtp+=~/.vim/plugged/vim-mucomplete
+" setlocal tw=78
+"
+"    xx                                                  zzz
+" zzzyyyyyyyyyyyyyyyyyyy
+
+
+" Uncomment the 5 first lines of code.
+" Launch Vim like this:
+"
+"     $ vim -Nu /tmp/vimrc.vim /tmp/vimrc.vim
+"
+" Place the cursor after `zzz` and hit Tab twice.
+" The plugin gets stuck in a loop (high cpu).
+
 "}}}
 " The methods `c-n` and `c-p` are tricky to invoke."{{{
 "
