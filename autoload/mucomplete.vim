@@ -358,9 +358,7 @@ fu! mucomplete#complete(dir) abort
     endif
 
     let [s:dir, s:cycle] = [a:dir, 0]
-    let s:methods_to_try = get(b:, 'mucomplete_chain',
-                                 \ get(g:mu_chains, &ft, g:mu_chains['default'])
-                            \ )
+    let s:methods_to_try = get(b:, 'mu_chain', g:mu_chains['default'])
 
     let s:N = len(s:methods_to_try)
     let s:i = s:dir > 0 ? -1 : s:N
