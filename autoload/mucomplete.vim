@@ -68,6 +68,34 @@
 " seems to prevent the `ulti` method to function properly.
 "
 " "}}}
+" FIXME: "{{{
+
+" In the completion mapping for the 'uspl' method:
+"
+"         \ 'uspl': "\<c-o>:\<cr>\<c-r>=mucomplete#spel#complete()\<cr>",
+"
+" … why do we prefix it with `\<c-o>:\<cr>`?
+"
+" If we configure the chain completion, like this:
+"
+"         let g:mu_chain = ['keyn', 'uspl']
+"
+" … we enter a buffer and enable the spell correction (`cos`),
+" we type `helo`, and hit `Tab` to complete/correct the word into `hello`.
+" The menu opens but when we type `C-n`, it doesn't select the first entry.
+" It gives us the message:
+"
+"         Keyword Local completion Back at original
+"
+" The second time we hit `C-n`, we can finally choose our correction.
+" But why only after the 2nd time?
+" And why does it seem that the plugin tries the `keyn` method?
+" `C-n` shouldn't make it do that.
+"
+" The current solution seems this weird prefix.
+" But I don't understand it.
+
+""}}}
 " The methods `c-n` and `c-p` are tricky to invoke."{{{
 "
 " Indeed, we don't know in advance WHEN they will be invoked.
@@ -208,7 +236,7 @@ let s:compl_mappings = {
                        \ 'tags': "\<c-x>\<c-]>",
                        \ 'path': "\<c-r>=mucomplete#path#complete()\<cr>",
                        \ 'ulti': "\<c-r>=mucomplete#ultisnips#complete()\<cr>",
-                       \ 'uspl': "\<c-o>:call mucomplete#spel#gather()\<cr>\<c-r>=mucomplete#spel#complete()\<cr>",
+                       \ 'uspl': "\<c-o>:\<cr>\<c-r>=mucomplete#spel#complete()\<cr>",
                        \ }
 unlet s:exit_ctrl_x
 
@@ -272,8 +300,8 @@ let g:mucomplete#trigger_auto_pattern = extend({
             \ 'default' : '\k\k$'
             \ }, get(g:, 'mucomplete#trigger_auto_pattern', {}))
 
-" Completion chains
-let g:mu_chain = ['file', 'omni', 'keyn', 'dict']
+" Default completion chain
+let g:mu_chain = ['file', 'omni', 'keyn', 'dict', 'uspl', 'path']
 
 " Conditions to be verified for a given method to be applied."{{{
 "

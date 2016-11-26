@@ -1,72 +1,62 @@
-" Chained completion that works as I want!
-" Maintainer: Lifepillar <lifepillar@lifepillar.me>
-" License: This file is placed in the public domain
-
-let s:save_cpo = &cpo
-set cpo&vim
-
 let s:pathsep = exists('+shellslash') && !&shellslash ? '\\' : '/'
 
-fun! mucomplete#compat#yes_you_can(t)
-  return 1
-endf
+fu! mucomplete#compat#yes_you_can(t) abort
+    return 1
+endfu
 
-fun! mucomplete#compat#dict(t)
-  return strlen(&l:dictionary) > 0
-endf
+fu! mucomplete#compat#dict(t) abort
+    return strlen(&l:dictionary) > 0
+endfu
 
-fun! mucomplete#compat#file(t)
-  return a:t =~# '\m\%('.s:pathsep.'\|\~\)\f*$'
-endf
+fu! mucomplete#compat#file(t) abort
+    return a:t =~# '\m\%('.s:pathsep.'\|\~\)\f*$'
+endfu
 
-fun! mucomplete#compat#omni(t)
-  return strlen(&l:omnifunc) > 0
-endf
+fu! mucomplete#compat#omni(t) abort
+    return strlen(&l:omnifunc) > 0
+endfu
 
-fun! mucomplete#compat#spel(t)
-  return &l:spell && !empty(&l:spelllang)
-endf
+fu! mucomplete#compat#spel(t) abort
+    return &l:spell && !empty(&l:spelllang)
+endfu
 
-fun! mucomplete#compat#tags(t)
-  return !empty(tagfiles())
-endf
+fu! mucomplete#compat#tags(t) abort
+    return !empty(tagfiles())
+endfu
 
-fun! mucomplete#compat#thes(t)
-  return strlen(&l:thesaurus) > 0
-endf
+fu! mucomplete#compat#thes(t) abort
+    return strlen(&l:thesaurus) > 0
+endfu
 
-fun! mucomplete#compat#user(t)
-  return strlen(&l:completefunc) > 0
-endf
+fu! mucomplete#compat#user(t) abort
+    return strlen(&l:completefunc) > 0
+endfu
 
-fun! mucomplete#compat#path(t)
-  return a:t =~# '\m\%('.s:pathsep.'\|\~\)\f*$'
-endf
+fu! mucomplete#compat#path(t) abort
+    return a:t =~# '\m\%('.s:pathsep.'\|\~\)\f*$'
+endfu
 
-fun! mucomplete#compat#ulti(t)
-  return get(g:, 'did_plugin_ultisnips', 0)
-endf
+fu! mucomplete#compat#ulti(t) abort
+    return get(g:, 'did_plugin_ultisnips', 0)
+endfu
 
-fun! mucomplete#compat#uspl(t)
-  return &l:spell && !empty(&l:spelllang)
-endf
+fu! mucomplete#compat#uspl(t) abort
+    return &l:spell && !empty(&l:spelllang)
+endfu
 
-fun! mucomplete#compat#can_complete()
-  return extend({
-        \ 'default' : extend({
-        \     'dict':  function('mucomplete#compat#dict'),
-        \     'file':  function('mucomplete#compat#file'),
-        \     'omni':  function('mucomplete#compat#omni'),
-        \     'spel':  function('mucomplete#compat#spel'),
-        \     'tags':  function('mucomplete#compat#tags'),
-        \     'thes':  function('mucomplete#compat#thes'),
-        \     'user':  function('mucomplete#compat#user'),
-        \     'path':  function('mucomplete#compat#path'),
-        \     'uspl':  function('mucomplete#compat#uspl'),
-        \     'ulti':  function('mucomplete#compat#ulti')
-        \   }, get(get(g:, 'mucomplete#can_complete', {}), 'default', {}))
-        \ }, get(g:, 'mucomplete#can_complete', {}), 'keep')
-endf
-
-let &cpo = s:save_cpo
-unlet s:save_cpo
+fu! mucomplete#compat#can_complete() abort
+    return extend({
+                \ 'default' : extend({
+                \     'dict':  function('mucomplete#compat#dict'),
+                \     'file':  function('mucomplete#compat#file'),
+                \     'omni':  function('mucomplete#compat#omni'),
+                \     'spel':  function('mucomplete#compat#spel'),
+                \     'tags':  function('mucomplete#compat#tags'),
+                \     'thes':  function('mucomplete#compat#thes'),
+                \     'user':  function('mucomplete#compat#user'),
+                \     'path':  function('mucomplete#compat#path'),
+                \     'uspl':  function('mucomplete#compat#uspl'),
+                \     'ulti':  function('mucomplete#compat#ulti')
+                \   }, get(get(g:, 'mucomplete#can_complete', {}), 'default', {}))
+                \ }, get(g:, 'mucomplete#can_complete', {}), 'keep')
+endfu
