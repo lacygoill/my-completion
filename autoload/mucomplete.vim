@@ -356,3 +356,8 @@ fu! mucomplete#tab_complete(dir) abort
         return mucomplete#complete(a:dir)
     endif
 endfu
+
+fu! mucomplete#cycle(dir) abort
+    let [s:dir, s:cycle] = [a:dir, 1]
+    return "\<c-e>" . s:next_method()
+endfu

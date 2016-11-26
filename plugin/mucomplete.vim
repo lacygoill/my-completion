@@ -1,12 +1,3 @@
-" Chained completion that works as I want!
-" Maintainer: Lifepillar <lifepillar@lifepillar.me>
-" License: This file is placed in the public domain
-
-if exists('g:loaded_mucomplete')
-    finish
-endif
-let g:loaded_mucomplete = 1
-
 imap <expr> <silent> <plug>(MUcompleteCycFwd) pumvisible()?mucomplete#cycle( 1):"\<plug>(MUcompleteFwdKey)"
 imap <expr> <silent> <plug>(MUcompleteCycBwd) pumvisible()?mucomplete#cycle(-1):"\<plug>(MUcompleteBwdKey)"
 imap <expr> <silent> <plug>(MUcompleteNxt)    mucomplete#verify_completion()
