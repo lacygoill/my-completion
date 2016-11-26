@@ -41,8 +41,33 @@
 "
 " Place the cursor after `zzz` and hit Tab twice.
 " The plugin gets stuck in a loop (high cpu).
+"
+" In fact we don't even need the first 2 lines.
+" We can reproduce the bug without them, but by hitting the key to move
+" forward in the completion chain (C-j, …).
 
 "}}}
+" FIXME: "{{{
+"
+" I think lifepillar made a conceptual mistake in the original code.
+" He allowed the user to define its own version of
+" `g:mucomplete#can_complete.default`
+" Then, the plugin merges whatever the user defined in there with some default
+" value, via `extend()`.
+" It works, but if the user source their vimrc a second time, the default
+" values of the plugin are lost.
+"
+""}}}
+" FIXME:"{{{
+"
+" In the `ulti` method, I think lifepillar introduced a regression here:
+"
+"     https://github.com/lifepillar/vim-mucomplete/issues/28
+"
+" Because, he inverted the order of the arguments passed to `stridx()`, which
+" seems to prevent the `ulti` method to function properly.
+"
+" "}}}
 " The methods `c-n` and `c-p` are tricky to invoke."{{{
 "
 " Indeed, we don't know in advance WHEN they will be invoked.

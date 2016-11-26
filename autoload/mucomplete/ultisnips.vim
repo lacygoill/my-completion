@@ -1,14 +1,3 @@
-" FIXME:"{{{
-"
-" I think lifepillar introduced a regression here:
-"
-"     https://github.com/lifepillar/vim-mucomplete/issues/28
-"
-" Because, he inverted the order of the arguments passed to `stridx()`, which
-" seems to prevent the `ulti` method to function properly.
-"
-" "}}}
-
 fu! mucomplete#ultisnips#complete() abort
 
     " UltiSnips#SnippetsInCurrentScope() is a public function provided by the"{{{
