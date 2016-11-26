@@ -273,9 +273,7 @@ let g:mucomplete#trigger_auto_pattern = extend({
             \ }, get(g:, 'mucomplete#trigger_auto_pattern', {}))
 
 " Completion chains
-let g:mu_chains = extend({
-                         \ 'default' : ['file', 'omni', 'keyn', 'dict']
-                         \ }, get(g:, 'mu_chains', {}))
+let g:mu_chain = ['file', 'omni', 'keyn', 'dict']
 
 " Conditions to be verified for a given method to be applied."{{{
 "
@@ -358,7 +356,7 @@ fu! mucomplete#complete(dir) abort
     endif
 
     let [s:dir, s:cycle] = [a:dir, 0]
-    let s:methods_to_try = get(b:, 'mu_chain', g:mu_chains['default'])
+    let s:methods_to_try = get(b:, 'mu_chain', g:mu_chain)
 
     let s:N = len(s:methods_to_try)
     let s:i = s:dir > 0 ? -1 : s:N
