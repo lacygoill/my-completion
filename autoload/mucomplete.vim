@@ -25,7 +25,7 @@
 " Write this in `/tmp/vimrc.vim`:
 
 " let g:mucomplete#cycle_with_trigger = 1
-" let g:mu_cycle_with_trigger = 1
+" let g:mc_cycle_with_trigger = 1
 " set cot=menuone
 " set rtp+=~/.vim/plugged/vim-mucomplete
 " setlocal tw=78
@@ -78,7 +78,7 @@
 "
 " If we configure the chain completion, like this:
 "
-"         let g:mu_chain = ['keyn', 'uspl']
+"         let g:mc_chain = ['keyn', 'uspl']
 "
 " … we enter a buffer and enable the spell correction (`cos`),
 " we type `helo`, and hit `Tab` to complete/correct the word into `hello`.
@@ -96,20 +96,29 @@
 " But I don't understand it.
 
 ""}}}
-" FIXME:"{{{
+" FIXME: "{{{
 "
-" Given the following buffer:
+" Given the following buffer `foo`:
 "
 "     hello world
 "     hello world
 "     hello world
+
+" And the following `vimrc`:
+"
+"     set cot+=noselect,menu,menuone
+"     set rtp+=~/.vim/plugged/vim-mucomplete
+
+" Start Vim like this:
+"
+"     $ vim -Nu vimrc foo
 "
 " Hit `*` on `world` to populate the search register.
 " Type `cgn`, to change the last used search pattern.
-" Insert `w`, then `Tab` to complete `w` into `world`.
+" Insert `wo`, then `Tab` to complete `wo`.
 " Hit escape to go back in normal mode.
 " Hit `.` to repeat the change to the next occurrence of `hello`.
-" `hello` is changed into `w` instead of `world`.
+" `hello` is changed into `wo` instead of the last completed text.
 " Does the plugin breaks the undo sequence when we hit Tab?
 "
 "}}}
@@ -257,24 +266,24 @@ let s:compl_mappings = {
                        \ }
 unlet s:exit_ctrl_x
 
-let s:select_entry     = { 'c-p' : "\<c-p>\<down>", 'keyp': "\<c-p>\<down>" }
+let s:select_entry = { 'c-p' : "\<c-p>\<down>", 'keyp': "\<c-p>\<down>" }
 " Internal state
-let s:methods_to_try   = []
-let s:word_to_complete = ''
-let s:auto             = 0
-let s:dir              = 1
-let s:cycle            = 0
-let s:idx              = 0
-let s:pumvisible       = 0
+let s:methods      = []
+let s:word         = ''
+let s:auto         = 0
+let s:dir          = 1
+let s:cycle        = 0
+let s:idx          = 0
+let s:pumvisible   = 0
 
 fu! s:act_on_textchanged() abort
     if s:completedone
         let s:completedone = 0
         let g:mucomplete_with_key = 0
 
-        if get(s:methods_to_try, s:idx, '') ==# 'path' && getline('.')[col('.')-2] =~# '\m\f'
+        if get(s:methods, s:idx, '') ==# 'path' && getline('.')[col('.')-2] =~# '\m\f'
             sil call mucomplete#path#complete()
-        elseif get(s:methods_to_try, s:idx, '') ==# 'file' && getline('.')[col('.')-2] =~# '\m\f'
+        elseif get(s:methods, s:idx, '') ==# 'file' && getline('.')[col('.')-2] =~# '\m\f'
             sil call feedkeys("\<c-x>\<c-f>", 'i')
         endif
 
@@ -321,7 +330,7 @@ let g:mucomplete#trigger_auto_pattern = extend({
             \ }, get(g:, 'mucomplete#trigger_auto_pattern', {}))
 
 " Default completion chain
-let g:mu_chain = ['file', 'omni', 'keyn', 'dict', 'uspl', 'path', 'ulti']
+let g:mc_chain = ['file', 'omni', 'keyn', 'dict', 'uspl', 'path', 'ulti']
 
 " Conditions to be verified for a given method to be applied."{{{
 "
@@ -342,35 +351,36 @@ let g:mu_chain = ['file', 'omni', 'keyn', 'dict', 'uspl', 'path', 'ulti']
 "
 "}}}
 
-let s:yes_you_can = { _ -> 1 } " Try always
-let g:mucomplete#can_complete = {
-                                \ 'default' : {
-                                \               'dict': { t -> strlen(&l:dictionary) > 0 },
-                                \               'file': { t -> t =~# '\v[/~]\f*$' },
-                                \               'path': { t -> t =~# '\v[/~]\f*$' },
-                                \               'omni': { t -> strlen(&l:omnifunc) > 0 },
-                                \               'tags': { t -> !empty(tagfiles()) },
-                                \               'user': { t -> strlen(&l:completefunc) > 0 },
-                                \               'uspl': { t -> &l:spell && !empty(&l:spelllang) },
-                                \               'ulti': { t -> get(g:, 'did_plugin_ultisnips', 0) },
-                                \             },
-                                \ }
+let s:yes_you_can   = { _ -> 1 }
+let g:mc_conditions = {
+                      \ 'dict': { t -> strlen(&l:dictionary) > 0 },
+                      \ 'file': { t -> t =~# '\v[/~]\f*$' },
+                      \ 'path': { t -> t =~# '\v[/~]\f*$' },
+                      \ 'omni': { t -> strlen(&l:omnifunc) > 0 },
+                      \ 'tags': { t -> !empty(tagfiles()) },
+                      \ 'user': { t -> strlen(&l:completefunc) > 0 },
+                      \ 'uspl': { t -> &l:spell && !empty(&l:spelllang) },
+                      \ 'ulti': { t -> get(g:, 'did_plugin_ultisnips', 0) },
+                      \ }
 
 fu! s:act_on_pumvisible() abort
     let s:pumvisible = 0
-    return s:auto || index(['spel','uspl'], get(s:methods_to_try, s:idx, '')) > - 1
+    return s:auto || index(['spel','uspl'], get(s:methods, s:idx, '')) > - 1
                 \ ? ''
                 \ : (stridx(&l:completeopt, 'noselect') == -1
                 \     ? (stridx(&l:completeopt, 'noinsert') == - 1 ? '' : "\<up>\<c-n>")
-                \     : get(s:select_entry, s:methods_to_try[s:idx], "\<c-n>\<up>")
+                \     : get(s:select_entry, s:methods[s:idx], "\<c-n>\<up>")
                 \   )
 endfu
 
 fu! s:can_complete() abort
-    return get(get(g:mucomplete#can_complete, &ft, {}),
-                \          s:methods_to_try[s:idx],
-                \          get(g:mucomplete#can_complete['default'], s:methods_to_try[s:idx], s:yes_you_can)
-                \ )(s:word_to_complete)
+    let method = s:methods[s:idx]
+
+    if exists('b:mc_conditions')
+        return get(b:mc_conditions, method, s:yes_you_can)(s:word)
+    else
+        return get(g:mc_conditions, method, s:yes_you_can)(s:word)
+    endif
 endfu
 
 fu! mucomplete#yup() abort
@@ -397,9 +407,16 @@ fu! s:next_method() abort
 
         " We will get out of the loop as soon as:
         "
-        "     the method of the current idx can be applied
-        " OR
         "     the next idx is beyond the chain
+        " OR
+        "     the method of the current idx can be applied
+
+        " Condition to stay in the loop:
+        "
+        "     (s:idx+1) % (s:N+1) != 0    the next idx is not beyond the chain
+        "                                 IOW there IS a NEXT method
+        "
+        "     && !s:can_complete()        AND the method of the CURRENT one can't be applied
 
         let s:idx = (s:idx + s:dir + s:N) % s:N
         while (s:idx+1) % (s:N+1) != 0  && !s:can_complete()
@@ -407,13 +424,6 @@ fu! s:next_method() abort
         endwhile
 
     else
-
-        " Condition to go on in the loop:
-        "
-        "     (s:idx+1) % (s:N+1) != 0    the next idx is not beyond the chain
-        "                                 IOW there IS a NEXT method
-        "
-        "     && !s:can_complete()        AND the method of the CURRENT one can't be applied
 
         let s:idx += s:dir
         while (s:idx+1) % (s:N+1) != 0  && !s:can_complete()
@@ -434,7 +444,7 @@ fu! s:next_method() abort
     " Probably to save some time, the function call would be slower.
 
     if (s:idx+1) % (s:N+1) != 0
-        return s:compl_mappings[s:methods_to_try[s:idx]] .
+        return s:compl_mappings[s:methods[s:idx]] .
                     \ "\<c-r>\<c-r>=pumvisible()?mucomplete#yup():''\<cr>\<plug>(MUcompleteNxt)"
     endif
 
@@ -447,16 +457,16 @@ endfu
 
 " Precondition: pumvisible() is false.
 fu! mucomplete#complete(dir) abort
-    let s:word_to_complete = matchstr(strpart(getline('.'), 0, col('.') - 1), '\S\+$')
+    let s:word = matchstr(strpart(getline('.'), 0, col('.') - 1), '\S\+$')
 
-    if empty(s:word_to_complete)
+    if empty(s:word)
         return (a:dir > 0 ? "\<plug>(MUcompleteTab)" : "\<plug>(MUcompleteCtd)")
     endif
 
     let [s:dir, s:cycle] = [a:dir, 0]
-    let s:methods_to_try = get(b:, 'mu_chain', g:mu_chain)
+    let s:methods        = get(b:, 'mc_chain', g:mc_chain)
 
-    let s:N   = len(s:methods_to_try)
+    let s:N   = len(s:methods)
     let s:idx = s:dir > 0 ? -1 : s:N
 
     return s:next_method()
@@ -472,7 +482,7 @@ fu! mucomplete#tab_complete(dir) abort
 endfu
 
 fu! mucomplete#cycle_or_select(dir) abort
-    if get(g:, 'mu_cycle_with_trigger', 0)
+    if get(g:, 'mc_cycle_with_trigger', 0)
         let [s:dir, s:cycle] = [a:dir, 1]
         return "\<c-e>" . s:next_method()
     else
