@@ -414,6 +414,55 @@ fu! mucomplete#menu_up() abort
 endfu
 
 " Precondition: pumvisible() is false.
+fu! mucomplete#complete(dir) abort
+    let s:word = matchstr(strpart(getline('.'), 0, col('.') - 1), '\S\+$')
+
+    if empty(s:word)
+        return (a:dir > 0 ? "\<plug>(MUcompleteTab)" : "\<plug>(MUcompleteCtd)")
+    endif
+
+    let [s:dir, s:cycle] = [a:dir, 0]
+    let s:methods        = get(b:, 'mc_chain', g:mc_chain)
+
+    let s:N   = len(s:methods)
+    let s:idx = s:dir > 0 ? -1 : s:N
+
+    return s:next_method()
+endfu
+
+fu! mucomplete#cycle(dir) abort
+    let [s:dir, s:cycle] = [a:dir, 1]
+
+    " let s:methods        = get(b:, 'mc_chain', g:mc_chain)
+    " let s:N              = len(s:methods)
+
+    " FIXME:
+    " Why does the next line block the chain?
+    " let s:idx            = s:dir > 0 ? -1 : s:N
+    "
+    " Because it constantly resets the index.
+    " You can't move in the chain, if the index is always the same.
+
+    " Initially, I thought the solution to the first bug was to initialize
+    " `s:N` in `cycle()`, exactly as it was defined in `complete()`.
+    " But then, I realized that it wasn't a good idea to let the user call
+    " `s:next_method()`, without having entered the chain at least once.
+    " If he's never entered the chain, he has no position inside the chain.
+    " So, there's no reference point on which base our relative motion in the chain.
+    " IOW, it doesn't make sense to try and support this weird / edge case.
+    "
+    " So, maybe the best solution is to prevent `s:next_method()` to be called
+    " is `s:N` doesn't exist (that is if `complete()` has never been called).
+    return exists('s:N') ? "\<c-e>" . s:next_method() : ''
+endfu
+
+" s:next_method() is called by:
+"
+"     - mucomplete#verify_completion()    after a first completion
+"     - mucomplete#complete()             auto / manual completion
+"     - mucomplete#cycle()                after a cycling
+
+" Precondition: pumvisible() is false."{{{
 "
 "         s:dir   = 1     flag:                            initial direction,                  never changes
 "         s:idx   = -1    number (positive or negative):   idx of the method to try,           CHANGES
@@ -425,12 +474,13 @@ endfu
 "
 "         -1      if we go forward in the chain
 "         s:N     "        backward "
+"
+""}}}
 
 fu! s:next_method() abort
-
     if s:cycle
 
-        " We will get out of the loop as soon as:
+        " We will get out of the loop as soon as:"{{{
         "
         "     the next idx is beyond the chain
         " OR
@@ -442,6 +492,8 @@ fu! s:next_method() abort
         "                                 IOW there IS a NEXT method
         "
         "     && !s:can_complete()        AND the method of the CURRENT one can't be applied
+        "
+        ""}}}
 
         let s:idx = (s:idx + s:dir + s:N) % s:N
         while (s:idx+1) % (s:N+1) != 0  && !s:can_complete()
@@ -454,10 +506,8 @@ fu! s:next_method() abort
         while (s:idx+1) % (s:N+1) != 0  && !s:can_complete()
             let s:idx += s:dir
         endwhile
-
     endif
-
-    " After the while loop:
+    " After the while loop:"{{{
     "
     "     if (s:idx+1) % (s:N+1) != 0
     "
@@ -467,15 +517,19 @@ fu! s:next_method() abort
     "
     " Why don't we use that, then?
     " Probably to save some time, the function call would be slower.
+    "
+    ""}}}
 
     if (s:idx+1) % (s:N+1) != 0
 
-        " 1 - Type the keys to invoke the chosen method.
+        " 1 - Type the keys to invoke the chosen method."{{{
         "
         " 2 - Store the state of the menu in `s:pumvisible` through
         "     `mucomplete#menu_up()`.
         "
         " 3 - call `mucomplete#verify_completion()` through `<plug>(MUcompleteNxt)`
+        "
+        ""}}}
 
         return s:compl_mappings[s:methods[s:idx]] .
                     \ "\<c-r>\<c-r>=pumvisible()?mucomplete#menu_up():''\<cr>\<plug>(MUcompleteNxt)"
@@ -497,23 +551,6 @@ fu! mucomplete#verify_completion() abort
     return s:pumvisible ? s:act_on_pumvisible() : s:next_method()
 endfu
 
-" Precondition: pumvisible() is false.
-fu! mucomplete#complete(dir) abort
-    let s:word = matchstr(strpart(getline('.'), 0, col('.') - 1), '\S\+$')
-
-    if empty(s:word)
-        return (a:dir > 0 ? "\<plug>(MUcompleteTab)" : "\<plug>(MUcompleteCtd)")
-    endif
-
-    let [s:dir, s:cycle] = [a:dir, 0]
-    let s:methods        = get(b:, 'mc_chain', g:mc_chain)
-
-    let s:N   = len(s:methods)
-    let s:idx = s:dir > 0 ? -1 : s:N
-
-    return s:next_method()
-endfu
-
 fu! mucomplete#tab_complete(dir) abort
     if pumvisible()
         return mucomplete#cycle_or_select(a:dir)
@@ -529,9 +566,4 @@ fu! mucomplete#cycle_or_select(dir) abort
     else
         return (a:dir > 0 ? "\<c-n>" : "\<c-p>")
     endif
-endfu
-
-fu! mucomplete#cycle(dir) abort
-    let [s:dir, s:cycle] = [a:dir, 1]
-    return "\<c-e>" . s:next_method()
 endfu

@@ -17,7 +17,7 @@ fu! mucomplete#path#complete() abort
             let l:files = glob(l:prefix.'*', 0, 1, 1)
 
             if !empty(l:files)
-                call complete(col('.') - len(fnamemodify(l:prefix, ":t")), map(l:files,
+                call complete(col('.') - len(fnamemodify(l:prefix, ':t')), map(l:files,
                             \  '{
                             \      "word": fnamemodify(v:val, ":t"),
                             \      "menu": (isdirectory(v:val) ? "[dir]" : "[file]")
