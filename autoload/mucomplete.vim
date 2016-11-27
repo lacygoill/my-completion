@@ -338,7 +338,7 @@ let g:mucomplete#trigger_auto_pattern = extend({
             \ }, get(g:, 'mucomplete#trigger_auto_pattern', {}))
 
 " Default completion chain
-let g:mc_chain = ['keyn', 'omni', 'file', 'dict', 'uspl', 'path', 'ulti']
+let g:mc_chain = ['file', 'omni', 'keyn', 'dict', 'uspl', 'path', 'ulti']
 
 " Conditions to be verified for a given method to be applied."{{{
 "
