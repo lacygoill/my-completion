@@ -338,7 +338,7 @@ let g:mucomplete#trigger_auto_pattern = extend({
             \ }, get(g:, 'mucomplete#trigger_auto_pattern', {}))
 
 " Default completion chain
-let g:mc_chain = ['file', 'omni', 'keyn', 'dict', 'uspl', 'path', 'ulti']
+let g:mc_chain = ['keyn', 'omni', 'file', 'dict', 'uspl', 'path', 'ulti']
 
 " Conditions to be verified for a given method to be applied."{{{
 "
@@ -387,6 +387,7 @@ fu! s:act_on_pumvisible() abort
                 \     ? (stridx(&l:completeopt, 'noinsert') == - 1 ? '' : "\<up>\<c-n>")
                 \     : get(s:select_entry, s:methods[s:idx], "\<c-n>\<up>")
                 \   )
+
 endfu
 
 " Purpose:
@@ -533,6 +534,7 @@ fu! s:next_method() abort
 
         return s:compl_mappings[s:methods[s:idx]] .
                     \ "\<c-r>\<c-r>=pumvisible()?mucomplete#menu_up():''\<cr>\<plug>(MUcompleteNxt)"
+
     endif
 
     return ''
