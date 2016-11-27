@@ -4,7 +4,7 @@
 "
 "     License: This file
 "
-" There's the following error:
+" I have the following error:
 "
 "         Error detected while processing function
 "         mucomplete#cycle[2]..<SNR>66_next_method:
@@ -18,6 +18,13 @@
 " Note:
 " C-k is use to cycle backward in the completion chain.
 " By default, it was C-h. I changed the mapping.
+" The bug occurs when you type a key to move backward OR forward in the chain,
+" without having hitting Tab once before;
+" and you have:
+"
+"     let g:mc_cycle_with_trigger = 1
+"
+" … in your vimrc
 "
 "}}}
 "FIXME: "{{{
@@ -283,6 +290,7 @@ fu! s:act_on_textchanged() abort
 
         if get(s:methods, s:idx, '') ==# 'path' && getline('.')[col('.')-2] =~# '\m\f'
             sil call mucomplete#path#complete()
+
         elseif get(s:methods, s:idx, '') ==# 'file' && getline('.')[col('.')-2] =~# '\m\f'
             sil call feedkeys("\<c-x>\<c-f>", 'i')
         endif
@@ -365,6 +373,14 @@ let g:mc_conditions = {
 
 fu! s:act_on_pumvisible() abort
     let s:pumvisible = 0
+
+    " If autocompletion is enabled, or the current method is 'spel' or 'uspl',
+    " don't do anything.
+    "
+    " Otherwise, autocompletion is off, and the current method is not 'spel'
+    " nor 'uspl'.
+    " In this case, if 'cot' contains the value 'noselect', then
+
     return s:auto || index(['spel','uspl'], get(s:methods, s:idx, '')) > - 1
                 \ ? ''
                 \ : (stridx(&l:completeopt, 'noselect') == -1
@@ -373,10 +389,24 @@ fu! s:act_on_pumvisible() abort
                 \   )
 endfu
 
+" Purpose:
+"
+" During `s:next_method()`, find a method which can be applied.
+
 fu! s:can_complete() abort
     return get({ exists('b:mc_conditions') ? 'b:' : 'g:' }mc_conditions,
                 \ s:methods[s:idx], s:yes_you_can)(s:word)
 endfu
+
+" Purpose:
+"
+" just store 1 in `s:pumvisible`, at the very end of `s:next_method()`,
+" when a method has been invoked, and it succeeded to find completions displayed
+" in a menu.
+"
+" `s:pumvisible` is used as a flag to know whether the menu is open.
+" This flag allows `mucomplete#verify_completion()` to choose between acting
+" on the menu if there's one, or trying another method.
 
 fu! mucomplete#menu_up() abort
     let s:pumvisible = 1
@@ -439,12 +469,29 @@ fu! s:next_method() abort
     " Probably to save some time, the function call would be slower.
 
     if (s:idx+1) % (s:N+1) != 0
+
+        " 1 - Type the keys to invoke the chosen method.
+        "
+        " 2 - Store the state of the menu in `s:pumvisible` through
+        "     `mucomplete#menu_up()`.
+        "
+        " 3 - call `mucomplete#verify_completion()` through `<plug>(MUcompleteNxt)`
+
         return s:compl_mappings[s:methods[s:idx]] .
                     \ "\<c-r>\<c-r>=pumvisible()?mucomplete#menu_up():''\<cr>\<plug>(MUcompleteNxt)"
     endif
 
     return ''
 endfu
+
+" Purpose:
+"
+" It's called by `<plug>(MUcompleteNxt)`, which itself is typed at
+" the very end of `s:next_method()`.
+" It checks whether the last completion succeeded by looking at
+" the state of the menu.
+" If it's open, the function calls `s:act_on_pumvisible()`.
+" If it's not, it recalls `s:next_method()` to try another method.
 
 fu! mucomplete#verify_completion() abort
     return s:pumvisible ? s:act_on_pumvisible() : s:next_method()
