@@ -374,13 +374,7 @@ fu! s:act_on_pumvisible() abort
 endfu
 
 fu! s:can_complete() abort
-    let method = s:methods[s:idx]
-
-    if exists('b:mc_conditions')
-        return get(b:mc_conditions, method, s:yes_you_can)(s:word)
-    else
-        return get(g:mc_conditions, method, s:yes_you_can)(s:word)
-    endif
+    return get({exists('b:mc_conditions')?'b:':'g:'}mc_conditions, s:methods[s:idx], s:yes_you_can)(s:word)
 endfu
 
 fu! mucomplete#yup() abort
