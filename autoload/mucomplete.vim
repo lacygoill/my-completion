@@ -525,9 +525,13 @@ endfu
 
 fu! mucomplete#cycle_or_select(dir) abort
     if get(g:, 'mc_cycle_with_trigger', 0)
-        let [s:dir, s:cycle] = [a:dir, 1]
-        return "\<c-e>" . s:next_method()
+        return mucomplete#cycle(a:dir)
     else
         return (a:dir > 0 ? "\<c-n>" : "\<c-p>")
     endif
+endfu
+
+fu! mucomplete#cycle(dir) abort
+    let [s:dir, s:cycle] = [a:dir, 1]
+    return "\<c-e>" . s:next_method()
 endfu
