@@ -378,7 +378,7 @@ fu! s:can_complete() abort
                 \ s:methods[s:idx], s:yes_you_can)(s:word)
 endfu
 
-fu! mucomplete#yup() abort
+fu! mucomplete#menu_up() abort
     let s:pumvisible = 1
     return ''
 endfu
@@ -440,7 +440,7 @@ fu! s:next_method() abort
 
     if (s:idx+1) % (s:N+1) != 0
         return s:compl_mappings[s:methods[s:idx]] .
-                    \ "\<c-r>\<c-r>=pumvisible()?mucomplete#yup():''\<cr>\<plug>(MUcompleteNxt)"
+                    \ "\<c-r>\<c-r>=pumvisible()?mucomplete#menu_up():''\<cr>\<plug>(MUcompleteNxt)"
     endif
 
     return ''
