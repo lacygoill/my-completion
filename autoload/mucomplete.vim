@@ -96,6 +96,23 @@
 " But I don't understand it.
 
 ""}}}
+" FIXME:"{{{
+"
+" Given the following buffer:
+"
+"     hello world
+"     hello world
+"     hello world
+"
+" Hit `*` on `world` to populate the search register.
+" Type `cgn`, to change the last used search pattern.
+" Insert `w`, then `Tab` to complete `w` into `world`.
+" Hit escape to go back in normal mode.
+" Hit `.` to repeat the change to the next occurrence of `hello`.
+" `hello` is changed into `w` instead of `world`.
+" Does the plugin breaks the undo sequence when we hit Tab?
+"
+"}}}
 " The methods `c-n` and `c-p` are tricky to invoke."{{{
 "
 " Indeed, we don't know in advance WHEN they will be invoked.
@@ -368,7 +385,11 @@ endfu
 "         s:cycle = 0     flag:                            did we ask to move in the chain ?,  never changes
 "         s:N     = 7     number (positive):               number of methods in the chain,     never changes
 "
-" s:idx = s:idx + s:dir = 1 + -1 = 0
+" The valid values of `s:idx` will vary between 0 and s:N-1.
+" It is initialized by `cycle_or_select()`, which gives it the value:
+"
+"         -1      if we go forward in the chain
+"         s:N     "        backward "
 
 fu! s:next_method() abort
 
@@ -376,7 +397,7 @@ fu! s:next_method() abort
 
         " We will get out of the loop as soon as:
         "
-        "     the current method can be applied
+        "     the method of the current idx can be applied
         " OR
         "     the next idx is beyond the chain
 
@@ -387,8 +408,12 @@ fu! s:next_method() abort
 
     else
 
-        " (s:idx+1) % (s:N+1) != 0    the next idx is not beyond the chain
-        " !s:can_complete()           the next method can't be applied
+        " Condition to go on in the loop:
+        "
+        "     (s:idx+1) % (s:N+1) != 0    the next idx is not beyond the chain
+        "                                 IOW there IS a NEXT method
+        "
+        "     && !s:can_complete()        AND the method of the CURRENT one can't be applied
 
         let s:idx += s:dir
         while (s:idx+1) % (s:N+1) != 0  && !s:can_complete()
@@ -407,9 +432,6 @@ fu! s:next_method() abort
     "
     " Why don't we use that, then?
     " Probably to save some time, the function call would be slower.
-    "
-    " Valid values for `idx` are between `-s:N` and `s:N-1` (2*s:N),
-    " because its purpose is to get an item in the chain list.
 
     if (s:idx+1) % (s:N+1) != 0
         return s:compl_mappings[s:methods_to_try[s:idx]] .
@@ -434,7 +456,7 @@ fu! mucomplete#complete(dir) abort
     let [s:dir, s:cycle] = [a:dir, 0]
     let s:methods_to_try = get(b:, 'mu_chain', g:mu_chain)
 
-    let s:N = len(s:methods_to_try)
+    let s:N   = len(s:methods_to_try)
     let s:idx = s:dir > 0 ? -1 : s:N
 
     return s:next_method()
