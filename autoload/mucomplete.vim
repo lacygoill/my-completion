@@ -77,15 +77,15 @@
 " "}}}
 " FIXME: "{{{
 
-" In the completion mapping for the 'uspl' method:
+" In the completion mapping for the 'spel' method:
 "
-"         \ 'uspl': "\<c-o>:\<cr>\<c-r>=mucomplete#spel#complete()\<cr>",
+"         \ 'spel': "\<c-o>:\<cr>\<c-r>=mucomplete#spel#complete()\<cr>",
 "
 " … why do we prefix it with `\<c-o>:\<cr>`?
 "
 " If we configure the chain completion, like this:
 "
-"         let g:mc_chain = ['keyn', 'uspl']
+"         let g:mc_chain = ['keyn', 'spel']
 "
 " … we enter a buffer and enable the spell correction (`cos`),
 " we type `helo`, and hit `Tab` to complete/correct the word into `hello`.
@@ -126,9 +126,54 @@
 " Hit escape to go back in normal mode.
 " Hit `.` to repeat the change to the next occurrence of `hello`.
 " `hello` is changed into `wo` instead of the last completed text.
+"
 " Does the plugin breaks the undo sequence when we hit Tab?
+" Yes, it seems that `s:act_on_pumvisible()` sometimes hit Up or Down,
+" to force the insertion of an entry, no matter the value of 'cot'.
+" It probably breaks the undo sequence, and somehow the dot command/register
+" only remembers what was inserted before.
+"
+" This is a bit weird, because when the undo sequence is broken, dot usually
+" remembers what was inserted AFTER (not before).
+" You can check it by inserting foo, then hitting `Up` or `Down`, then inserting
+" bar. Leave insert mode then hit dot. `bar` will be inserted, not `foo`.
+"
+" Anyway, Up/Down breaks the undo sequence, so whatever the dot command will
+" remember, it will always be incomplete.
+"
+" But the problem isn't always present. It depends on the value of 'cot'.
+" In the original plugin, the bug occurs when 'cot' contains 'noselect', or
+" when it doesn't contain 'noselect', but does contain 'noinsert'.
+"
+" I fixed the bug in the the 2nd case, by replacing `Up` with `C-p`.
+" But I didn't fixed it in the 1st case.
+" Indeed, in the 2nd case, 'cot' contains ONLY 'noinsert'.
+" So, the user just wants to prevent the insertion; he's still OK with the
+" selection.
+" All we have to do to force the insertion is sth like:
+"
+"         Up  C-n    (lifepillar) works but breaks   undo sequence
+"         C-p C-n    (me)         works and preserve undo sequence
+"
+" However, in the 1st case, the user has 'noselect', so he doesn't want an
+" entry to be selected. In this case, Vim doesn't do anything. To force, the
+" insertion without selecting anything (to respect the user's decision),
+" there's only one solution:
+"
+"         C-n Up    (lifepillar) works but breaks undo sequence
+"
+" The other solutions would either not work or violate a user's decision:
+"
+"         C-n       (me)         works but doesn't respect the user's decision
+"                                of not selecting an entry
+"
+"         C-n C-p   (me)         doesn't work at all
+"                                C-n would temporarily insert an entry,
+"                                then C-p would immediately remove it
 "
 "}}}
+" FIXME:
+"
 " The methods `c-n` and `c-p` are tricky to invoke."{{{
 "
 " Indeed, we don't know in advance WHEN they will be invoked.
@@ -262,14 +307,13 @@ let s:compl_mappings = {
                        \ 'keyn': "\<c-x>\<c-n>",
                        \ 'omni': "\<c-x>\<c-o>",
                        \ 'keyp': "\<c-x>\<c-p>",
-                       \ 'spel': "\<c-x>s",
                        \ 'thes': "\<c-x>\<c-t>",
                        \ 'user': "\<c-x>\<c-u>",
                        \ 'cmd' : "\<c-x>\<c-v>",
                        \ 'tags': "\<c-x>\<c-]>",
                        \ 'path': "\<c-r>=mucomplete#path#complete()\<cr>",
                        \ 'ulti': "\<c-r>=mucomplete#ultisnips#complete()\<cr>",
-                       \ 'uspl': "\<c-o>:\<cr>\<c-r>=mucomplete#spel#complete()\<cr>",
+                       \ 'spel': "\<c-o>:\<cr>\<c-r>=mucomplete#spel#complete()\<cr>",
                        \ }
 unlet s:exit_ctrl_x
 
@@ -338,7 +382,7 @@ let g:mucomplete#trigger_auto_pattern = extend({
             \ }, get(g:, 'mucomplete#trigger_auto_pattern', {}))
 
 " Default completion chain
-let g:mc_chain = ['file', 'omni', 'keyn', 'dict', 'uspl', 'path', 'ulti']
+let g:mc_chain = ['file', 'omni', 'keyn', 'dict', 'spel', 'path', 'ulti']
 
 " Conditions to be verified for a given method to be applied."{{{
 "
@@ -367,24 +411,94 @@ let g:mc_conditions = {
                       \ 'omni': { t -> strlen(&l:omnifunc) > 0 },
                       \ 'tags': { t -> !empty(tagfiles()) },
                       \ 'user': { t -> strlen(&l:completefunc) > 0 },
-                      \ 'uspl': { t -> &l:spell && !empty(&l:spelllang) },
+                      \ 'spel': { t -> &l:spell && !empty(&l:spelllang) },
                       \ 'ulti': { t -> get(g:, 'did_plugin_ultisnips', 0) },
                       \ }
+
+" Purpose:
+" insert the first entry in the menu
 
 fu! s:act_on_pumvisible() abort
     let s:pumvisible = 0
 
-    " If autocompletion is enabled, or the current method is 'spel' or 'uspl',
-    " don't do anything.
+    " If autocompletion is enabled don't do anything (respect the value of 'cot'). "{{{
     "
-    " Otherwise, autocompletion is off, and the current method is not 'spel'
-    " nor 'uspl'.
-    " In this case, if 'cot' contains the value 'noselect', then
+    " Why?
+    " Automatically inserting text without the user having asked for a completion
+    " (hitting Tab) is a bad idea.
+    " It will regularly insert undesired text, and the user will constantly have
+    " to undo it.
+    "
+    " Note that if 'cot' doesn't contain 'noinsert' nor 'noselect', Vim will
+    " still automatically insert an entry from the menu.
+    " That's why we'll have to make sure that 'cot' contains 'noselect' when
+    " autocompletion is enabled.
+    "
+    " If the method is 'spel', don't do anything either.
+    "
+    " Why?
+    " Fixing a spelling error is a bit different than simply completing text.
+    " It's much more error prone.
+    " We don't want to force the insertion of the first spelling suggestion.
+    " We want `Tab` to respect the value of 'cot'.
+    " In particular, the values 'noselect' and 'noinsert'.
+    "
+    " Otherwise, autocompletion is off, and the current method is not 'spel'.
+    " In this case, we want to insert the first or last entry of the menu,
+    " regardless of the values contained in 'cot'.
+    "
+    " Depending on the values in 'cot', there are 3 cases to consider:
+    "
+    "     1. 'cot' contains 'noselect'
+    "
+    "        Vim won't do anything (regardless whether 'noinsert' is there).
+    "        So, to insert an entry of the menu, we'll have to return:
+    "
+    "            - `C-p Down` for the methods 'c-p' or 'keyp' (LAST entry)
+    "            - `C-n Up`   for all the others              (FIRST entry)
+    "
+    "        It works but `Down` and `Up` breaks the undo sequence, meaning that
+    "        if we want to repeat the completion with the dot command, a part of
+    "        the completion will be lost.
+    "
+    "        We could also do:
+    "
+    "            C-n                    works but doesn't respect the user's
+    "                                   decision of not selecting an entry
+    "
+    "            C-n C-p                doesn't work at all
+    "                                   C-n would temporarily insert an entry,
+    "                                   then C-p would immediately remove it
+    "
+    "        This means we shouldn't put 'noselect' in 'cot', at least for the
+    "        moment.
+    "
+    "     2. 'cot' doesn't contain 'noselect' nor 'noinsert'
+    "
+    "        Vim will automatically insert and select an entry. So, nothing to do.
+    "
+    "     3. 'cot' doesn't contain 'noselect' but it DOES contain 'noinsert'
+    "
+    "        Vim will automatically select an entry, but it won't insert it.
+    "        To force the insertion, we'll have to return `C-p C-n`.
+    "
+    "        It will work no matter the method.
+    "        If the method is 'c-p' or 'keyp', `Up` will make us select the
+    "        second but last entry, then `C-n` will select and insert the last
+    "        entry.
+    "        For all the other methods, `Up` will make us leave the menu,
+    "        then `C-n` will select and insert the first entry.
+    "
+    "        Basically, `Up` and `C-n` cancel each other out no matter the method.
+    "        But `C-n` asks for an insertion. The result is that we insert the
+    "        currently selected entry.
+    "
+"}}}
 
-    return s:auto || index(['spel','uspl'], get(s:methods, s:idx, '')) > - 1
+    return s:auto || s:methods[s:idx] ==# 'spel'
                 \ ? ''
                 \ : (stridx(&l:completeopt, 'noselect') == -1
-                \     ? (stridx(&l:completeopt, 'noinsert') == - 1 ? '' : "\<up>\<c-n>")
+                \     ? (stridx(&l:completeopt, 'noinsert') == - 1 ? '' : "\<c-p>\<c-n>")
                 \     : get(s:select_entry, s:methods[s:idx], "\<c-n>\<up>")
                 \   )
 
