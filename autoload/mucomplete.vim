@@ -77,6 +77,74 @@
 " We can reproduce the bug without them, by hitting the key to move
 " forward in the completion chain (C-j, …).
 
+" The problem comes from the fact that `s:next_method()` fails to see that
+" the popup menu is visible.
+" Maybe because in this particular configuration, the menu can't be opened, or
+" because there's some delay.
+" Therefore, the variable `s:pumvisible` is not set properly (1).
+"
+" After hitting the completion mappings, and incorrectly set the `s:pumvisible`
+" variable, `s:next_method()` hit `<plug>(MUcompleteNxt)`, which calls
+" `verify_completion()`.
+" The latter relies on `s:pumvisible` to decide whether it should call `act_on
+" pumvisible()` or try another method and recall `s:next_method()`.
+"
+" The endless loop can be observed by creating global variables at various
+" places in `s:next_method()`, then triggering the bug, and finally echo their
+" values.
+" For example, assuming we use this chain:
+
+"         let g:mc_chain = ['file', 'omni', 'keyn', 'dict', 'spel', 'path', 'ulti']
+"
+" … if we add the line:
+"
+"         let g:idx_list   = get(g:, 'idx_list', []) + [s:idx]
+"
+" … just after:
+"
+"         let s:idx = (s:idx + s:dir + s:N) % s:N
+"
+" When we echo `g:idx_list`, we get a big list of 3's ([3, 3, 3, …]).
+
+" If we add the line:
+"
+"         let g:idx_list   = get(g:, 'idx_list', []) + [s:idx]
+"
+" … just after (`s:cycle` is set to 1):
+"
+"         let s:idx = (s:idx + s:dir + s:N) % s:N
+"
+" When we echo `g:idx_list`, we get a circular list:
+"
+"         [4, 5, 6, 0, 1, 2, 4, 5, 6, 0, 1, 2, …]
+"
+" If we add the line:
+"
+"         let g:idx_list   = get(g:, 'idx_list', []) + [s:idx]
+"
+" … just after the while loop, when we echo `g:idx_list`, we get a big list of
+" 2's ([2, 2, 2, …]).
+"
+" Which shows that each time `s:next_method()` is called, it finds the same
+" next method, n°2.
+"
+" To prevent this, before hitting the completion mappings, we have to ask
+" `s:next_method()` to check whether the next method is different than the
+" current one.
+" To do so, we can store the current index in a variable at the beginning of
+" the function:
+"
+"         let old_idx = s:idx
+"
+" Then, add to the test:
+"
+"         if (s:idx+1) % (s:N+1) != 0
+"
+" … which conditions whether the completion mappings will be hit, the
+" statement:
+"
+"         … && s:idx != old_idx
+
 "}}}
 " FIXME: "{{{
 "
@@ -342,6 +410,8 @@
 "
 "}}}
 
+" Variables "{{{
+
 let s:exit_ctrl_x = "\<c-g>\<c-g>"
 let s:compl_mappings = {
                        \ 'c-n' : s:exit_ctrl_x."\<c-n>",
@@ -374,54 +444,6 @@ let s:dir          = 1
 let s:cycle        = 0
 let s:idx          = 0
 let s:pumvisible   = 0
-
-fu! s:act_on_textchanged() abort
-    if s:completedone
-        let s:completedone = 0
-        let g:mucomplete_with_key = 0
-
-        if get(s:methods, s:idx, '') ==# 'path' && getline('.')[col('.')-2] =~# '\m\f'
-            sil call mucomplete#path#complete()
-
-        elseif get(s:methods, s:idx, '') ==# 'file' && getline('.')[col('.')-2] =~# '\m\f'
-            sil call feedkeys("\<c-x>\<c-f>", 'i')
-        endif
-
-    elseif match(strpart(getline('.'), 0, col('.') - 1),
-                \  { exists('b:mc_trigger_auto_pattern') ? 'b:' : 'g:' }mc_trigger_auto_pattern) > -1
-        sil call feedkeys("\<plug>(MUcompleteAuto)", 'i')
-    endif
-endfu
-
-fu! mucomplete#enable_auto() abort
-    let s:completedone        = 0
-    let g:mucomplete_with_key = 0
-
-    augroup MUcompleteAuto
-        autocmd!
-        autocmd TextChangedI * noautocmd call s:act_on_textchanged()
-        autocmd CompleteDone * noautocmd let s:completedone = 1
-    augroup END
-    let s:auto = 1
-endfu
-
-fu! mucomplete#disable_auto() abort
-    if exists('#MUcompleteAuto')
-        autocmd! MUcompleteAuto
-        augroup! MUcompleteAuto
-    endif
-    let s:auto = 0
-endfu
-
-fu! mucomplete#toggle_auto() abort
-    if exists('#MUcompleteAuto')
-        call mucomplete#disable_auto()
-        echom '[MUcomplete] Auto off'
-    else
-        call mucomplete#enable_auto()
-        echom '[MUcomplete] Auto on'
-    endif
-endfu
 
 " Default pattern to decide when automatic completion should be triggered.
 let g:mc_trigger_auto_pattern = '\k\k$'
@@ -460,6 +482,73 @@ let g:mc_conditions = {
                       \ 'ulti': { t -> get(g:, 'did_plugin_ultisnips', 0) },
                       \ }
 
+"}}}
+" s:act_on_textchanged "{{{
+
+fu! s:act_on_textchanged() abort
+    if s:completedone
+        let s:completedone = 0
+        let g:mucomplete_with_key = 0
+
+        if get(s:methods, s:idx, '') ==# 'path' && getline('.')[col('.')-2] =~# '\m\f'
+            sil call mucomplete#path#complete()
+
+        elseif get(s:methods, s:idx, '') ==# 'file' && getline('.')[col('.')-2] =~# '\m\f'
+            sil call feedkeys("\<c-x>\<c-f>", 'i')
+        endif
+
+    elseif match(strpart(getline('.'), 0, col('.') - 1),
+                \  { exists('b:mc_trigger_auto_pattern') ? 'b:' : 'g:' }mc_trigger_auto_pattern) > -1
+        sil call feedkeys("\<plug>(MUcompleteAuto)", 'i')
+    endif
+endfu
+
+"}}}
+" enable_auto "{{{
+
+fu! mucomplete#enable_auto() abort
+    let s:completedone        = 0
+    let g:mucomplete_with_key = 0
+
+    augroup MUcompleteAuto
+        autocmd!
+        " FIXME:
+        " By default autocmds do not nest, unless you use the `nested` argument.
+        " So, are the `noautocmd` commands really necessary?
+        " Or is it just a precaution?
+        autocmd TextChangedI * noautocmd call s:act_on_textchanged()
+        autocmd CompleteDone * noautocmd let s:completedone = 1
+    augroup END
+    let s:auto = 1
+endfu
+
+"}}}
+" disable_auto "{{{
+
+fu! mucomplete#disable_auto() abort
+    if exists('#MUcompleteAuto')
+        autocmd! MUcompleteAuto
+        augroup! MUcompleteAuto
+    endif
+    let s:auto = 0
+endfu
+
+"}}}
+" toggle_auto "{{{
+
+fu! mucomplete#toggle_auto() abort
+    if exists('#MUcompleteAuto')
+        call mucomplete#disable_auto()
+        echom '[MUcomplete] Auto off'
+    else
+        call mucomplete#enable_auto()
+        echom '[MUcomplete] Auto on'
+    endif
+endfu
+
+"}}}
+" s:act_on_pumvisible "{{{
+"
 " Purpose:
 " insert the first entry in the menu
 
@@ -549,6 +638,9 @@ fu! s:act_on_pumvisible() abort
 
 endfu
 
+"}}}
+" s:can_complete "{{{
+"
 " Purpose:
 "
 " During `s:next_method()`, find a method which can be applied.
@@ -558,6 +650,9 @@ fu! s:can_complete() abort
                 \ s:methods[s:idx], s:yes_you_can)(s:word)
 endfu
 
+"}}}
+" menu_is_up "{{{
+"
 " Purpose:
 "
 " just store 1 in `s:pumvisible`, at the very end of `s:next_method()`,
@@ -568,10 +663,13 @@ endfu
 " This flag allows `mucomplete#verify_completion()` to choose between acting
 " on the menu if there's one, or trying another method.
 
-fu! mucomplete#menu_up() abort
+fu! mucomplete#menu_is_up() abort
     let s:pumvisible = 1
     return ''
 endfu
+
+"}}}
+" complete "{{{
 
 " Precondition: pumvisible() is false.
 fu! mucomplete#complete(dir) abort
@@ -590,19 +688,27 @@ fu! mucomplete#complete(dir) abort
     return s:next_method()
 endfu
 
+"}}}
+" cycle "{{{
+
 fu! mucomplete#cycle(dir) abort
     let [s:dir, s:cycle] = [a:dir, 1]
 
     return exists('s:N') ? "\<c-e>" . s:next_method() : ''
 endfu
 
+"}}}
+" s:next_method "{{{
+
+" Description "{{{
+"
 " s:next_method() is called by:
 "
-"     - mucomplete#verify_completion()    after a first completion
-"     - mucomplete#complete()             auto / manual completion
+"     - mucomplete#verify_completion()    after a failed completion
+"     - mucomplete#complete()             1st attempt to complete (auto / manual)
 "     - mucomplete#cycle()                after a cycling
 
-" Precondition: pumvisible() is false."{{{
+" Precondition: pumvisible() is false.
 "
 "         s:dir   = 1     flag:                            initial direction,                  never changes
 "         s:idx   = -1    number (positive or negative):   idx of the method to try,           CHANGES
@@ -615,9 +721,11 @@ endfu
 "         -1      if we go forward in the chain
 "         s:N     "        backward "
 "
-""}}}
+"}}}
 
 fu! s:next_method() abort
+    let old_idx = s:idx
+
     if s:cycle
 
         " We will get out of the loop as soon as:"{{{
@@ -660,12 +768,12 @@ fu! s:next_method() abort
     "
     ""}}}
 
-    if (s:idx+1) % (s:N+1) != 0
+    if (s:idx+1) % (s:N+1) != 0 && s:idx != old_idx
 
         " 1 - Type the keys to invoke the chosen method."{{{
         "
         " 2 - Store the state of the menu in `s:pumvisible` through
-        "     `mucomplete#menu_up()`.
+        "     `mucomplete#menu_is_up()`.
         "
         " 3 - call `mucomplete#verify_completion()` through `<plug>(MUcompleteNxt)`
         "
@@ -683,13 +791,16 @@ fu! s:next_method() abort
         " string. There's nothing to interpret. So why 2 C-r? Why not just one.
 
         return s:compl_mappings[s:methods[s:idx]] .
-                    \ "\<c-r>\<c-r>=pumvisible()?mucomplete#menu_up():''\<cr>\<plug>(MUcompleteNxt)"
+                    \ "\<c-r>\<c-r>=pumvisible()?mucomplete#menu_is_up():''\<cr>\<plug>(MUcompleteNxt)"
 
     endif
 
     return ''
 endfu
 
+"}}}
+" verify_completion "{{{
+"
 " Purpose:
 "
 " It's called by `<plug>(MUcompleteNxt)`, which itself is typed at
@@ -703,6 +814,9 @@ fu! mucomplete#verify_completion() abort
     return s:pumvisible ? s:act_on_pumvisible() : s:next_method()
 endfu
 
+"}}}
+" tab_complete "{{{
+
 fu! mucomplete#tab_complete(dir) abort
     if pumvisible()
         return mucomplete#cycle_or_select(a:dir)
@@ -712,6 +826,9 @@ fu! mucomplete#tab_complete(dir) abort
     endif
 endfu
 
+"}}}
+" cycle_or_select "{{{
+
 fu! mucomplete#cycle_or_select(dir) abort
     if get(g:, 'mc_cycle_with_trigger', 0)
         return mucomplete#cycle(a:dir)
@@ -719,3 +836,5 @@ fu! mucomplete#cycle_or_select(dir) abort
         return (a:dir > 0 ? "\<c-n>" : "\<c-p>")
     endif
 endfu
+
+"}}}
