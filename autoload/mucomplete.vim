@@ -16,7 +16,7 @@
 "         E15: Invalid expression: (s:cycle ? (s:idx + s:dir + s:N) % s:N : s:idx + s:dir)
 "
 " Note:
-" C-k is use to cycle backward in the completion chain.
+" C-k is used to cycle backward in the completion chain.
 " By default, it was C-h. I changed the mapping.
 " The bug occurs when you type a key to move backward OR forward in the chain,
 " without having hitting Tab once before;
@@ -25,6 +25,30 @@
 "     let g:mc_cycle_with_trigger = 1
 "
 " … in your vimrc
+"
+" In fact, the bug occurs when the user asks to move in the chain (cycle)
+" without having invoked a method in the chain at least once.
+"
+" Initially, I thought the solution was to initialize `s:N` in `cycle()`,
+" exactly as it was defined in `complete()`.
+" But then, I realized that it wasn't a good idea to let the user call
+" `s:next_method()`, without having entered the chain at least once.
+" If he's never entered the chain, he has no position inside it.
+" So, there's no reference point on which base our relative motion in the chain.
+" IOW, it doesn't make sense to try and support this weird / edge case.
+"
+" Maybe the best solution is to prevent `s:next_method()` to be called
+" when the user never invoked a methode in the chain.
+"
+" How do we know whether they invoked a method?
+" If they did, the `mucomplete#complete()` function was invoked at least once.
+" It it was, it must have created the variable `s:N`.
+" Besides, `s:N` is only created inside `mucomplete#complete()`, nowhere else.
+" It means there's an equivalence between the existence of this variable and the
+" user having invoked a method at least once.
+"
+" So, to fix this bug, inside `mucomplete#cycle()` we could test the existence
+" of `s:N` before invoking `s:next_method()`.
 "
 "}}}
 "FIXME: "{{{
@@ -172,9 +196,33 @@
 "                                then C-p would immediately remove it
 "
 "}}}
-" FIXME:
+" FIXME: "{{{
 "
-" The methods `c-n` and `c-p` are tricky to invoke."{{{
+" The 'uspl' method of lifepillar doesn't work when the cursor is just at the
+" end of word but not at the end of the line.
+" Example:
+"
+"     helzo| people
+"
+" The pipe represents the cursor, where the method is invoked.
+" 'uspl' tries to fix the word `people` instead of `helzo`.
+" It probably comes down to the usage of the `:norm` command.
+"
+" Besides the method uses 2 functions, one to collect suggestions, and another
+" to display them in a menu.
+"
+" One function could be enough. And we could get rid of the problematic
+" `:norm` command, using the `spellbadword()` and `spellsuggest()` functions.
+" It would fix the first issue.
+"
+" Tell lifepillar about it. Share our implementation.
+" And ask him, why we have to prefix our mapping with `C-o : CR` to avoid
+" a spurious bug.
+"
+"}}}
+" FIXME: "{{{
+"
+" The methods `c-n` and `c-p` are tricky to invoke.
 "
 " Indeed, we don't know in advance WHEN they will be invoked.
 " As the first ones? Or after other failing methods?
@@ -227,7 +275,6 @@
 " Vim may map other actions in the future on other keys, but for the moment
 " nothing is mapped on CTRL-G.
 "
-" FIXME:
 " It seems to work, but are we sure it is as good as `C-x C-b`?
 " Ask lifepillar what he thinks, here:
 "
@@ -315,6 +362,7 @@ let s:compl_mappings = {
                        \ 'ulti': "\<c-r>=mucomplete#ultisnips#complete()\<cr>",
                        \ 'spel': "\<c-o>:\<cr>\<c-r>=mucomplete#spel#complete()\<cr>",
                        \ }
+
 unlet s:exit_ctrl_x
 
 let s:select_entry = { 'c-p' : "\<c-p>\<down>", 'keyp': "\<c-p>\<down>" }
@@ -548,26 +596,6 @@ endfu
 fu! mucomplete#cycle(dir) abort
     let [s:dir, s:cycle] = [a:dir, 1]
 
-    " let s:methods        = get(b:, 'mc_chain', g:mc_chain)
-    " let s:N              = len(s:methods)
-
-    " FIXME:
-    " Why does the next line block the chain?
-    " let s:idx            = s:dir > 0 ? -1 : s:N
-    "
-    " Because it constantly resets the index.
-    " You can't move in the chain, if the index is always the same.
-
-    " Initially, I thought the solution to the first bug was to initialize
-    " `s:N` in `cycle()`, exactly as it was defined in `complete()`.
-    " But then, I realized that it wasn't a good idea to let the user call
-    " `s:next_method()`, without having entered the chain at least once.
-    " If he's never entered the chain, he has no position inside the chain.
-    " So, there's no reference point on which base our relative motion in the chain.
-    " IOW, it doesn't make sense to try and support this weird / edge case.
-    "
-    " So, maybe the best solution is to prevent `s:next_method()` to be called
-    " is `s:N` doesn't exist (that is if `complete()` has never been called).
     return exists('s:N') ? "\<c-e>" . s:next_method() : ''
 endfu
 
@@ -645,6 +673,17 @@ fu! s:next_method() abort
         " 3 - call `mucomplete#verify_completion()` through `<plug>(MUcompleteNxt)`
         "
         ""}}}
+
+        " FIXME:
+        " Why does lifepillar use C-r twice.
+        " Usually it's used to insert the contents of a register literally.
+        " To prevent the interpretation of special characters like backspace:
+        "
+        "     register contents         insertion
+        "     xy^Hz                →    xz
+        "
+        " Here we insert the expression register, which will store an empty
+        " string. There's nothing to interpret. So why 2 C-r? Why not just one.
 
         return s:compl_mappings[s:methods[s:idx]] .
                     \ "\<c-r>\<c-r>=pumvisible()?mucomplete#menu_up():''\<cr>\<plug>(MUcompleteNxt)"
