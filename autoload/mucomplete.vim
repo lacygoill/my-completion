@@ -13,7 +13,7 @@
 "         Error detected while processing function
 "         mucomplete#cycle[2]..<SNR>66_next_method:
 "         line    1:
-"         E15: Invalid expression: (s:cycle ? (s:idx + s:dir + s:N) % s:N : s:idx + s:dir)
+"         E15: Invalid expression: (s:cycle ? (s:i + s:dir + s:N) % s:N : s:i + s:dir)
 "
 " Note:
 " C-k is used to cycle backward in the completion chain.
@@ -98,21 +98,21 @@
 "
 " … if we add the line:
 "
-"         let g:idx_list   = get(g:, 'idx_list', []) + [s:idx]
+"         let g:idx_list   = get(g:, 'idx_list', []) + [s:i]
 "
 " … just after:
 "
-"         let s:idx = (s:idx + s:dir + s:N) % s:N
+"         let s:i = (s:i + s:dir + s:N) % s:N
 "
 " When we echo `g:idx_list`, we get a big list of 3's ([3, 3, 3, …]).
 
 " If we add the line:
 "
-"         let g:idx_list   = get(g:, 'idx_list', []) + [s:idx]
+"         let g:idx_list   = get(g:, 'idx_list', []) + [s:i]
 "
 " … just after (`s:cycle` is set to 1):
 "
-"         let s:idx = (s:idx + s:dir + s:N) % s:N
+"         let s:i = (s:i + s:dir + s:N) % s:N
 "
 " When we echo `g:idx_list`, we get a circular list:
 "
@@ -120,7 +120,7 @@
 "
 " If we add the line:
 "
-"         let g:idx_list   = get(g:, 'idx_list', []) + [s:idx]
+"         let g:idx_list   = get(g:, 'idx_list', []) + [s:i]
 "
 " … just after the while loop, when we echo `g:idx_list`, we get a big list of
 " 2's ([2, 2, 2, …]).
@@ -134,16 +134,16 @@
 " To do so, we can store the current index in a variable at the beginning of
 " the function:
 "
-"         let old_idx = s:idx
+"         let old_i = s:i
 "
 " Then, add to the test:
 "
-"         if (s:idx+1) % (s:N+1) != 0
+"         if (s:i+1) % (s:N+1) != 0
 "
 " … (which conditions whether the completion mappings will be hit), the
 " following statement:
 "
-"         … && s:idx != old_idx
+"         … && s:i != old_i
 "
 " There's still a problem though I haven't encountered yet though.
 " Maybe in some particular circumstances, we could get stuck in a different
@@ -155,11 +155,11 @@
 " This time, it finds that the next method is, again, `2`.
 "
 " At this moment, we could be entering a loop from which we couldn't get out,
-" even with the `old_idx` variable.
+" even with the `old_i` variable.
 "
 " I've been thinking at a more robust solution to this problem.
 " When `s:cycle` is set to 1, maybe we should create a variable
-" (`s:idxes_since_cycle`), in which we would store all the indexes of the
+" (`s:i_history`), in which we would store all the indexes of the
 " methods tried.
 " Inside `s:next_method()`, before hitting a completion mapping, we would
 " make sure that the index of the method we're going to try is not in this
@@ -455,6 +455,8 @@ let s:compl_mappings = {
                        \ 'path': "\<c-r>=mucomplete#path#complete()\<cr>",
                        \ 'ulti': "\<c-r>=mucomplete#ultisnips#complete()\<cr>",
                        \ 'spel': "\<c-o>:\<cr>\<c-r>=mucomplete#spel#complete()\<cr>",
+                       \ 'unic': "\<c-x>\<c-g>",
+                       \ 'digr': "\<c-x>\<c-z>",
                        \ }
 
 unlet s:exit_ctrl_x
@@ -469,16 +471,33 @@ let s:cycling             = 0
 
 " Indexes of the methods which have been tried since the last time we asked
 " for a cycle.
-let s:idxes_since_cycling = []
+let s:i_history = []
 
-let s:idx                 = 0
+let s:i                 = 0
 let s:pumvisible          = 0
 
 " Default pattern to decide when automatic completion should be triggered.
 let g:mc_trigger_auto_pattern = '\k\k$'
 
 " Default completion chain
-let g:mc_chain = get(g:, 'mc_chain', ['file', 'omni', 'keyn', 'dict', 'spel', 'path', 'ulti'])
+let g:mc_chain = get(g:, 'mc_chain', [
+                                     \ 'file',
+                                     \ 'omni',
+                                     \ 'keyn',
+                                     \ 'c-p',
+                                     \ 'defs',
+                                     \ 'incl',
+                                     \ 'dict',
+                                     \ 'line',
+                                     \ 'spel',
+                                     \ 'thes',
+                                     \ 'user',
+                                     \ 'cmd',
+                                     \ 'tags',
+                                     \ 'ulti',
+                                     \ 'unic',
+                                     \ 'digr',
+                                     \ ])
 
 " Conditions to be verified for a given method to be applied."{{{
 "
@@ -509,6 +528,8 @@ let g:mc_conditions = {
                       \ 'user': { t -> strlen(&l:completefunc) > 0 },
                       \ 'spel': { t -> &l:spell && !empty(&l:spelllang) },
                       \ 'ulti': { t -> get(g:, 'did_plugin_ultisnips', 0) },
+                      \ 'unic': { t -> get(g:, 'loaded_unicodePlugin', 0) },
+                      \ 'digr': { t -> get(g:, 'loaded_unicodePlugin', 0) },
                       \ }
 
 "}}}
@@ -519,10 +540,10 @@ fu! s:act_on_textchanged() abort
         let s:completedone = 0
         let g:mucomplete_with_key = 0
 
-        if get(s:methods, s:idx, '') ==# 'path' && getline('.')[col('.')-2] =~# '\m\f'
+        if get(s:methods, s:i, '') ==# 'path' && getline('.')[col('.')-2] =~# '\m\f'
             sil call mucomplete#path#complete()
 
-        elseif get(s:methods, s:idx, '') ==# 'file' && getline('.')[col('.')-2] =~# '\m\f'
+        elseif get(s:methods, s:i, '') ==# 'file' && getline('.')[col('.')-2] =~# '\m\f'
             sil call feedkeys("\<c-x>\<c-f>", 'i')
         endif
 
@@ -658,11 +679,11 @@ fu! s:act_on_pumvisible() abort
     "
 "}}}
 
-    return s:auto || s:methods[s:idx] ==# 'spel'
+    return s:auto || s:methods[s:i] ==# 'spel'
                 \ ? ''
                 \ : (stridx(&l:completeopt, 'noselect') == -1
                 \     ? (stridx(&l:completeopt, 'noinsert') == - 1 ? '' : "\<c-p>\<c-n>")
-                \     : get(s:select_entry, s:methods[s:idx], "\<c-n>\<up>")
+                \     : get(s:select_entry, s:methods[s:i], "\<c-n>\<up>")
                 \   )
 
 endfu
@@ -676,7 +697,7 @@ endfu
 
 fu! s:can_complete() abort
     return get({ exists('b:mc_conditions') ? 'b:' : 'g:' }mc_conditions,
-                \ s:methods[s:idx], s:yes_you_can)(s:word)
+                \ s:methods[s:i], s:yes_you_can)(s:word)
 endfu
 
 "}}}
@@ -708,14 +729,14 @@ fu! mucomplete#complete(dir) abort
         return (a:dir > 0 ? "\<plug>(MUcompleteTab)" : "\<plug>(MUcompleteCtd)")
     endif
 
-    let s:dir                 = a:dir
-    let s:cycling             = 0
-    let s:idxes_since_cycling = []
+    let s:dir       = a:dir
+    let s:cycling   = 0
+    let s:i_history = []
 
     let s:methods = get(b:, 'mc_chain', g:mc_chain)
     let s:N       = len(s:methods)
 
-    let s:idx = s:dir > 0 ? -1 : s:N
+    let s:i = s:dir > 0 ? -1 : s:N
 
     return s:next_method()
 endfu
@@ -724,9 +745,9 @@ endfu
 " cycle "{{{
 
 fu! mucomplete#cycle(dir) abort
-    let s:dir                 = a:dir
-    let s:cycling             = 1
-    let s:idxes_since_cycling = []
+    let s:dir       = a:dir
+    let s:cycling   = 1
+    let s:i_history = []
 
     return exists('s:N') ? "\<c-e>" . s:next_method() : ''
 endfu
@@ -745,11 +766,11 @@ endfu
 " Precondition: pumvisible() is false.
 "
 "         s:dir     = 1     flag:                            initial direction,                  never changes
-"         s:idx     = -1    number (positive or negative):   idx of the method to try,           CHANGES
+"         s:i     = -1    number (positive or negative):   idx of the method to try,           CHANGES
 "         s:cycling = 0     flag:                            did we ask to move in the chain ?,  never changes
 "         s:N       = 7     number (positive):               number of methods in the chain,     never changes
 "
-" The valid values of `s:idx` will vary between 0 and s:N-1.
+" The valid values of `s:i` will vary between 0 and s:N-1.
 " It is initialized by `cycle_or_select()`, which gives it the value:
 "
 "         -1      if we go forward in the chain
@@ -815,7 +836,53 @@ fu! s:next_method() abort
 "
 "}}}
 
-        let s:idx = (s:idx + s:dir + s:N) % s:N
+        " FIXME:"{{{
+        "
+        " Why does lifepillar add `s:N`, like this:
+        "
+        "     let s:i = (s:i + s:dir + s:N) % s:N
+        "
+        " Maybe he's concerned with negative indexes, and the inconsistency of
+        " the different implementations of the modulo operation over negative
+        " numbers, depending on the compiler, environment, programming language…
+        "
+        "     http://stackoverflow.com/questions/4467539/javascript-modulo-not-behaving#comment4882815_4467559
+        "     https://www.reddit.com/r/vim/comments/4lfc4v/psa_modulo_returns_negative_numbers/d3mwlds/
+        "     http://stackoverflow.com/a/11720975
+        "
+        "     $ perl -E 'say -10 % 3'              →  2
+        "     $ perl -Minteger -E 'say -10 % 3'    → -1
+        "
+        " But here `s:i` vary between `0` and `s:N - 1` (positive numbers).
+        " So, what's the point?
+        "
+        " Besides, even if he was right to be concerned, the formula doesn't
+        " seem to be enough robust.
+        " This one seems to be more popular:
+        " http://javascript.about.com/od/problemsolving/a/modulobug.htm
+        "
+        "     ((n%p)+p)%p
+        "
+        " … where `n` and `p` are resp. a negative and positive number.
+        "
+        " Adding `p` converts a possible negative result given by the modulo
+        " operator into a positive number:
+        "
+        "     if     (-5 % 4)     = -1
+        "     then   (-5 % 4) + 4 = 3
+        "
+        " But adding `p` would give us a too big result if `n` was a positive
+        " number, instead of being negative:
+        "
+        "     (5 % 4) + 4 = 5
+        "
+        " So we need the second modulo to cover both cases with the same
+        " formula:
+        "
+        "     ((5 % 4) + 4) % 4 = 1
+"}}}
+
+        let s:i = (s:i + s:dir) % s:N
 
         " We will get out of the loop as soon as: "{{{
         "
@@ -825,28 +892,28 @@ fu! s:next_method() abort
 
         " Condition to stay in the loop:
         "
-        "     (s:idx+1) % (s:N+1) != 0    the next idx is not beyond the chain
+        "     (s:i+1) % (s:N+1) != 0    the next idx is not beyond the chain
         "                                 IOW there IS a NEXT method
         "
         "     && !s:can_complete()        AND the method of the CURRENT one can't be applied
         "
         ""}}}
 
-        while (s:idx+1) % (s:N+1) != 0  && !s:can_complete()
-            let s:idx = (s:idx + s:dir + s:N) % s:N
+        while (s:i+1) % (s:N+1) != 0  && !s:can_complete()
+            let s:i = (s:i + s:dir + s:N) % s:N
         endwhile
 
     else
 
-        let s:idx += s:dir
-        while (s:idx+1) % (s:N+1) != 0  && !s:can_complete()
-            let s:idx += s:dir
+        let s:i += s:dir
+        while (s:i+1) % (s:N+1) != 0  && !s:can_complete()
+            let s:i += s:dir
         endwhile
     endif
 
     " After the while loop: "{{{
     "
-    "     if (s:idx+1) % (s:N+1) != 0
+    "     if (s:i+1) % (s:N+1) != 0
     "
     " … is equivalent to:
     "
@@ -857,7 +924,7 @@ fu! s:next_method() abort
     "
     " What's the meaning of:
     "
-    "     && !count(s:idxes_since_cycling, s:idx)
+    "     && !count(s:i_history, s:i)
     "
     " … ? We want to make sure that the method to be tried hasn't already been
     " tried since the last time the user asked for a cycle.
@@ -868,14 +935,14 @@ fu! s:next_method() abort
     "
     ""}}}
 
-    if (s:idx+1) % (s:N+1) != 0 && !count(s:idxes_since_cycling, s:idx)
+    if (s:i+1) % (s:N+1) != 0 && !count(s:i_history, s:i)
 
         " If we're cycling, we store the index of the method to be tried, in
         " a list. We'll use it to compare its items with the index of the
         " next method to be tried.
 
         if s:cycling
-            let s:idxes_since_cycling += [s:idx]
+            let s:i_history += [s:i]
         endif
 
         " 1 - Type the keys to invoke the chosen method."{{{
@@ -899,7 +966,7 @@ fu! s:next_method() abort
         " Here we insert the expression register, which will store an empty
         " string. There's nothing to interpret. So why 2 C-r? Why not just one.
 
-        return s:compl_mappings[s:methods[s:idx]] .
+        return s:compl_mappings[s:methods[s:i]] .
                     \ "\<c-r>\<c-r>=pumvisible()?mucomplete#menu_is_up():''\<cr>\<plug>(MUcompleteNxt)"
 
     endif
