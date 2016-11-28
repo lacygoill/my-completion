@@ -388,8 +388,7 @@ fu! s:act_on_textchanged() abort
         endif
 
     elseif match(strpart(getline('.'), 0, col('.') - 1),
-                \  get(g:mucomplete#trigger_auto_pattern, &ft,
-                \      g:mucomplete#trigger_auto_pattern['default'])) > -1
+                \  { exists('b:mc_trigger_auto_pattern') ? 'b:' : 'g:' }mc_trigger_auto_pattern) > -1
         sil call feedkeys("\<plug>(MUcompleteAuto)", 'i')
     endif
 endfu
@@ -424,10 +423,8 @@ fu! mucomplete#toggle_auto() abort
     endif
 endfu
 
-" Patterns to decide when automatic completion should be triggered.
-let g:mucomplete#trigger_auto_pattern = extend({
-            \ 'default' : '\k\k$'
-            \ }, get(g:, 'mucomplete#trigger_auto_pattern', {}))
+" Default pattern to decide when automatic completion should be triggered.
+let g:mc_trigger_auto_pattern = '\k\k$'
 
 " Default completion chain
 let g:mc_chain = ['file', 'omni', 'keyn', 'dict', 'spel', 'path', 'ulti']
