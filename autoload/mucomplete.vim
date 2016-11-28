@@ -140,11 +140,35 @@
 "
 "         if (s:idx+1) % (s:N+1) != 0
 "
-" … which conditions whether the completion mappings will be hit, the
-" statement:
+" … (which conditions whether the completion mappings will be hit), the
+" following statement:
 "
 "         … && s:idx != old_idx
-
+"
+" There's still a problem though I haven't encountered yet though.
+" Maybe in some particular circumstances, we could get stuck in a different
+" kind of loop…
+" Imagine, `s:next_method()` finds that the next method to try is `2`.
+" It tries it, but it fails. So, `s:next_method()` is recalled.
+" This time, it finds that the next method to try is `4`.
+" It tries it, but it fails. So, `s:next_method()` is recalled.
+" This time, it finds that the next method is, again, `2`.
+"
+" At this moment, we could be entering a loop from which we couldn't get out,
+" even with the `old_idx` variable.
+"
+" I've been thinking at a more robust solution to this problem.
+" When `s:cycle` is set to 1, maybe we should create a variable
+" (`s:idxes_since_cycle`), in which we would store all the indexes of the
+" methods tried.
+" Inside `s:next_method()`, before hitting a completion mapping, we would
+" make sure that the index of the method we're going to try is not in this
+" list.
+" This should prevent any kind of spurious loop.
+" Finally, when `s:cycle` is set to 0, we would empty the list, so that the
+" methods whose indexes are in this temporary list could be tested again, the
+" next time we would ask for a completion via Tab or via a new cycle (C-h, C-l).
+"
 "}}}
 " FIXME: "{{{
 "
@@ -435,21 +459,26 @@ let s:compl_mappings = {
 
 unlet s:exit_ctrl_x
 
-let s:select_entry = { 'c-p' : "\<c-p>\<down>", 'keyp': "\<c-p>\<down>" }
+let s:select_entry        = { 'c-p' : "\<c-p>\<down>", 'keyp': "\<c-p>\<down>" }
 " Internal state
-let s:methods      = []
-let s:word         = ''
-let s:auto         = 0
-let s:dir          = 1
-let s:cycle        = 0
-let s:idx          = 0
-let s:pumvisible   = 0
+let s:methods             = []
+let s:word                = ''
+let s:auto                = 0
+let s:dir                 = 1
+let s:cycling             = 0
+
+" Indexes of the methods which have been tried since the last time we asked
+" for a cycle.
+let s:idxes_since_cycling = []
+
+let s:idx                 = 0
+let s:pumvisible          = 0
 
 " Default pattern to decide when automatic completion should be triggered.
 let g:mc_trigger_auto_pattern = '\k\k$'
 
 " Default completion chain
-let g:mc_chain = ['file', 'omni', 'keyn', 'dict', 'spel', 'path', 'ulti']
+let g:mc_chain = get(g:, 'mc_chain', ['file', 'omni', 'keyn', 'dict', 'spel', 'path', 'ulti'])
 
 " Conditions to be verified for a given method to be applied."{{{
 "
@@ -679,10 +708,13 @@ fu! mucomplete#complete(dir) abort
         return (a:dir > 0 ? "\<plug>(MUcompleteTab)" : "\<plug>(MUcompleteCtd)")
     endif
 
-    let [s:dir, s:cycle] = [a:dir, 0]
-    let s:methods        = get(b:, 'mc_chain', g:mc_chain)
+    let s:dir                 = a:dir
+    let s:cycling             = 0
+    let s:idxes_since_cycling = []
 
-    let s:N   = len(s:methods)
+    let s:methods = get(b:, 'mc_chain', g:mc_chain)
+    let s:N       = len(s:methods)
+
     let s:idx = s:dir > 0 ? -1 : s:N
 
     return s:next_method()
@@ -692,7 +724,9 @@ endfu
 " cycle "{{{
 
 fu! mucomplete#cycle(dir) abort
-    let [s:dir, s:cycle] = [a:dir, 1]
+    let s:dir                 = a:dir
+    let s:cycling             = 1
+    let s:idxes_since_cycling = []
 
     return exists('s:N') ? "\<c-e>" . s:next_method() : ''
 endfu
@@ -710,10 +744,10 @@ endfu
 
 " Precondition: pumvisible() is false.
 "
-"         s:dir   = 1     flag:                            initial direction,                  never changes
-"         s:idx   = -1    number (positive or negative):   idx of the method to try,           CHANGES
-"         s:cycle = 0     flag:                            did we ask to move in the chain ?,  never changes
-"         s:N     = 7     number (positive):               number of methods in the chain,     never changes
+"         s:dir     = 1     flag:                            initial direction,                  never changes
+"         s:idx     = -1    number (positive or negative):   idx of the method to try,           CHANGES
+"         s:cycling = 0     flag:                            did we ask to move in the chain ?,  never changes
+"         s:N       = 7     number (positive):               number of methods in the chain,     never changes
 "
 " The valid values of `s:idx` will vary between 0 and s:N-1.
 " It is initialized by `cycle_or_select()`, which gives it the value:
@@ -723,12 +757,67 @@ endfu
 "
 "}}}
 
+" FIXME:
+" Check whether we could be stuck in other kind of loops.
+
 fu! s:next_method() abort
-    let old_idx = s:idx
 
-    if s:cycle
+    if s:cycling
 
-        " We will get out of the loop as soon as:"{{{
+        " Explanation of the formula: "{{{
+        "
+        " Suppose we have the list:
+        "
+        "     let list = ['foo', 'bar', 'baz', 'qux']
+        "
+        " And we want `var` to get a value from this list, then the next,
+        " then the next, …, and when we reach the end of the list, we want the
+        " variable to get the first item.
+        "
+        " To store a value from `list` inside `var`, we can write:
+        "
+        "     let var = list[idx]
+        "
+        " … where `idx` is just a number.
+        "
+        " But what's the relation between 2 consecutive indexes?
+        " It can't be as simple as:
+        "
+        "     next_idx = cur_idx + 1
+        "
+        " … because even though it will work most of the time, it will fail
+        " when we reach the end of the list.
+        "
+        " Here is a working formula:
+        "
+        "     next_idx = (cur_idx + 1) % 4
+        "
+        " … where `4` is the length of the list.
+        "
+        " Indeed, when the current index is below the length of the list,
+        " the modulo operator (%4) won't change anything.
+        " But when it will reach the end of the list (3), the modulo operator
+        " will make the next index go back to the beginning:
+        "
+        "     (3 + 1) % 4 = 0
+        "
+        " It works because VimL (and most other programming languages?)
+        " indexes a list beginning with 0 (and not 1).
+        " If it began with 1, we would have to replace `%4` with `%5`.
+        "
+        " There's still a problem though.
+        "
+        " Here is a general formula:
+        "
+        "     next_idx = (cur_idx + 1 + N) % N
+        "
+        " … where N is the length of the list we're indexing.
+"
+"}}}
+
+        let s:idx = (s:idx + s:dir + s:N) % s:N
+
+        " We will get out of the loop as soon as: "{{{
         "
         "     the next idx is beyond the chain
         " OR
@@ -743,7 +832,6 @@ fu! s:next_method() abort
         "
         ""}}}
 
-        let s:idx = (s:idx + s:dir + s:N) % s:N
         while (s:idx+1) % (s:N+1) != 0  && !s:can_complete()
             let s:idx = (s:idx + s:dir + s:N) % s:N
         endwhile
@@ -755,7 +843,8 @@ fu! s:next_method() abort
             let s:idx += s:dir
         endwhile
     endif
-    " After the while loop:"{{{
+
+    " After the while loop: "{{{
     "
     "     if (s:idx+1) % (s:N+1) != 0
     "
@@ -766,9 +855,28 @@ fu! s:next_method() abort
     " Why don't we use that, then?
     " Probably to save some time, the function call would be slower.
     "
+    " What's the meaning of:
+    "
+    "     && !count(s:idxes_since_cycling, s:idx)
+    "
+    " … ? We want to make sure that the method to be tried hasn't already been
+    " tried since the last time the user asked for a cycle.
+    " Otherwise, we could be stuck in an endless loop of failing methods.
+    " For example:
+    "
+    "       2 → 4 → 2 → 4 → …
+    "
     ""}}}
 
-    if (s:idx+1) % (s:N+1) != 0 && s:idx != old_idx
+    if (s:idx+1) % (s:N+1) != 0 && !count(s:idxes_since_cycling, s:idx)
+
+        " If we're cycling, we store the index of the method to be tried, in
+        " a list. We'll use it to compare its items with the index of the
+        " next method to be tried.
+
+        if s:cycling
+            let s:idxes_since_cycling += [s:idx]
+        endif
 
         " 1 - Type the keys to invoke the chosen method."{{{
         "
@@ -780,6 +888,7 @@ fu! s:next_method() abort
         ""}}}
 
         " FIXME:
+        "
         " Why does lifepillar use C-r twice.
         " Usually it's used to insert the contents of a register literally.
         " To prevent the interpretation of special characters like backspace:
