@@ -457,6 +457,7 @@ let s:compl_mappings = {
                        \ 'spel': "\<c-o>:\<cr>\<c-r>=mucomplete#spel#complete()\<cr>",
                        \ 'unic': "\<c-x>\<c-g>",
                        \ 'digr': "\<c-x>\<c-z>",
+                       \ 'abbr': "\<c-r>=mucomplete#abbrev#complete()\<cr>",
                        \ }
 
 unlet s:exit_ctrl_x
@@ -480,35 +481,37 @@ let s:pumvisible          = 0
 let g:mc_trigger_auto_pattern = '\k\k$'
 
 " Default completion chain
+
+" let g:mc_chain = get(g:, 'mc_chain', [
+"                                      \ 'file',
+"                                      \ 'omni',
+"                                      \ 'keyn',
+"                                      \ 'c-p',
+"                                      \ 'defs',
+"                                      \ 'incl',
+"                                      \ 'dict',
+"                                      \ 'line',
+"                                      \ 'spel',
+"                                      \ 'thes',
+"                                      \ 'user',
+"                                      \ 'cmd',
+"                                      \ 'tags',
+"                                      \ 'ulti',
+"                                      \ 'unic',
+"                                      \ 'digr',
+"                                      \ 'abbr',
+"                                      \ ])
+
 let g:mc_chain = get(g:, 'mc_chain', [
-                                     \ 'file',
-                                     \ 'omni',
                                      \ 'keyn',
-                                     \ 'c-p',
-                                     \ 'defs',
-                                     \ 'incl',
-                                     \ 'dict',
-                                     \ 'line',
-                                     \ 'spel',
-                                     \ 'thes',
-                                     \ 'user',
-                                     \ 'cmd',
-                                     \ 'tags',
-                                     \ 'ulti',
-                                     \ 'unic',
-                                     \ 'digr',
+                                     \ 'abbr',
                                      \ ])
 
+" FIXME:
 " After the 'digr' method has been invoked, we need to execute `:redraw!`.
 " Indeed, if we move inside the menu, and make the scrollbar also move,
 " it creates rendering artifacts.
 
-" let g:mc_chain = get(g:, 'mc_chain', [
-"                                      \ 'unic',
-"                                      \ ])
-
-                                     " \ 'digr',
-                                     " latin
 
 " Conditions to be verified for a given method to be applied."{{{
 "

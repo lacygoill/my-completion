@@ -1,5 +1,3 @@
-let s:suggestions = ''
-
 fu! mucomplete#spel#complete() abort
 
     let badword     = spellbadword(matchstr(getline('.'), '\k\+\%'.col('.').'c'))
