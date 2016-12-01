@@ -499,6 +499,17 @@ let g:mc_chain = get(g:, 'mc_chain', [
                                      \ 'digr',
                                      \ ])
 
+" After the 'digr' method has been invoked, we need to execute `:redraw!`.
+" Indeed, if we move inside the menu, and make the scrollbar also move,
+" it creates rendering artifacts.
+
+" let g:mc_chain = get(g:, 'mc_chain', [
+"                                      \ 'unic',
+"                                      \ ])
+
+                                     " \ 'digr',
+                                     " latin
+
 " Conditions to be verified for a given method to be applied."{{{
 "
 " Explanation of the regex for the file completion method:
@@ -748,6 +759,21 @@ fu! mucomplete#cycle(dir) abort
     let s:dir       = a:dir
     let s:cycling   = 1
     let s:i_history = []
+
+    " Why do we test the existence of `s:N`?
+    " Because we could be stupid and ask to cycle in the chain, never having
+    " entered the chain. That is, never having used a completion method in the
+    " chain. Never hit Tab before.
+    " When it happens, `s:next_method()` raises an error because `s:N` doesn't
+    " exist. Indeed `s:N` is created by `mucomplete#complete()`, which is
+    " called when we hit Tab and use a method in the chain.
+    " We must call this function at least once for `s:N` to be created.
+    "
+    " We could also initialize `s:N` outside `mucomplete#complete()`, but
+    " I don't think it makes a lot of sense to try and support such an edge
+    " case. Asking for moving forward or backward inside the chain implies that
+    " you have a position inside.
+    " But if you were never in the chain, you don't have any position.
 
     return exists('s:N') ? "\<c-e>" . s:next_method() : ''
 endfu
