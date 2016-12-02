@@ -457,7 +457,7 @@ let s:compl_mappings = {
                        \ 'spel': "\<c-o>:\<cr>\<c-r>=mucomplete#spel#complete()\<cr>",
                        \ 'unic': "\<c-x>\<c-g>",
                        \ 'digr': "\<c-x>\<c-z>",
-                       \ 'abbr': "\<c-r>=mucomplete#abbrev#complete()\<cr>",
+                       \ 'abbr': "\<c-r>=mucomplete#abbr#complete()\<cr>",
                        \ }
 
 unlet s:exit_ctrl_x
