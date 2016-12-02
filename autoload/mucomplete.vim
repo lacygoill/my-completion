@@ -436,76 +436,70 @@
 
 " Variables "{{{
 
-let s:exit_ctrl_x = "\<c-g>\<c-g>"
+let s:exit_ctrl_x    = "\<c-g>\<c-g>"
 let s:compl_mappings = {
+                       \ 'abbr': "\<c-r>=mucomplete#abbr#complete()\<cr>",
                        \ 'c-n' : s:exit_ctrl_x."\<c-n>",
                        \ 'c-p' : s:exit_ctrl_x."\<c-p>",
+                       \ 'cmd' : "\<c-x>\<c-v>",
                        \ 'defs': "\<c-x>\<c-d>",
+                       \ 'dict': "\<c-x>\<c-k>",
+                       \ 'digr': "\<c-x>\<c-z>",
                        \ 'file': "\<c-x>\<c-f>",
                        \ 'incl': "\<c-x>\<c-i>",
-                       \ 'dict': "\<c-x>\<c-k>",
-                       \ 'line': s:exit_ctrl_x."\<c-x>\<c-l>",
                        \ 'keyn': "\<c-x>\<c-n>",
-                       \ 'omni': "\<c-x>\<c-o>",
                        \ 'keyp': "\<c-x>\<c-p>",
-                       \ 'thes': "\<c-x>\<c-t>",
-                       \ 'user': "\<c-x>\<c-u>",
-                       \ 'cmd' : "\<c-x>\<c-v>",
-                       \ 'tags': "\<c-x>\<c-]>",
+                       \ 'line': s:exit_ctrl_x."\<c-x>\<c-l>",
+                       \ 'omni': "\<c-x>\<c-o>",
                        \ 'path': "\<c-r>=mucomplete#path#complete()\<cr>",
-                       \ 'ulti': "\<c-r>=mucomplete#ultisnips#complete()\<cr>",
                        \ 'spel': "\<c-o>:\<cr>\<c-r>=mucomplete#spel#complete()\<cr>",
+                       \ 'tags': "\<c-x>\<c-]>",
+                       \ 'thes': "\<c-x>\<c-t>",
+                       \ 'ulti': "\<c-r>=mucomplete#ultisnips#complete()\<cr>",
                        \ 'unic': "\<c-x>\<c-g>",
-                       \ 'digr': "\<c-x>\<c-z>",
-                       \ 'abbr': "\<c-r>=mucomplete#abbr#complete()\<cr>",
+                       \ 'user': "\<c-x>\<c-u>",
                        \ }
 
 unlet s:exit_ctrl_x
 
-let s:select_entry        = { 'c-p' : "\<c-p>\<down>", 'keyp': "\<c-p>\<down>" }
+let s:select_entry = { 'c-p' : "\<c-p>\<down>", 'keyp': "\<c-p>\<down>" }
 " Internal state
-let s:methods             = []
-let s:word                = ''
-let s:auto                = 0
-let s:dir                 = 1
-let s:cycling             = 0
+let s:methods      = []
+let s:word         = ''
+let s:auto         = 0
+let s:dir          = 1
+let s:cycling      = 0
 
 " Indexes of the methods which have been tried since the last time we asked
 " for a cycle.
 let s:i_history = []
 
-let s:i                 = 0
-let s:pumvisible          = 0
+let s:i          = 0
+let s:pumvisible = 0
 
 " Default pattern to decide when automatic completion should be triggered.
 let g:mc_trigger_auto_pattern = '\k\k$'
 
 " Default completion chain
 
-" let g:mc_chain = get(g:, 'mc_chain', [
-"                                      \ 'file',
-"                                      \ 'omni',
-"                                      \ 'keyn',
-"                                      \ 'c-p',
-"                                      \ 'defs',
-"                                      \ 'incl',
-"                                      \ 'dict',
-"                                      \ 'line',
-"                                      \ 'spel',
-"                                      \ 'thes',
-"                                      \ 'user',
-"                                      \ 'cmd',
-"                                      \ 'tags',
-"                                      \ 'ulti',
-"                                      \ 'unic',
-"                                      \ 'digr',
-"                                      \ 'abbr',
-"                                      \ ])
-
 let g:mc_chain = get(g:, 'mc_chain', [
                                      \ 'abbr',
+                                     \ 'c-p',
+                                     \ 'cmd',
+                                     \ 'defs',
+                                     \ 'dict',
+                                     \ 'digr',
+                                     \ 'file',
+                                     \ 'incl',
+                                     \ 'keyn',
+                                     \ 'line',
+                                     \ 'omni',
                                      \ 'spel',
+                                     \ 'tags',
+                                     \ 'thes',
                                      \ 'ulti',
+                                     \ 'unic',
+                                     \ 'user',
                                      \ ])
 
 " FIXME:
