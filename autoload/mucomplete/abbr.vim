@@ -17,7 +17,7 @@ fu! s:abbrev_rhs(rhs) abort
     endif
 endfu
 
-fu! mucomplete#abbrev#complete() abort
+fu! mucomplete#abbr#complete() abort
     let word_to_complete = matchstr(strpart(getline('.'), 0, col('.') - 1), '\S\+$')
 
     let matching_abbrev  = map(filter(copy(s:abbrev),
