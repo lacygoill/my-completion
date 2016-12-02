@@ -438,26 +438,25 @@
 
 let s:exit_ctrl_x    = "\<c-g>\<c-g>"
 let s:compl_mappings = {
-                       \ 'abbr': "\<c-r>=mucomplete#abbr#complete()\<cr>",
-                       \ 'c-n' : s:exit_ctrl_x."\<c-n>",
-                       \ 'c-p' : s:exit_ctrl_x."\<c-p>",
-                       \ 'cmd' : "\<c-x>\<c-v>",
-                       \ 'defs': "\<c-x>\<c-d>",
-                       \ 'dict': "\<c-x>\<c-k>",
-                       \ 'digr': "\<c-x>\<c-z>",
-                       \ 'file': "\<c-x>\<c-f>",
-                       \ 'incl': "\<c-x>\<c-i>",
-                       \ 'keyn': "\<c-x>\<c-n>",
-                       \ 'keyp': "\<c-x>\<c-p>",
-                       \ 'line': s:exit_ctrl_x."\<c-x>\<c-l>",
-                       \ 'omni': "\<c-x>\<c-o>",
-                       \ 'path': "\<c-r>=mucomplete#path#complete()\<cr>",
-                       \ 'spel': "\<c-o>:\<cr>\<c-r>=mucomplete#spel#complete()\<cr>",
-                       \ 'tags': "\<c-x>\<c-]>",
-                       \ 'thes': "\<c-x>\<c-t>",
-                       \ 'ulti': "\<c-r>=mucomplete#ultisnips#complete()\<cr>",
-                       \ 'unic': "\<c-x>\<c-g>",
-                       \ 'user': "\<c-x>\<c-u>",
+                       \ 'abbr' : "\<c-r>=mucomplete#abbr#complete()\<cr>",
+                       \ 'c-n'  : s:exit_ctrl_x."\<c-n>",
+                       \ 'c-p'  : s:exit_ctrl_x."\<c-p>",
+                       \ 'cmd'  : "\<c-x>\<c-v>",
+                       \ 'defs' : "\<c-x>\<c-d>",
+                       \ 'dict' : "\<c-x>\<c-k>",
+                       \ 'digr' : "\<c-x>\<c-z>",
+                       \ 'file' : "\<c-r>=mucomplete#file#complete()\<cr>",
+                       \ 'incl' : "\<c-x>\<c-i>",
+                       \ 'keyn' : "\<c-x>\<c-n>",
+                       \ 'keyp' : "\<c-x>\<c-p>",
+                       \ 'line' : s:exit_ctrl_x."\<c-x>\<c-l>",
+                       \ 'omni' : "\<c-x>\<c-o>",
+                       \ 'spel' : "\<c-o>:\<cr>\<c-r>=mucomplete#spel#complete()\<cr>",
+                       \ 'tags' : "\<c-x>\<c-]>",
+                       \ 'thes' : "\<c-x>\<c-t>",
+                       \ 'ulti' : "\<c-r>=mucomplete#ultisnips#complete()\<cr>",
+                       \ 'unic' : "\<c-x>\<c-g>",
+                       \ 'user' : "\<c-x>\<c-u>",
                        \ }
 
 unlet s:exit_ctrl_x
@@ -482,31 +481,26 @@ let g:mc_trigger_auto_pattern = '\k\k$'
 
 " Default completion chain
 
-let g:mc_chain = get(g:, 'mc_chain', [
-                                     \ 'abbr',
-                                     \ 'c-p',
-                                     \ 'cmd',
-                                     \ 'defs',
-                                     \ 'dict',
-                                     \ 'digr',
-                                     \ 'file',
-                                     \ 'incl',
-                                     \ 'keyn',
-                                     \ 'line',
-                                     \ 'omni',
-                                     \ 'spel',
-                                     \ 'tags',
-                                     \ 'thes',
-                                     \ 'ulti',
-                                     \ 'unic',
-                                     \ 'user',
-                                     \ ])
+let g:mc_chain = ['file']
 
-" FIXME:
-" After the 'digr' method has been invoked, we need to execute `:redraw!`.
-" Indeed, if we move inside the menu, and make the scrollbar also move,
-" it creates rendering artifacts.
-
+" let g:mc_chain = get(g:, 'mc_chain', [
+"                                      \ 'abbr',
+"                                      \ 'c-p',
+"                                      \ 'cmd',
+"                                      \ 'defs',
+"                                      \ 'dict',
+"                                      \ 'digr',
+"                                      \ 'incl',
+"                                      \ 'keyn',
+"                                      \ 'line',
+"                                      \ 'omni',
+"                                      \ 'spel',
+"                                      \ 'tags',
+"                                      \ 'thes',
+"                                      \ 'ulti',
+"                                      \ 'unic',
+"                                      \ 'user',
+"                                      \ ])
 
 " Conditions to be verified for a given method to be applied."{{{
 "
@@ -529,16 +523,15 @@ let g:mc_chain = get(g:, 'mc_chain', [
 
 let s:yes_you_can   = { _ -> 1 }
 let g:mc_conditions = {
-                      \ 'dict': { t -> strlen(&l:dictionary) > 0 },
-                      \ 'file': { t -> t =~# '\v[/~]\f*$' },
-                      \ 'path': { t -> t =~# '\v[/~]\f*$' },
-                      \ 'omni': { t -> strlen(&l:omnifunc) > 0 },
-                      \ 'tags': { t -> !empty(tagfiles()) },
-                      \ 'user': { t -> strlen(&l:completefunc) > 0 },
-                      \ 'spel': { t -> &l:spell && !empty(&l:spelllang) },
-                      \ 'ulti': { t -> get(g:, 'did_plugin_ultisnips', 0) },
-                      \ 'unic': { t -> get(g:, 'loaded_unicodePlugin', 0) },
-                      \ 'digr': { t -> get(g:, 'loaded_unicodePlugin', 0) },
+                      \ 'dict' : { t -> strlen(&l:dictionary) > 0 },
+                      \ 'digr' : { t -> get(g:, 'loaded_unicodePlugin', 0) },
+                      \ 'file' : { t -> t =~# '\v[/~]\f*$' },
+                      \ 'omni' : { t -> strlen(&l:omnifunc) > 0 },
+                      \ 'spel' : { t -> &l:spell && !empty(&l:spelllang) },
+                      \ 'tags' : { t -> !empty(tagfiles()) },
+                      \ 'ulti' : { t -> get(g:, 'did_plugin_ultisnips', 0) },
+                      \ 'unic' : { t -> get(g:, 'loaded_unicodePlugin', 0) },
+                      \ 'user' : { t -> strlen(&l:completefunc) > 0 },
                       \ }
 
 "}}}
@@ -549,11 +542,8 @@ fu! s:act_on_textchanged() abort
         let s:completedone = 0
         let g:mucomplete_with_key = 0
 
-        if get(s:methods, s:i, '') ==# 'path' && getline('.')[col('.')-2] =~# '\m\f'
-            sil call mucomplete#path#complete()
-
-        elseif get(s:methods, s:i, '') ==# 'file' && getline('.')[col('.')-2] =~# '\m\f'
-            sil call feedkeys("\<c-x>\<c-f>", 'i')
+        if get(s:methods, s:i, '') ==# 'file' && getline('.')[col('.')-2] =~# '\v\f'
+            sil call mucomplete#file#complete()
         endif
 
     elseif match(strpart(getline('.'), 0, col('.') - 1),
