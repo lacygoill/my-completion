@@ -100,8 +100,9 @@ fu! mucomplete#ultisnips#complete() abort
                    \      'dup' : 1,
                    \   }")
 
+    let from_where = col('.') - len(word_to_complete)
     if !empty(candidates)
-        call complete(col('.') - len(word_to_complete), candidates)
+        call complete(from_where, candidates)
     endif
     return ''
 endfu

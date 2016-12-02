@@ -1,14 +1,15 @@
 fu! mucomplete#spel#complete() abort
 
-    let badword     = spellbadword(matchstr(getline('.'), '\k\+\%'.col('.').'c'))
-    let suggestions = !empty(badword[1])
-                      \ ? spellsuggest(badword[0])
-                      \ : []
+    let word_to_complete = matchstr(getline('.'), '\S\+\%'.col('.').'c')
+    let badword          = spellbadword(word_to_complete)
+    let suggestions      = !empty(badword[1])
+                           \ ? spellsuggest(badword[0])
+                           \ : []
 
-    let column      = 1 + match(strpart(getline('.'), 0, col('.') - 1), '\S\+$')
+    let from_where  = col('.') - len(word_to_complete)
 
     if !empty(suggestions)
-        call complete(column, suggestions)
+        call complete(from_where, suggestions)
     endif
     return ''
 endfu

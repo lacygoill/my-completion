@@ -503,8 +503,9 @@ let g:mc_trigger_auto_pattern = '\k\k$'
 "                                      \ ])
 
 let g:mc_chain = get(g:, 'mc_chain', [
-                                     \ 'keyn',
                                      \ 'abbr',
+                                     \ 'spel',
+                                     \ 'ulti',
                                      \ ])
 
 " FIXME:
