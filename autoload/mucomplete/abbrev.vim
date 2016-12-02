@@ -1,15 +1,17 @@
 let s:table  = execute('iab')
 let s:lines  = reverse(split(s:table, "\n"))
 let s:abbrev = map(s:lines, '{
-                             \ "lhs" : matchstr(v:val, ''\vi\s+\zs\w+''),
-                             \ "rhs" : matchstr(v:val, ''\v\*\s+\zs.*''),
+                             \ "lhs" : matchstr(v:val, "\\vi\\s+\\zs\\w+"),
+                             \ "rhs" : matchstr(v:val, "\\v\\*\\s+\\zs.*"),
                              \ }')
 
 fu! s:abbrev_rhs(rhs) abort
     if stridx(a:rhs, '&spl ==#') == -1
         return a:rhs
+
     elseif &l:spl ==# 'fr'
         return matchstr(a:rhs, "\\vfr.{-}'\\zs.{-}\\ze'")
+
     elseif &l:spl ==# 'en'
         return matchstr(a:rhs, ":\\s\\+'\\zs.*\\ze'")
     endif
