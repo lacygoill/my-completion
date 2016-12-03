@@ -481,26 +481,23 @@ let g:mc_trigger_auto_pattern = '\k\k$'
 
 " Default completion chain
 
-let g:mc_chain = ['file']
+let g:mc_chain = [ 'file' ]
 
-" let g:mc_chain = get(g:, 'mc_chain', [
-"                                      \ 'abbr',
-"                                      \ 'c-p',
-"                                      \ 'cmd',
-"                                      \ 'defs',
-"                                      \ 'dict',
-"                                      \ 'digr',
-"                                      \ 'incl',
-"                                      \ 'keyn',
-"                                      \ 'line',
-"                                      \ 'omni',
-"                                      \ 'spel',
-"                                      \ 'tags',
-"                                      \ 'thes',
-"                                      \ 'ulti',
-"                                      \ 'unic',
-"                                      \ 'user',
-"                                      \ ])
+" let g:mc_chain = [
+"                  \ 'abbr',
+"                  \ 'c-p' ,
+"                  \ 'cmd' ,
+"                  \ 'dict',
+"                  \ 'digr',
+"                  \ 'file',
+"                  \ 'keyp',
+"                  \ 'line',
+"                  \ 'omni',
+"                  \ 'spel',
+"                  \ 'tags',
+"                  \ 'ulti',
+"                  \ 'unic',
+"                  \ ]
 
 " Conditions to be verified for a given method to be applied."{{{
 "
@@ -537,17 +534,147 @@ let g:mc_conditions = {
 "}}}
 " s:act_on_textchanged "{{{
 
+" Purpose: "{{{
+"
+" Try an autocompletion every time the text changes in insert mode.
+"
+" This function is only called when autocompletion is enabled.
+" Technically, it tries an autocompletion by typing `<plug>(MUcompleteAuto)`
+" which calls `mucomplete#complete(1)`.
+"
+" It's not called when the popup menu is visible. Indeed, when we navigate in
+" the menu and it inserts different entries, `TextChangedI` is not triggered.
+"
+" However, if an autocompletion is successful, i.e. finds a method which gives
+" suggestions, and we hit Enter on a candidate in the menu, the text will change,
+" and this function will be called.
+" But we don't want autocompletion to be invoked again right after a successful
+" autocompletion. Most of the time, it wouldn't make sense, and would probably
+" be annoying. We could even get stuck in an infinite loop of autocompletions.
+"
+" So we need a flag to know when a completion is done, and call
+" `mucomplete#complete(1)` only when it's off.
+" This flag is `s:completedone`.
+"
+" "}}}
+
 fu! s:act_on_textchanged() abort
+
+    " s:completedone "{{{
+    "
+    " s:completedone is a flag, which is on only when 2 conditions are met:
+    "
+    "     - autocompletion is enabled
+    "     - some text has been completed (`CompleteDone` event)
+    "
+    " It's almost always off, because as soon as it's enabled,
+    " the `TextChangedI` event is triggered, and `s:act_on_textchanged()` is
+    " called. The latter checks the value of `s:completedone` and resets it when
+    " it's on.
+"}}}
+
     if s:completedone
-        let s:completedone = 0
+
+    " If the text changed AND a completion was done, we reset: "{{{
+    "
+    "     - s:completedone
+    "
+    "     When this flag is on, the function doesn't invoke an autocompletion.
+    "     So it needs to be off for the next time the function will be called.
+    "
+    "     - g:mucomplete_with_key
+    "
+    "     When this variable /flag is on, it means the completion was initiated
+    "     manually.
+    "     We can use this info to disable a method when autocompletion is
+    "     enabled, but still be able to use it manually.
+    "
+    "     For example, we could disable the 'thes' method:
+    "
+    "         let g:mc_conditions.thes =  { t -> g:mucomplete_with_key && strlen(&l:thesaurus) > 0 }
+    "
+    "     Now, the `thes` method can only be tried when 'thesaurus' has
+    "     a value, AND the completion was initiated manually by the user.
+    "
+    "     "}}}
+
+        let s:completedone        = 0
         let g:mucomplete_with_key = 0
 
-        if get(s:methods, s:i, '') ==# 'file' && getline('.')[col('.')-2] =~# '\v\f'
-            sil call mucomplete#file#complete()
-        endif
+        " Usually, when a completion has been done, we don't want
+        " autocompletion to be invoked again right afterwards.
+        "
+        " Exception:    'file' method
+        "
+        " If we just autocompleted a filepath component (i.e. the current method
+        " is 'file'), we want autocompletion to be invoked again, to handle the
+        " next component, in case there's one.
+        " We just make sure that the character before the cursor is in 'isf'.
 
-    elseif match(strpart(getline('.'), 0, col('.') - 1),
-                \  { exists('b:mc_trigger_auto_pattern') ? 'b:' : 'g:' }mc_trigger_auto_pattern) > -1
+        " FIXME:
+        " In the `s:act_on_textchanged()` function, I think I understand the
+        " purpose of this block:
+        "
+        "    if s:methods[s:i] ==# 'file' && getline('.')[col('.')-2] =~# '\v\f'
+        "        sil call mucomplete#file#complete()
+        "    endif
+        "
+        " Usually, when an autocompletion has been performed, the plugin
+        " doesn't try to do another one.
+        " With one exception: if the current method is 'file' (or 'path'), and
+        " the character before the cursor is in 'isf'.
+        " Indeed, when we complete a path, we often want to autocomplete
+        " a succession of path components.
+        " The previous block implements this exception.
+        "
+        " But there are 2 problems:
+        "
+        "     1. Shouldn't:
+        "
+        "            getline('.')[col('.')-2] =~# '\v\f'
+        "
+        "        be replaced with:
+        "
+        "            matchstr(getline('.'), '\%'.col('.').'c') =~# '\v\f'
+        "            to handle the case where the character before the cursor
+        "            is multibyte?
+        "            A multibyte character can be in 'isf'.
+        "
+        "     2. It doesn't seem to work at all.
+        "        When I enable autocompletion (`com`), and I type:
+        "        ~/Do Tab
+        "        It gives me suggestions. And when I choose, for example,
+        "        `Documents`, nothing else happens. No subsequent
+        "        autocompletion. I have to type `/` then Tab again.
+        "        Or hit `/` while the menu is still visible (custom mapping).
+
+    " Purpose of g:mc_trigger_auto_pattern: "{{{
+    "
+    " strpart(…) matches the characters from the beginning of the line up to
+    " the cursor.
+    "
+    " We compare them to `{g:|b:}mc_trigger_auto_pattern`, which is a pattern
+    " such as: `\k\k$`.
+    "
+    " This pattern conditions autocompletion.
+    " If its value is `\k\k$`, then autocompletion will only occur when the
+    " cursor is after 2 keyword characters.
+    " So, for example, there would be no autocompletion, if the cursor was after
+    " ` a`, because even though `a` is in 'isk', the space is not.
+    "
+    " It allows the user to control the frequency of autocompletions.
+    " The longer and the more precise the pattern is, the less frequent the
+    " autocompletions will be.
+    "
+    " \a\a\a is longer than \a\a, and \a\a is more precise than \k
+    " So in increasing order of autocompletion frequency:
+    "
+    "     \a\a\a  <  \a\a  <  \k
+"}}}
+
+    elseif strpart(getline('.'), 0, col('.') - 1) =~#
+                \  { exists('b:mc_trigger_auto_pattern') ? 'b:' : 'g:' }mc_trigger_auto_pattern
+
         sil call feedkeys("\<plug>(MUcompleteAuto)", 'i')
     endif
 endfu

@@ -13,7 +13,3 @@ ino      <silent> <plug>(MUcompleteFwdKey) <c-j>
 imap              <c-j>                    <plug>(MUcompleteCycFwd)
 ino      <silent> <plug>(MUcompleteBwdKey) <c-k>
 imap              <c-k>                    <plug>(MUcompleteCycBwd)
-
-com! -nargs=0 MUcompleteAutoOn     call mucomplete#enable_auto()
-com! -nargs=0 MUcompleteAutoOff    call mucomplete#disable_auto()
-com! -nargs=0 MUcompleteAutoToggle call mucomplete#toggle_auto()
