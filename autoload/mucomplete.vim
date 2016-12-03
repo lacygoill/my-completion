@@ -414,6 +414,29 @@
 " no problem, even if the previous method failed.
 "
 ""}}}
+" FIXME: "{{{
+"
+" When the current method is 'dict', `C-k` selects the next entry in the menu
+" instead of cycling backward in the chain like it should.
+" Lifepillar has a similar problem.
+" He uses `C-h` and `C-l` to cyle in the chain, instead of `C-k` and `C-j`.
+" When the current method is 'line', `C-l` selects the previous entry in the
+" menu instead of cycling forward in the chain like it should.
+"
+" I don't know if something can be done. Because even if we remap C-k to
+" something else, Vim still doesn't take our mapping into account.
+"
+"     ino <c-k> pumvisible() ? '<c-p>' : '<c-p>'    ✘
+"     ino <c-k> <nop>                               ✘
+"
+" Even with the 2 previous mappings, C-k still selects the next (!= previous)
+" entry in the menu, after we've hit `C-x C-k`.
+"
+" We could try to find other mappings, but it would be difficult to find ones
+" that make sense, and which aren't overridden by Vim, like when we hit C-k
+" after C-x C-k, or C-l after C-x C-l.
+"
+"}}}
 " Why do we need to prepend `s:exit_ctrl_x` in front of "\<c-x>\<c-l>"? "{{{
 "
 " Suppose we have the following buffer:
@@ -531,44 +554,24 @@ let g:mc_trigger_auto_pattern = '\k\k$'
 
 " Default completion chain
 
-let g:mc_chain = [ 'digr' ]
-let g:mc_chain = [ 'cmd' ]
-let g:mc_chain = [ 'cmd', 'digr' ]
+let g:mc_chain = [
+                 \ 'abbr',
+                 \ 'c-p' ,
+                 \ 'cmd' ,
+                 \ 'dict',
+                 \ 'digr',
+                 \ 'file',
+                 \ 'keyp',
+                 \ 'line',
+                 \ 'omni',
+                 \ 'spel',
+                 \ 'tags',
+                 \ 'ulti',
+                 \ 'unic',
+                 \ ]
 
-" FIXME:
-" When the current method is 'dict', ctrl-k selects the next entry in the menu
-" instead of cycling backward in the chain like it should.
-" Lifepillar has a similar problem.
-" He uses `C-h` and `C-l` to cyle in the chain, instead of `C-k` and `C-j`.
-" When the current method is 'line', `C-l` selects the previous entry in the
-" menu instead of cycling forward in the chain like it should.
-
-" FIXME:
-" We can move forward in the chain by hitting `C-j` as many times as we want.
-" We will cycle in the chain: when reaching the end, we go back to the
-" beginning.
-" But we can't do the same in the other direction.
-" Hitting `C-k` stops when we reach the first method in the chain.
-" It doesn't matter if it succeeds or if it fails, `C-k` doesn't go back to
-" the end of the chain.
-
-let g:mc_chain = [ 'cmd', 'omni', 'spel', 'keyn', 'file', 'keyp' ]
-
-" let g:mc_chain = [
-"                  \ 'abbr',
-"                  \ 'c-p' ,
-"                  \ 'cmd' ,
-"                  \ 'dict',
-"                  \ 'digr',
-"                  \ 'file',
-"                  \ 'keyp',
-"                  \ 'line',
-"                  \ 'omni',
-"                  \ 'spel',
-"                  \ 'tags',
-"                  \ 'ulti',
-"                  \ 'unic',
-"                  \ ]
+let g:mc_chain = [ 'cmd', 'keyn', 'omni', 'dict' ]
+let g:mc_chain = [ 'dict' ]
 
 " Conditions to be verified for a given method to be applied."{{{
 "
@@ -611,7 +614,7 @@ let g:mc_conditions = {
 "
 " This function is only called when autocompletion is enabled.
 " Technically, it tries an autocompletion by typing `<plug>(MUcompleteAuto)`
-" which calls `mucomplete#complete(1)`.
+" which calls `mucomplete#complete(1)`. The same as hitting Tab.
 "
 " It's not called when the popup menu is visible. Indeed, when we navigate in
 " the menu and it inserts different entries, `TextChangedI` is not triggered.
@@ -623,9 +626,8 @@ let g:mc_conditions = {
 " autocompletion. Most of the time, it wouldn't make sense, and would probably
 " be annoying. We could even get stuck in an infinite loop of autocompletions.
 "
-" So we need a flag to know when a completion is done, and call
-" `mucomplete#complete(1)` only when it's off.
-" This flag is `s:completedone`.
+" So we need a flag to know when a completion is done, and hit Tab only when
+" it's off. This flag is `s:completedone`.
 "
 " "}}}
 
@@ -682,6 +684,40 @@ fu! s:act_on_textchanged() abort
         " next component, in case there's one.
         " We just make sure that the character before the cursor is in 'isf'.
 
+        " FIXME:
+        "
+        " Why call `get()`?
+        " Otherwise, there seems to be errors when autocompletion is enabled,
+        " and we type some text for which all the methods in the chain fail,
+        " like `jkjkjk…`.
+        "
+        " When the error occurs:
+        "
+        "     List index out of range…
+        "
+        " `s:i` has the value `s:N`. It shouldn't be
+        " possible to have this value. How can `s:i` reach `s:N`?
+        "
+        " If I understood how this function works, it simply types Tab every
+        " time the text changes.
+        " But if we insert some text for which all the methods fail, while
+        " autocompletion is disabled, and hit Tab after every character, no error
+        " is raised.
+        " If we do the same, while autocompletion is enabled, after the first
+        " failed method tried, there's an error.
+        " Why the difference? It means autocompletion doesn't work like
+        " I thought. Or it means that `s:completedone` is set wrongly when
+        " autocompletion is enabled.
+        "
+        " We write several times `s:methods[s:i]` in this file.
+        " Lifepillar uses `get()` only 2 times to get this value.
+        " Once here, and once in `s:act_on_pumvisible()`.
+        " Only for the 1st occurrence.
+        " Should we also use `get()` for the 1st occurrence of `s:methods[s:i]`
+        " in `s:act_on_pumvisible()`?
+        " Why does Lifepillar use it there too?
+
+           " if get(s:methods, s:i, '') ==# 'file' && matchstr(getline('.'), '.\%'.col('.').'c') =~# '\v\f'
            if s:methods[s:i] ==# 'file' && matchstr(getline('.'), '.\%'.col('.').'c') =~# '\v\f'
                sil call mucomplete#file#complete()
            endif
@@ -711,6 +747,7 @@ fu! s:act_on_textchanged() abort
 "}}}
 
     " FIXME:
+    "
     " Why does lifepillar write:
     "
     "     match(strpart(…), g:…) > -1
@@ -735,11 +772,15 @@ fu! mucomplete#enable_auto() abort
 
     augroup MUcompleteAuto
         autocmd!
+
         " FIXME:
+        "
         " By default autocmds do not nest, unless you use the `nested` argument.
         " So, are the `noautocmd` commands really necessary?
         " Or is it just a precaution?
+
         autocmd TextChangedI * noautocmd call s:act_on_textchanged()
+        " autocmd CompleteDone * noautocmd let s:completedone = !empty(v:completed_item)
         autocmd CompleteDone * noautocmd let s:completedone = 1
     augroup END
     let s:auto = 1
@@ -965,6 +1006,16 @@ endfu
 "         s:N     "        backward "
 "
 "}}}
+" Purpose: "{{{
+"
+" The function is going to {in|de}crement the index of the next method to try.
+" It does it one time.
+" Then it checks whether this next method can be applied.
+" If it's not, it does it repeatedly until:
+"
+"     - it finds one if we're manually cycling (`s:cycling` is set)
+"     - it finds one OR we reach the beginning/end of the chain if we're not cycling
+"}}}
 
 fu! s:next_method() abort
 
@@ -1011,63 +1062,68 @@ fu! s:next_method() abort
         " indexes a list beginning with 0 (and not 1).
         " If it began with 1, we would have to replace `%4` with `%5`.
         "
-        " There's still a problem though.
-        "
         " Here is a general formula:
         "
-        "     next_idx = (cur_idx + 1 + N) % N
+        "     next_idx = (cur_idx + 1) % N
         "
         " … where N is the length of the list we're indexing.
 "
 "}}}
 
-        " FIXME: "{{{
+        " Why do we add `s:N` ? "{{{
         "
-        " Why does lifepillar add `s:N`, like this:
+        " At the end of this function, before hitting the completion mappings,
+        " we will make sure that `s:i` is different than `-1` and `s:N`.
         "
-        "     let s:i = (s:i + s:dir + s:N) % s:N
+        " Because, if we're not cycling, and the value of `s:i` is `-1` or
+        " `s:N`, it means we've tested all the methods in the chain. It's
+        " pointless to go on. We could even get stuck in a loop if no methods
+        " can be applied. Besides, `s:methods[s:N]` does not even exist.
         "
-        " Maybe he's concerned with negative indexes, and the inconsistency of
-        " the different implementations of the modulo operation over negative
-        " numbers, depending on the compiler, environment, programming language…
+        " So, this check is necessary. But it cause an issue.
+        " If we've hit `C-k` to go back in the chain (s:cycling is set), and we
+        " reach the beginning of the chain (s:i = 0), we won't be able to get
+        " back any further. We won't be able to go back to the end of the
+        " chain, because the function won't even try the last / -1 method.
         "
-        "     http://stackoverflow.com/questions/4467539/javascript-modulo-not-behaving#comment4882815_4467559
-        "     https://www.reddit.com/r/vim/comments/4lfc4v/psa_modulo_returns_negative_numbers/d3mwlds/
-        "     http://stackoverflow.com/a/11720975
+        " To allow `C-k` to go back to the end of the chain, in the definition
+        " of `s:i`, we add `s:N`.
+        " When `s:i` is different than -1, it won't make any difference,
+        " because of the `% s:N` operation.
+        " But when the value of `s:i` is -1, adding `s:N` will convert the
+        " negative index into a positive one, which matches the same method in
+        " the chain. The last one.
         "
-        "     $ perl -E 'say -10 % 3'              →  2
-        "     $ perl -Minteger -E 'say -10 % 3'    → -1
+        " "}}}
+
+        let s:i = (s:i + s:dir + s:N) % s:N
+
+        " Why is there no risk to be stuck in a loop? "{{{
         "
-        " But here `s:i` vary between `0` and `s:N - 1` (positive numbers).
-        " So, what's the point?
+        " We could be afraid to be stuck in a loop, and to prevent that, add the
+        " condition that `s:i` is different than `-1` and `s:N`.
         "
-        " Besides, even if he was right to be concerned, the formula doesn't
-        " seem to be enough robust.
-        " This one seems to be more popular:
-        " http://javascript.about.com/od/problemsolving/a/modulobug.htm
+        " But it's unnecessary. We can't be stuck in a loop.
+        " Indeed, if we ask for a cycling, it means that the popup menu is
+        " currently visible and that a method was successful.
+        " So, when we ask for a cycling, we can be sure that there's AT LEAST
+        " one method which can be applied, i.e. a method for which
+        " `s:can_complete()` returns true/1.
         "
-        "     ((n%p)+p)%p
-        "
-        " … where `n` and `p` are resp. a negative and positive number.
-        "
-        " Adding `p` converts a possible negative result given by the modulo
-        " operator into a positive number:
-        "
-        "     if     (-5 % 4)     = -1
-        "     then   (-5 % 4) + 4 = 3
-        "
-        " But adding `p` would give us a too big result if `n` was a positive
-        " number, instead of being negative:
-        "
-        "     (5 % 4) + 4 = 5
-        "
-        " So we need the second modulo to cover both cases with the same
-        " formula:
-        "
-        "     ((5 % 4) + 4) % 4 = 1
+        " Besides, `s:i` can be equal to `-1` or `s:N`.
+        " It can't be equal to `s:N` because it was defined as the result of
+        " a `% s:N` operation. The result of such operation can't be `s:N`.
+        " When you divide something by `n`, the rest is necessarily inferior
+        " to `n`.
+        " And it can't be equal to `-1`, because in the definition, we add `s:N`
+        " so the result is necessarily positive (zero included).
 "}}}
 
-        let s:i = (s:i + s:dir) % s:N
+        while !s:can_complete()
+            let s:i = (s:i + s:dir + s:N) % s:N
+        endwhile
+
+    else
 
         " We will get out of the loop as soon as: "{{{
         "
@@ -1084,14 +1140,28 @@ fu! s:next_method() abort
         "
         ""}}}
 
-        while (s:i+1) % (s:N+1) != 0  && !s:can_complete()
-            let s:i = (s:i + s:dir + s:N) % s:N
-        endwhile
-
-    else
-
         let s:i += s:dir
-        while (s:i+1) % (s:N+1) != 0  && !s:can_complete()
+
+        " Why the first 2 conditions? "{{{
+        "
+        " In the previous case (`if s:cycling`), the only condition to stay in
+        " the loop was:
+        "
+        "     !s:can_complete()
+        "
+        " This time, we have to add:
+        "
+        "     s:i != -1 && s:i != s:N
+        "
+        " Indeed, we're not cycling. We've just hit Tab/S-Tab.
+        " So, we don't know whether there's a method which can be applied.
+        " If there's none, we could be stuck in a loop.
+        " This additional condition makes sure that we stop once we reach the
+        " beginning/end of the chain. It wouldn't make sense to go on anyway,
+        " because at that point, we would have tried all the methods.
+"}}}
+
+        while s:i != -1 && s:i != s:N && !s:can_complete()
             let s:i += s:dir
         endwhile
     endif
@@ -1120,17 +1190,57 @@ fu! s:next_method() abort
     "
     ""}}}
 
-    if (s:i+1) % (s:N+1) != 0 && !count(s:i_history, s:i)
+    " FIXME: "{{{
+    "
+    " Lifepillar writes:
+    "
+    "     (s:i+1) % (s:N+1) != 0
+    "
+    " I prefer:
+    "
+    "     s:i != -1 && s:i != s:N
+    "
+    " It it really equivalent?
+    "
+    " Besides, currently, lifepillar's expression states that `s:i` is different
+    " than `-1` and `s:N`, but could it be extended to any couple of values
+    " `a` and `b`?
+    "
+    " IOW:
+    "
+    "     x != - 1  &&  x != b    ⇔    (x + 1) % (b + 1) != 0
+    "     x != a    &&  x != b    ⇔    ???
+    "
+    "     "}}}
+
+    " Why the 2 first conditions? "{{{
+    "
+    " If we're cycling, `s:i` can't be `-1` nor `s:N`.
+    " However, if we're NOT cycling (Tab, S-Tab), then if all the methods
+    " failed, we could reach the beginning/end of the chain and then `s:i`
+    " could be `-1` or `s:N`.
+    "
+    " In this case, we don't want to try a method.
+    " Indeed, we could be stuck in a loop, and it doesn't make any sense to
+    " try any further. At that point, we would have tested all the existing
+    " methods. Besides, there's no `s:methods[s:N]` (but there is
+    " a `s:methods[-1]`).
+    "
+    " Therefore, before hitting the completion mappings, we make sure that
+    " `s:i` is different than `-1` and `s:N`.
+"}}}
+
+    if s:i != -1 && s:i != s:N && !count(s:i_history, s:i)
 
         " If we're cycling, we store the index of the method to be tried, in
-        " a list. We'll use it to compare its items with the index of the
-        " next method to be tried.
+        " a list. We use it to compare its items with the index of the next
+        " method to be tried.
 
         if s:cycling
             let s:i_history += [s:i]
         endif
 
-        " 1 - Type the keys to invoke the chosen method."{{{
+        " 1 - Type the keys to invoke the chosen method. "{{{
         "
         " 2 - Store the state of the menu in `s:pumvisible` through
         "     `mucomplete#menu_is_up()`.
@@ -1139,7 +1249,7 @@ fu! s:next_method() abort
         "
         ""}}}
 
-        " FIXME:
+        " FIXME: "{{{
         "
         " Why does lifepillar use C-r twice.
         " Usually it's used to insert the contents of a register literally.
@@ -1150,11 +1260,17 @@ fu! s:next_method() abort
         "
         " Here we insert the expression register, which will store an empty
         " string. There's nothing to interpret. So why 2 C-r? Why not just one.
+        "
+        " "}}}
 
         return s:compl_mappings[s:methods[s:i]] .
                     \ "\<c-r>\<c-r>=pumvisible()?mucomplete#menu_is_up():''\<cr>\<plug>(MUcompleteNxt)"
 
     endif
+
+    " if s:i ==# s:N
+    "     let s:i = 0
+    " endif
 
     return ''
 endfu
