@@ -611,6 +611,10 @@ fu! s:act_on_textchanged() abort
         " next component, in case there's one.
         " We just make sure that the character before the cursor is in 'isf'.
 
+           if s:methods[s:i] ==# 'file' && getline('.')[col('.')-2] =~# '\v\f'
+               sil call mucomplete#file#complete()
+           endif
+
         " FIXME:
         " In the `s:act_on_textchanged()` function, I think I understand the
         " purpose of this block:
