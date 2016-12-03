@@ -134,12 +134,10 @@ fu! mucomplete#file#complete() abort
             " But here, we don't want to complete only the last component of
             " `/home/user`, which is `user`, we want the whole path `/home/user`.
 
-            call complete(from_where, map(entries,
-                                            \  '{
-                                            \      "word": cur_path !=# "~" ? fnamemodify(v:val, ":t") : v:val,
-                                            \      "menu": (isdirectory(v:val) ? "[dir]" : "[file]")
-                                            \   }'
-                                            \ ))
+            call complete(from_where, map(entries,'
+                                                \ (cur_path !=# "~" ? fnamemodify(v:val, ":t") : v:val).
+                                                \ (isdirectory(v:val) ? "/" : "")
+                                                \'))
 
             return ''
         else

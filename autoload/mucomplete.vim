@@ -376,6 +376,20 @@
 " `wontfix` and closed the issue.
 "
 " "}}}
+" FIXME: "{{{
+"
+" In `s:act_on_textchanged()`, shouldn't:
+"
+"     getline('.')[col('.')-2] =~# '\v\f'
+"
+" … be replaced with:
+"
+"     matchstr(getline('.'), '.\%'.col('.').'c') =~# '\v\f'
+"
+" to handle the case where the character before the cursor is multibyte?
+" A multibyte character can be in 'isf'.
+"
+"}}}
 " Why do we need to prepend `s:exit_ctrl_x` in front of "\<c-x>\<c-l>"? "{{{
 "
 " Suppose we have the following buffer:
@@ -434,6 +448,10 @@
 "
 "}}}
 
+" To look for all the global variables used by this plugin, search the
+" pattern:
+"         \v^(".*)@!.*\zsg:[^ ,]
+
 " Variables "{{{
 
 let s:exit_ctrl_x    = "\<c-g>\<c-g>"
@@ -465,6 +483,14 @@ let s:select_entry = { 'c-p' : "\<c-p>\<down>", 'keyp': "\<c-p>\<down>" }
 " Internal state
 let s:methods      = []
 let s:word         = ''
+
+" `s:auto` is a flag which, when it's set, means that autocompletion is enabled.
+" Its used by `s:act_on_pumvisible()` to know whether it must insert the first
+" entry in the menu. Indeed, when autocompletion is enabled, we don't want to
+" automatically insert anything. Bad idea.
+" It would constantly insert undesired text, and the user would have to undo
+" it. The popup menu with suggestions is enough.
+
 let s:auto         = 0
 let s:dir          = 1
 let s:cycling      = 0
@@ -481,23 +507,21 @@ let g:mc_trigger_auto_pattern = '\k\k$'
 
 " Default completion chain
 
-let g:mc_chain = [ 'file' ]
-
-" let g:mc_chain = [
-"                  \ 'abbr',
-"                  \ 'c-p' ,
-"                  \ 'cmd' ,
-"                  \ 'dict',
-"                  \ 'digr',
-"                  \ 'file',
-"                  \ 'keyp',
-"                  \ 'line',
-"                  \ 'omni',
-"                  \ 'spel',
-"                  \ 'tags',
-"                  \ 'ulti',
-"                  \ 'unic',
-"                  \ ]
+let g:mc_chain = [
+                 \ 'abbr',
+                 \ 'c-p' ,
+                 \ 'cmd' ,
+                 \ 'dict',
+                 \ 'digr',
+                 \ 'file',
+                 \ 'keyp',
+                 \ 'line',
+                 \ 'omni',
+                 \ 'spel',
+                 \ 'tags',
+                 \ 'ulti',
+                 \ 'unic',
+                 \ ]
 
 " Conditions to be verified for a given method to be applied."{{{
 "
@@ -582,7 +606,7 @@ fu! s:act_on_textchanged() abort
     "     When this flag is on, the function doesn't invoke an autocompletion.
     "     So it needs to be off for the next time the function will be called.
     "
-    "     - g:mucomplete_with_key
+    "     - g:mc_with_key
     "
     "     When this variable /flag is on, it means the completion was initiated
     "     manually.
@@ -591,15 +615,15 @@ fu! s:act_on_textchanged() abort
     "
     "     For example, we could disable the 'thes' method:
     "
-    "         let g:mc_conditions.thes =  { t -> g:mucomplete_with_key && strlen(&l:thesaurus) > 0 }
+    "         let g:mc_conditions.thes =  { t -> g:mc_with_key && strlen(&l:thesaurus) > 0 }
     "
     "     Now, the `thes` method can only be tried when 'thesaurus' has
     "     a value, AND the completion was initiated manually by the user.
     "
     "     "}}}
 
-        let s:completedone        = 0
-        let g:mucomplete_with_key = 0
+        let s:completedone = 0
+        let g:mc_with_key  = 0
 
         " Usually, when a completion has been done, we don't want
         " autocompletion to be invoked again right afterwards.
@@ -611,46 +635,9 @@ fu! s:act_on_textchanged() abort
         " next component, in case there's one.
         " We just make sure that the character before the cursor is in 'isf'.
 
-           if s:methods[s:i] ==# 'file' && getline('.')[col('.')-2] =~# '\v\f'
+           if s:methods[s:i] ==# 'file' && matchstr(getline('.'), '.\%'.col('.').'c') =~# '\v\f'
                sil call mucomplete#file#complete()
            endif
-
-        " FIXME:
-        " In the `s:act_on_textchanged()` function, I think I understand the
-        " purpose of this block:
-        "
-        "    if s:methods[s:i] ==# 'file' && getline('.')[col('.')-2] =~# '\v\f'
-        "        sil call mucomplete#file#complete()
-        "    endif
-        "
-        " Usually, when an autocompletion has been performed, the plugin
-        " doesn't try to do another one.
-        " With one exception: if the current method is 'file' (or 'path'), and
-        " the character before the cursor is in 'isf'.
-        " Indeed, when we complete a path, we often want to autocomplete
-        " a succession of path components.
-        " The previous block implements this exception.
-        "
-        " But there are 2 problems:
-        "
-        "     1. Shouldn't:
-        "
-        "            getline('.')[col('.')-2] =~# '\v\f'
-        "
-        "        be replaced with:
-        "
-        "            matchstr(getline('.'), '\%'.col('.').'c') =~# '\v\f'
-        "            to handle the case where the character before the cursor
-        "            is multibyte?
-        "            A multibyte character can be in 'isf'.
-        "
-        "     2. It doesn't seem to work at all.
-        "        When I enable autocompletion (`com`), and I type:
-        "        ~/Do Tab
-        "        It gives me suggestions. And when I choose, for example,
-        "        `Documents`, nothing else happens. No subsequent
-        "        autocompletion. I have to type `/` then Tab again.
-        "        Or hit `/` while the menu is still visible (custom mapping).
 
     " Purpose of g:mc_trigger_auto_pattern: "{{{
     "
@@ -687,8 +674,8 @@ endfu
 " enable_auto "{{{
 
 fu! mucomplete#enable_auto() abort
-    let s:completedone        = 0
-    let g:mucomplete_with_key = 0
+    let s:completedone = 0
+    let g:mc_with_key  = 0
 
     augroup MUcompleteAuto
         autocmd!
@@ -1142,7 +1129,7 @@ fu! mucomplete#tab_complete(dir) abort
     if pumvisible()
         return mucomplete#cycle_or_select(a:dir)
     else
-        let g:mucomplete_with_key = 1
+        let g:mc_with_key = 1
         return mucomplete#complete(a:dir)
     endif
 endfu
