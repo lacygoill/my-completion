@@ -390,6 +390,30 @@
 " A multibyte character can be in 'isf'.
 "
 "}}}
+" FIXME: "{{{
+"
+" In the completion mappings (C-x C-f, C-x C-n, …), lifepillar used the prefix
+" `s:cnp` (I call it `s:exit_ctrl_x`), only when he thought it was necessary.
+" For example, he thought it was not necessary to exit `C-x` submode before
+" trying the 'omni' method.
+" Indeed, if you try the 'keyn' method and it fails, you can try the 'omni'
+" method immediately, without exiting the submode:
+"
+"     C-x C-n    C-x C-o    ✔
+"
+" But it seems that the necessity of exiting the submode is not a function of
+" only the next method to try, but also of the previous method.
+" For example, we need to exit the submode when we just tried the 'cmd' method
+" and it failed (no matter the next method, including the 'omni' method):
+"
+"     C-x C-v (fail)                     C-x C-o    ✘
+"     C-x C-v (fail)   {exit submode}    C-x C-o    ✔
+"
+" So, I ended up using the prefix for all the methods where the completion
+" mapping doesn't begin with `C-r =`. Because in this case, it seems there's
+" no problem, even if the previous method failed.
+"
+""}}}
 " Why do we need to prepend `s:exit_ctrl_x` in front of "\<c-x>\<c-l>"? "{{{
 "
 " Suppose we have the following buffer:
@@ -455,28 +479,28 @@
 " Variables "{{{
 
 let s:exit_ctrl_x    = "\<c-g>\<c-g>"
+
 let s:compl_mappings = {
                        \ 'abbr' : "\<c-r>=mucomplete#abbr#complete()\<cr>",
                        \ 'c-n'  : s:exit_ctrl_x."\<c-n>",
                        \ 'c-p'  : s:exit_ctrl_x."\<c-p>",
-                       \ 'cmd'  : "\<c-x>\<c-v>",
-                       \ 'defs' : "\<c-x>\<c-d>",
-                       \ 'dict' : "\<c-x>\<c-k>",
-                       \ 'digr' : "\<c-x>\<c-z>",
+                       \ 'cmd'  : s:exit_ctrl_x."\<c-x>\<c-v>",
+                       \ 'defs' : s:exit_ctrl_x."\<c-x>\<c-d>",
+                       \ 'dict' : s:exit_ctrl_x."\<c-x>\<c-k>",
+                       \ 'digr' : s:exit_ctrl_x."\<c-x>\<c-z>",
                        \ 'file' : "\<c-r>=mucomplete#file#complete()\<cr>",
-                       \ 'incl' : "\<c-x>\<c-i>",
-                       \ 'keyn' : "\<c-x>\<c-n>",
-                       \ 'keyp' : "\<c-x>\<c-p>",
+                       \ 'incl' : s:exit_ctrl_x."\<c-x>\<c-i>",
+                       \ 'keyn' : s:exit_ctrl_x."\<c-x>\<c-n>",
+                       \ 'keyp' : s:exit_ctrl_x."\<c-x>\<c-p>",
                        \ 'line' : s:exit_ctrl_x."\<c-x>\<c-l>",
-                       \ 'omni' : "\<c-x>\<c-o>",
+                       \ 'omni' : s:exit_ctrl_x."\<c-x>\<c-o>",
                        \ 'spel' : "\<c-o>:\<cr>\<c-r>=mucomplete#spel#complete()\<cr>",
-                       \ 'tags' : "\<c-x>\<c-]>",
-                       \ 'thes' : "\<c-x>\<c-t>",
+                       \ 'tags' : s:exit_ctrl_x."\<c-x>\<c-]>",
+                       \ 'thes' : s:exit_ctrl_x."\<c-x>\<c-t>",
                        \ 'ulti' : "\<c-r>=mucomplete#ultisnips#complete()\<cr>",
-                       \ 'unic' : "\<c-x>\<c-g>",
-                       \ 'user' : "\<c-x>\<c-u>",
+                       \ 'unic' : s:exit_ctrl_x."\<c-x>\<c-g>",
+                       \ 'user' : s:exit_ctrl_x."\<c-x>\<c-u>",
                        \ }
-
 unlet s:exit_ctrl_x
 
 let s:select_entry = { 'c-p' : "\<c-p>\<down>", 'keyp': "\<c-p>\<down>" }
@@ -507,21 +531,44 @@ let g:mc_trigger_auto_pattern = '\k\k$'
 
 " Default completion chain
 
-let g:mc_chain = [
-                 \ 'abbr',
-                 \ 'c-p' ,
-                 \ 'cmd' ,
-                 \ 'dict',
-                 \ 'digr',
-                 \ 'file',
-                 \ 'keyp',
-                 \ 'line',
-                 \ 'omni',
-                 \ 'spel',
-                 \ 'tags',
-                 \ 'ulti',
-                 \ 'unic',
-                 \ ]
+let g:mc_chain = [ 'digr' ]
+let g:mc_chain = [ 'cmd' ]
+let g:mc_chain = [ 'cmd', 'digr' ]
+
+" FIXME:
+" When the current method is 'dict', ctrl-k selects the next entry in the menu
+" instead of cycling backward in the chain like it should.
+" Lifepillar has a similar problem.
+" He uses `C-h` and `C-l` to cyle in the chain, instead of `C-k` and `C-j`.
+" When the current method is 'line', `C-l` selects the previous entry in the
+" menu instead of cycling forward in the chain like it should.
+
+" FIXME:
+" We can move forward in the chain by hitting `C-j` as many times as we want.
+" We will cycle in the chain: when reaching the end, we go back to the
+" beginning.
+" But we can't do the same in the other direction.
+" Hitting `C-k` stops when we reach the first method in the chain.
+" It doesn't matter if it succeeds or if it fails, `C-k` doesn't go back to
+" the end of the chain.
+
+let g:mc_chain = [ 'cmd', 'omni', 'spel', 'keyn', 'file', 'keyp' ]
+
+" let g:mc_chain = [
+"                  \ 'abbr',
+"                  \ 'c-p' ,
+"                  \ 'cmd' ,
+"                  \ 'dict',
+"                  \ 'digr',
+"                  \ 'file',
+"                  \ 'keyp',
+"                  \ 'line',
+"                  \ 'omni',
+"                  \ 'spel',
+"                  \ 'tags',
+"                  \ 'ulti',
+"                  \ 'unic',
+"                  \ ]
 
 " Conditions to be verified for a given method to be applied."{{{
 "
@@ -662,6 +709,15 @@ fu! s:act_on_textchanged() abort
     "
     "     \a\a\a  <  \a\a  <  \k
 "}}}
+
+    " FIXME:
+    " Why does lifepillar write:
+    "
+    "     match(strpart(…), g:…) > -1
+    "
+    " instead of simply:
+    "
+    "     strpart(…) =~ g:…
 
     elseif strpart(getline('.'), 0, col('.') - 1) =~#
                 \  { exists('b:mc_trigger_auto_pattern') ? 'b:' : 'g:' }mc_trigger_auto_pattern
@@ -898,7 +954,7 @@ endfu
 " Precondition: pumvisible() is false.
 "
 "         s:dir     = 1     flag:                            initial direction,                  never changes
-"         s:i     = -1    number (positive or negative):   idx of the method to try,           CHANGES
+"         s:i       = -1    number (positive or negative):   idx of the method to try,           CHANGES
 "         s:cycling = 0     flag:                            did we ask to move in the chain ?,  never changes
 "         s:N       = 7     number (positive):               number of methods in the chain,     never changes
 "
@@ -909,9 +965,6 @@ endfu
 "         s:N     "        backward "
 "
 "}}}
-
-" FIXME:
-" Check whether we could be stuck in other kind of loops.
 
 fu! s:next_method() abort
 
@@ -968,7 +1021,7 @@ fu! s:next_method() abort
 "
 "}}}
 
-        " FIXME:"{{{
+        " FIXME: "{{{
         "
         " Why does lifepillar add `s:N`, like this:
         "
@@ -1111,7 +1164,7 @@ endfu
 "
 " Purpose:
 "
-" It's called by `<plug>(MUcompleteNxt)`, which itself is typed at
+" It's invoked by `<plug>(MUcompleteNxt)`, which itself is typed at
 " the very end of `s:next_method()`.
 " It checks whether the last completion succeeded by looking at
 " the state of the menu.
