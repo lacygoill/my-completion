@@ -629,6 +629,8 @@ let g:mc_chain = [
                  \ 'unic',
                  \ ]
 
+let g:mc_chain = [ 'dict' ]
+
 " Conditions to be verified for a given method to be applied."{{{
 "
 " Explanation of the regex for the file completion method:
@@ -650,7 +652,7 @@ let g:mc_chain = [
 
 let s:yes_you_can   = { _ -> 1 }
 let g:mc_conditions = {
-                      \ 'dict' : { t -> !empty(&l:dictionary) },
+                      \ 'dict' : { t -> s:setup_dict_option() },
                       \ 'digr' : { t -> get(g:, 'loaded_unicodePlugin', 0) },
                       \ 'file' : { t -> t =~# '\v[/~]\f*$' },
                       \ 'omni' : { t -> !empty(&l:omnifunc) },
@@ -1455,6 +1457,18 @@ fu! s:next_method() abort
     endif
 
     return ''
+endfu
+
+"}}}
+" setup_dict_option "{{{
+
+fu! s:setup_dict_option() abort
+    if count([ 'en', 'fr' ], &l:spelllang)
+        let &l:dictionary = &l:spelllang ==# 'en' ? '/usr/share/dict/words' : '/usr/share/dict/french'
+        return 1
+    else
+        return 0
+    endif
 endfu
 
 "}}}
