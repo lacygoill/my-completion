@@ -493,6 +493,25 @@
 " inside the PR.
 "
 "}}}
+" FIXME: "{{{
+"
+" Inside `s:act_on_textchanged()`, why does lifepillar write:
+"
+"     match(strpart(…), g:…) > -1
+"
+" instead of simply:
+"
+"     strpart(…) =~ g:…
+"
+" And why does he regularly write:
+"
+"     strpart(getline('.'), 0, col('.')-1)
+"
+" … instead of simply:
+"
+"     getline('.')[:col('.')-1]
+"
+"}}}
 " Why do we need to prepend `s:exit_ctrl_x` in front of "\<c-x>\<c-l>"? "{{{
 "
 " Suppose we have the following buffer:
@@ -629,8 +648,6 @@ let g:mc_chain = [
                  \ 'unic',
                  \ ]
 
-let g:mc_chain = [ 'dict' ]
-
 " Conditions to be verified for a given method to be applied."{{{
 "
 " Explanation of the regex for the file completion method:
@@ -665,20 +682,23 @@ let g:mc_conditions = {
 
 "}}}
 " act_on_pumvisible "{{{
+
+" Purpose: "{{{
 "
-" Purpose:
-" insert the first entry in the menu
+" Automatically insert the first (or last) entry in the menu, but only when
+" autocompletion is disabled.
+"
+" Indeed, when autocompletion is enabled, we don't want anything to be
+" automatically inserted. Because, sometimes it could be what we wanted, but
+" most of the time it wouldn't be, and we would have to undo the insertion.
+" Annoying. We only want automatic insertion when we hit Tab ourselves.
+"
+"}}}
 
 fu! s:act_on_pumvisible() abort
     let s:pumvisible = 0
 
     " If autocompletion is enabled don't do anything (respect the value of 'cot'). "{{{
-    "
-    " Why?
-    " Automatically inserting text without the user having asked for a completion
-    " (hitting Tab) is a bad idea.
-    " It will regularly insert undesired text, and the user will constantly have
-    " to undo it.
     "
     " Note that if 'cot' doesn't contain 'noinsert' nor 'noselect', Vim will
     " still automatically insert an entry from the menu.
@@ -734,13 +754,13 @@ fu! s:act_on_pumvisible() abort
     "        To force the insertion, we'll have to return `C-p C-n`.
     "
     "        It will work no matter the method.
-    "        If the method is 'c-p' or 'keyp', `Up` will make us select the
+    "        If the method is 'c-p' or 'keyp', `C-p` will make us select the
     "        second but last entry, then `C-n` will select and insert the last
     "        entry.
-    "        For all the other methods, `Up` will make us leave the menu,
+    "        For all the other methods, `C-p` will make us leave the menu,
     "        then `C-n` will select and insert the first entry.
     "
-    "        Basically, `Up` and `C-n` cancel each other out no matter the method.
+    "        Basically, `C-p` and `C-n` cancel each other out no matter the method.
     "        But `C-n` asks for an insertion. The result is that we insert the
     "        currently selected entry.
     "
@@ -763,7 +783,7 @@ endfu
 " Try an autocompletion every time the text changes in insert mode.
 "
 " This function is only called when autocompletion is enabled.
-" Technically, it tries an autocompletion by typing `<plug>(MUcompleteAuto)`
+" Technically, it tries an autocompletion by typing `<plug>(MC_Auto)`
 " which calls `mucomplete#complete(1)`. Similar to hitting Tab.
 "
 " "}}}
@@ -855,8 +875,8 @@ fu! s:act_on_textchanged() abort
 
     " Purpose of g:mc_auto_pattern: "{{{
     "
-    " strpart(…) matches the characters from the beginning of the line up to
-    " the cursor.
+    " getline('.')[…] matches the characters from the beginning of the line up
+    " to the cursor.
     "
     " We compare them to `{g:|b:}mc_auto_pattern`, which is a pattern
     " such as: `\k\k$`.
@@ -877,19 +897,10 @@ fu! s:act_on_textchanged() abort
     "     \a\a  <  \a  <  \k
 "}}}
 
-    elseif strpart(getline('.'), 0, col('.') - 1) =~#
+    elseif getline('.')[:col('.')-1] =~#
                 \  { exists('b:mc_auto_pattern') ? 'b:' : 'g:' }mc_auto_pattern
-    " FIXME:
-    "
-    " Why does lifepillar write:
-    "
-    "     match(strpart(…), g:…) > -1
-    "
-    " instead of simply:
-    "
-    "     strpart(…) =~ g:…
 
-        sil call feedkeys("\<plug>(MUcompleteAuto)", 'i')
+        sil call feedkeys("\<plug>(MC_Auto)", 'i')
     endif
 endfu
 
@@ -898,7 +909,8 @@ endfu
 "
 " Purpose:
 "
-" During `s:next_method()`, find a method which can be applied.
+" During `s:next_method()`, test whether the current method can be applied.
+" If it's not, `s:next_method()` will try the next one.
 
 fu! s:can_complete() abort
     return get({ exists('b:mc_conditions') ? 'b:' : 'g:' }mc_conditions,
@@ -910,10 +922,10 @@ endfu
 
 " Precondition: pumvisible() is false.
 fu! mucomplete#complete(dir) abort
-    let s:word = matchstr(strpart(getline('.'), 0, col('.') - 1), '\S\+$')
+    let s:word = matchstr(getline('.')[:col('.') - 1], '\S\+$')
 
     if empty(s:word)
-        return (a:dir > 0 ? "\<plug>(MUcompleteTab)" : "\<plug>(MUcompleteCtd)")
+        return (a:dir > 0 ? "\<plug>(MC_Tab)" : "\<plug>(MC_C-d)")
     endif
 
     let s:dir       = a:dir
@@ -971,9 +983,9 @@ endfu
 " disable_auto "{{{
 
 fu! mucomplete#disable_auto() abort
-    if exists('#MUcompleteAuto')
-        autocmd! MUcompleteAuto
-        augroup! MUcompleteAuto
+    if exists('#MC_Auto')
+        autocmd! MC_Auto
+        augroup! MC_Auto
     endif
     let s:auto = 0
 endfu
@@ -985,7 +997,7 @@ fu! mucomplete#enable_auto() abort
     let s:completedone = 0
     let g:mc_manual    = 0
 
-    augroup MUcompleteAuto
+    augroup MC_Auto
         autocmd!
 
         " FIXME:
@@ -1078,7 +1090,7 @@ fu! mucomplete#enable_auto() abort
         " It depends on which text a given method is trying to complete.
         " If a method tries to complete this:
         "
-        "     matchstr(strpart(getline('.'), 0, col('.') - 1), '\S\+$')
+        "     matchstr(getline('.')[:col('.')-1], '\S\+$')
         "
         " … then it doesn't make sense to try an autocompletion after a failed one.
         " Because inserting a new character will make the text to complete even harder.
@@ -1487,7 +1499,7 @@ endfu
 " toggle_auto "{{{
 
 fu! mucomplete#toggle_auto() abort
-    if exists('#MUcompleteAuto')
+    if exists('#MC_Auto')
         call mucomplete#disable_auto()
         echom '[MUcomplete] Auto off'
     else
