@@ -938,7 +938,6 @@ fu! s:act_on_textchanged() abort
                 \  { exists('b:mc_auto_pattern') ? 'b:' : 'g:' }mc_auto_pattern
 
         sil call feedkeys("\<plug>(MC_Auto)", 'i')
-    else
     endif
 endfu
 
@@ -1201,8 +1200,6 @@ endfu
 "}}}
 
 fu! s:next_method() abort
-    let g:debug = get(g:, 'debug', []) + [s:i]
-
     if s:cycle
 
         " Explanation of the formula: "{{{
@@ -1325,7 +1322,6 @@ fu! s:next_method() abort
         ""}}}
 
         let s:i += s:dir
-        let g:debug = get(g:, 'debug', []) + [s:i]
 
         " Why the first 2 conditions? "{{{
         "
@@ -1348,7 +1344,6 @@ fu! s:next_method() abort
 
         while s:i != -1 && s:i != s:N && !s:can_complete()
             let s:i += s:dir
-            let g:debug = get(g:, 'debug', []) + [s:i]
         endwhile
     endif
 
