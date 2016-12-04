@@ -13,5 +13,5 @@ imap <expr> <silent> <Tab>   mucomplete#tab_complete(1)
 imap <expr> <silent> <S-Tab> mucomplete#tab_complete(-1)
 
 " typed/returned by mucomplete#complete()
-ino         <silent> <plug>(MUcompleteTab)    <tab>
+ino         <silent> <plug>(MUcompleteTab)    <Tab>
 ino         <silent> <plug>(MUcompleteCtd)    <c-d>

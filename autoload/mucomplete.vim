@@ -437,6 +437,62 @@
 " after C-x C-k, or C-l after C-x C-l.
 "
 "}}}
+" FIXME: "{{{
+"
+" Lifepillar gave the value 1 to `s:completedone`.
+" I think `!empty(v:completed_item)` would be better, because it would allow
+" to have an autocompletion even when the previous one failed.
+" For most methods, such a thing is useless, but not for all ('digr' is
+" a counter-example).
+"
+" For more info, see the comment where we set `s:completedone` inside
+" `mucomplete#enable_auto()`.
+"
+" Incidentally, this new definition also fixes a bug which occurs when `s:i`
+" ends with the value `s:N`, and `s:completedone`'s value is 1.
+" Setting `s:completedone` to `!empty(v:completed_item)` means that when all
+" the methods fail during an autocompletion and nothing is inserted,
+" `s:completedone`'s value is still 0, even though `CompleteDone` was
+" triggered several times. And the next time we insert a character and
+" `s:act_on_textchanged()` is called, it won't execute the
+" first block of code which tries to get `s:methods[s:i]` (`s:i = s:N`).
+"
+" We don't really need this new definition to fix this bug, because we have
+" a more reliable way to do it, at the end of `s:next_method()`.
+"
+"     if s:i == s:N
+"         let s:i = 0
+"     endif
+"
+" But still, one could argue that it's another reason in favor of the new definition.
+"
+""}}}
+" FIXME: "{{{
+"
+" Inside `s:act_on_textchanged()`,
+"
+" We write several times `s:methods[s:i]` in this file.
+" Lifepillar uses `get()` only 2 times to get this value.
+" Once in `s:act_on_textchanged()`, and once in `s:act_on_pumvisible()`.
+" Only for the 1st occurrence.
+"
+" The reason why he does it inside `s:act_on_textchanged()` is to prevent
+" a bug which may occur, when autocompletion is enabled and all the methods in
+" the chain fail.
+" I describe the bug at the end of `s:next_method()`, where I wrote a better
+" fix:
+"
+"     if s:i ==# s:N
+"         let s:i = 0
+"     endif
+"
+" Submit a PR for this fix.
+"
+" But should we also use `get()` for the 1st occurrence of `s:methods[s:i]`
+" in `s:act_on_pumvisible()`? Why does Lifepillar use it there too? Ask him
+" inside the PR.
+"
+"}}}
 " Why do we need to prepend `s:exit_ctrl_x` in front of "\<c-x>\<c-l>"? "{{{
 "
 " Suppose we have the following buffer:
@@ -510,7 +566,7 @@ let s:compl_mappings = {
                        \ 'cmd'  : s:exit_ctrl_x."\<c-x>\<c-v>",
                        \ 'defs' : s:exit_ctrl_x."\<c-x>\<c-d>",
                        \ 'dict' : s:exit_ctrl_x."\<c-x>\<c-k>",
-                       \ 'digr' : s:exit_ctrl_x."\<c-x>\<c-z>",
+                       \ 'digr' : s:exit_ctrl_x."\<c-x>\<c-g>",
                        \ 'file' : "\<c-r>=mucomplete#file#complete()\<cr>",
                        \ 'incl' : s:exit_ctrl_x."\<c-x>\<c-i>",
                        \ 'keyn' : s:exit_ctrl_x."\<c-x>\<c-n>",
@@ -521,7 +577,7 @@ let s:compl_mappings = {
                        \ 'tags' : s:exit_ctrl_x."\<c-x>\<c-]>",
                        \ 'thes' : s:exit_ctrl_x."\<c-x>\<c-t>",
                        \ 'ulti' : "\<c-r>=mucomplete#ultisnips#complete()\<cr>",
-                       \ 'unic' : s:exit_ctrl_x."\<c-x>\<c-g>",
+                       \ 'unic' : s:exit_ctrl_x."\<c-x>\<c-z>",
                        \ 'user' : s:exit_ctrl_x."\<c-x>\<c-u>",
                        \ }
 unlet s:exit_ctrl_x
@@ -531,26 +587,29 @@ let s:select_entry = { 'c-p' : "\<c-p>\<down>", 'keyp': "\<c-p>\<down>" }
 let s:methods      = []
 let s:word         = ''
 
+" Purpose of `s:auto`: "{{{
+"
 " `s:auto` is a flag which, when it's set, means that autocompletion is enabled.
 " Its used by `s:act_on_pumvisible()` to know whether it must insert the first
 " entry in the menu. Indeed, when autocompletion is enabled, we don't want to
 " automatically insert anything. Bad idea.
 " It would constantly insert undesired text, and the user would have to undo
 " it. The popup menu with suggestions is enough.
+"}}}
 
 let s:auto         = 0
 let s:dir          = 1
 let s:cycling      = 0
 
 " Indexes of the methods which have been tried since the last time we asked
-" for a cycle.
+" for a cycling.
 let s:i_history = []
 
 let s:i          = 0
 let s:pumvisible = 0
 
 " Default pattern to decide when automatic completion should be triggered.
-let g:mc_trigger_auto_pattern = '\k\k$'
+let g:mc_auto_pattern = '\k\k$'
 
 " Default completion chain
 
@@ -569,9 +628,6 @@ let g:mc_chain = [
                  \ 'ulti',
                  \ 'unic',
                  \ ]
-
-let g:mc_chain = [ 'cmd', 'keyn', 'omni', 'dict' ]
-let g:mc_chain = [ 'dict' ]
 
 " Conditions to be verified for a given method to be applied."{{{
 "
@@ -594,224 +650,19 @@ let g:mc_chain = [ 'dict' ]
 
 let s:yes_you_can   = { _ -> 1 }
 let g:mc_conditions = {
-                      \ 'dict' : { t -> strlen(&l:dictionary) > 0 },
+                      \ 'dict' : { t -> !empty(&l:dictionary) },
                       \ 'digr' : { t -> get(g:, 'loaded_unicodePlugin', 0) },
                       \ 'file' : { t -> t =~# '\v[/~]\f*$' },
-                      \ 'omni' : { t -> strlen(&l:omnifunc) > 0 },
+                      \ 'omni' : { t -> !empty(&l:omnifunc) },
                       \ 'spel' : { t -> &l:spell && !empty(&l:spelllang) },
                       \ 'tags' : { t -> !empty(tagfiles()) },
                       \ 'ulti' : { t -> get(g:, 'did_plugin_ultisnips', 0) },
                       \ 'unic' : { t -> get(g:, 'loaded_unicodePlugin', 0) },
-                      \ 'user' : { t -> strlen(&l:completefunc) > 0 },
+                      \ 'user' : { t -> !empty(&l:completefunc) },
                       \ }
 
 "}}}
-" s:act_on_textchanged "{{{
-
-" Purpose: "{{{
-"
-" Try an autocompletion every time the text changes in insert mode.
-"
-" This function is only called when autocompletion is enabled.
-" Technically, it tries an autocompletion by typing `<plug>(MUcompleteAuto)`
-" which calls `mucomplete#complete(1)`. The same as hitting Tab.
-"
-" It's not called when the popup menu is visible. Indeed, when we navigate in
-" the menu and it inserts different entries, `TextChangedI` is not triggered.
-"
-" However, if an autocompletion is successful, i.e. finds a method which gives
-" suggestions, and we hit Enter on a candidate in the menu, the text will change,
-" and this function will be called.
-" But we don't want autocompletion to be invoked again right after a successful
-" autocompletion. Most of the time, it wouldn't make sense, and would probably
-" be annoying. We could even get stuck in an infinite loop of autocompletions.
-"
-" So we need a flag to know when a completion is done, and hit Tab only when
-" it's off. This flag is `s:completedone`.
-"
-" "}}}
-
-fu! s:act_on_textchanged() abort
-
-    " s:completedone "{{{
-    "
-    " s:completedone is a flag, which is on only when 2 conditions are met:
-    "
-    "     - autocompletion is enabled
-    "     - some text has been completed (`CompleteDone` event)
-    "
-    " It's almost always off, because as soon as it's enabled,
-    " the `TextChangedI` event is triggered, and `s:act_on_textchanged()` is
-    " called. The latter checks the value of `s:completedone` and resets it when
-    " it's on.
-"}}}
-
-    if s:completedone
-
-    " If the text changed AND a completion was done, we reset: "{{{
-    "
-    "     - s:completedone
-    "
-    "     When this flag is on, the function doesn't invoke an autocompletion.
-    "     So it needs to be off for the next time the function will be called.
-    "
-    "     - g:mc_with_key
-    "
-    "     When this variable /flag is on, it means the completion was initiated
-    "     manually.
-    "     We can use this info to disable a method when autocompletion is
-    "     enabled, but still be able to use it manually.
-    "
-    "     For example, we could disable the 'thes' method:
-    "
-    "         let g:mc_conditions.thes =  { t -> g:mc_with_key && strlen(&l:thesaurus) > 0 }
-    "
-    "     Now, the `thes` method can only be tried when 'thesaurus' has
-    "     a value, AND the completion was initiated manually by the user.
-    "
-    "     "}}}
-
-        let s:completedone = 0
-        let g:mc_with_key  = 0
-
-        " Usually, when a completion has been done, we don't want
-        " autocompletion to be invoked again right afterwards.
-        "
-        " Exception:    'file' method
-        "
-        " If we just autocompleted a filepath component (i.e. the current method
-        " is 'file'), we want autocompletion to be invoked again, to handle the
-        " next component, in case there's one.
-        " We just make sure that the character before the cursor is in 'isf'.
-
-        " FIXME:
-        "
-        " Why call `get()`?
-        " Otherwise, there seems to be errors when autocompletion is enabled,
-        " and we type some text for which all the methods in the chain fail,
-        " like `jkjkjk…`.
-        "
-        " When the error occurs:
-        "
-        "     List index out of range…
-        "
-        " `s:i` has the value `s:N`. It shouldn't be
-        " possible to have this value. How can `s:i` reach `s:N`?
-        "
-        " If I understood how this function works, it simply types Tab every
-        " time the text changes.
-        " But if we insert some text for which all the methods fail, while
-        " autocompletion is disabled, and hit Tab after every character, no error
-        " is raised.
-        " If we do the same, while autocompletion is enabled, after the first
-        " failed method tried, there's an error.
-        " Why the difference? It means autocompletion doesn't work like
-        " I thought. Or it means that `s:completedone` is set wrongly when
-        " autocompletion is enabled.
-        "
-        " We write several times `s:methods[s:i]` in this file.
-        " Lifepillar uses `get()` only 2 times to get this value.
-        " Once here, and once in `s:act_on_pumvisible()`.
-        " Only for the 1st occurrence.
-        " Should we also use `get()` for the 1st occurrence of `s:methods[s:i]`
-        " in `s:act_on_pumvisible()`?
-        " Why does Lifepillar use it there too?
-
-           " if get(s:methods, s:i, '') ==# 'file' && matchstr(getline('.'), '.\%'.col('.').'c') =~# '\v\f'
-           if s:methods[s:i] ==# 'file' && matchstr(getline('.'), '.\%'.col('.').'c') =~# '\v\f'
-               sil call mucomplete#file#complete()
-           endif
-
-    " Purpose of g:mc_trigger_auto_pattern: "{{{
-    "
-    " strpart(…) matches the characters from the beginning of the line up to
-    " the cursor.
-    "
-    " We compare them to `{g:|b:}mc_trigger_auto_pattern`, which is a pattern
-    " such as: `\k\k$`.
-    "
-    " This pattern conditions autocompletion.
-    " If its value is `\k\k$`, then autocompletion will only occur when the
-    " cursor is after 2 keyword characters.
-    " So, for example, there would be no autocompletion, if the cursor was after
-    " ` a`, because even though `a` is in 'isk', the space is not.
-    "
-    " It allows the user to control the frequency of autocompletions.
-    " The longer and the more precise the pattern is, the less frequent the
-    " autocompletions will be.
-    "
-    " \a\a\a is longer than \a\a, and \a\a is more precise than \k
-    " So in increasing order of autocompletion frequency:
-    "
-    "     \a\a\a  <  \a\a  <  \k
-"}}}
-
-    " FIXME:
-    "
-    " Why does lifepillar write:
-    "
-    "     match(strpart(…), g:…) > -1
-    "
-    " instead of simply:
-    "
-    "     strpart(…) =~ g:…
-
-    elseif strpart(getline('.'), 0, col('.') - 1) =~#
-                \  { exists('b:mc_trigger_auto_pattern') ? 'b:' : 'g:' }mc_trigger_auto_pattern
-
-        sil call feedkeys("\<plug>(MUcompleteAuto)", 'i')
-    endif
-endfu
-
-"}}}
-" enable_auto "{{{
-
-fu! mucomplete#enable_auto() abort
-    let s:completedone = 0
-    let g:mc_with_key  = 0
-
-    augroup MUcompleteAuto
-        autocmd!
-
-        " FIXME:
-        "
-        " By default autocmds do not nest, unless you use the `nested` argument.
-        " So, are the `noautocmd` commands really necessary?
-        " Or is it just a precaution?
-
-        autocmd TextChangedI * noautocmd call s:act_on_textchanged()
-        " autocmd CompleteDone * noautocmd let s:completedone = !empty(v:completed_item)
-        autocmd CompleteDone * noautocmd let s:completedone = 1
-    augroup END
-    let s:auto = 1
-endfu
-
-"}}}
-" disable_auto "{{{
-
-fu! mucomplete#disable_auto() abort
-    if exists('#MUcompleteAuto')
-        autocmd! MUcompleteAuto
-        augroup! MUcompleteAuto
-    endif
-    let s:auto = 0
-endfu
-
-"}}}
-" toggle_auto "{{{
-
-fu! mucomplete#toggle_auto() abort
-    if exists('#MUcompleteAuto')
-        call mucomplete#disable_auto()
-        echom '[MUcomplete] Auto off'
-    else
-        call mucomplete#enable_auto()
-        echom '[MUcomplete] Auto on'
-    endif
-endfu
-
-"}}}
-" s:act_on_pumvisible "{{{
+" act_on_pumvisible "{{{
 "
 " Purpose:
 " insert the first entry in the menu
@@ -903,7 +754,145 @@ fu! s:act_on_pumvisible() abort
 endfu
 
 "}}}
-" s:can_complete "{{{
+" act_on_textchanged "{{{
+
+" Purpose: "{{{
+"
+" Try an autocompletion every time the text changes in insert mode.
+"
+" This function is only called when autocompletion is enabled.
+" Technically, it tries an autocompletion by typing `<plug>(MUcompleteAuto)`
+" which calls `mucomplete#complete(1)`. Similar to hitting Tab.
+"
+" "}}}
+
+fu! s:act_on_textchanged() abort
+
+    " s:completedone "{{{
+    "
+    " s:completedone is a flag, which is only on when 2 conditions are met:
+    "
+    "     - autocompletion is enabled
+    "     - some text has been completed
+    "      `CompleteDone` event + `!empty(v:completed_item)`
+    "
+    " It's almost always off, because as soon as it's enabled,
+    " the `TextChangedI` event is triggered, and `s:act_on_textchanged()` is
+    " called. The latter checks the value of the flag and resets it when it's on.
+    "
+    " What's its purpose?
+    "
+    " It prevents an autocompletion when one was already performed.
+    " Triggering an autocompletion just after another one would probably be an
+    " annoyance (except for file completion).
+    " If I just autocompleted something, I'm probably done. I don't need Vim to
+    " try another autocompletion, which may suggest me candidates that I already saw
+    " in the popup menu last time.
+
+"}}}
+
+    if s:completedone
+
+    " If the text changed AND a completion was done, we reset: "{{{
+    "
+    "     - s:completedone
+    "
+    "     When this flag is on, the function doesn't invoke an autocompletion.
+    "     So it needs to be off for the next time the function will be called.
+    "
+    "     - g:mc_manual
+    "
+    "     When this variable /flag is on, it means the completion was initiated
+    "     manually.
+    "     We can use this info to temporarily disable a too costful method when
+    "     autocompletion is enabled, but still be able to use it manually.
+    "
+    "     For example, we could disable the 'thes' method:
+    "
+    "         let g:mc_conditions.thes =  { t -> g:mc_manual && !empty(&l:thesaurus) }
+    "
+    "     Now, the `thes` method can only be tried when 'thesaurus' has
+    "     a value, AND the completion was initiated manually by the user.
+    "
+    "     Why do we reset it here?
+    "     Inside mucomplete#tab_complete(), it's set to 1.
+    "     Inside mucomplete#enable_auto(), it's set to 0.
+    "
+    "     Now think about this. Autocompletion is enabled, and we've inserted
+    "     some text which hasn't been autocompleted, because the text before
+    "     the cursor didn't match `g:mc_auto_pattern`.
+    "     We still want a completion, so we hit Tab.
+    "     It sets `g:mc_manual` to 1. We complete our text, then go on typing.
+    "
+    "     Now, `g:mc_manual` will remain with the value 1, while
+    "     autocompletion is still active. It means autocompletion will try all
+    "     the methods in the chain, even those that we wanted to disable.
+    "     To prevent that, we reset it here.
+    "
+    "     "}}}
+
+        let s:completedone = 0
+        let g:mc_manual    = 0
+
+        " Why do we call mucomplete#file#complete()? "{{{
+        "
+        " Usually, when a completion has been done, we don't want
+        " autocompletion to be invoked again right afterwards.
+        "
+        " Exception:    'file' method
+        "
+        " If we just autocompleted a filepath component (i.e. the current method
+        " is 'file'), we want autocompletion to be invoked again, to handle the
+        " next component, in case there's one.
+        " We just make sure that the character before the cursor is in 'isf'.
+"}}}
+
+           if s:methods[s:i] ==# 'file' && matchstr(getline('.'), '.\%'.col('.').'c') =~# '\v\f'
+               sil call mucomplete#file#complete()
+           endif
+
+    " Purpose of g:mc_auto_pattern: "{{{
+    "
+    " strpart(…) matches the characters from the beginning of the line up to
+    " the cursor.
+    "
+    " We compare them to `{g:|b:}mc_auto_pattern`, which is a pattern
+    " such as: `\k\k$`.
+    "
+    " This pattern conditions autocompletion.
+    " If its value is `\k\k$`, then autocompletion will only occur when the
+    " cursor is after 2 keyword characters.
+    " So, for example, there would be no autocompletion, if the cursor was after
+    " ` a`, because even though `a` is in 'isk', the space is not.
+    "
+    " It allows the user to control the frequency of autocompletions.
+    " The longer and the more precise the pattern is, the less frequent the
+    " autocompletions will be.
+    "
+    " \a\a is longer than \a, and \a is more precise than \k
+    " So in increasing order of autocompletion frequency:
+    "
+    "     \a\a  <  \a  <  \k
+"}}}
+
+    elseif strpart(getline('.'), 0, col('.') - 1) =~#
+                \  { exists('b:mc_auto_pattern') ? 'b:' : 'g:' }mc_auto_pattern
+    " FIXME:
+    "
+    " Why does lifepillar write:
+    "
+    "     match(strpart(…), g:…) > -1
+    "
+    " instead of simply:
+    "
+    "     strpart(…) =~ g:…
+
+        sil call feedkeys("\<plug>(MUcompleteAuto)", 'i')
+    endif
+endfu
+
+"}}}
+" can_complete "{{{
 "
 " Purpose:
 "
@@ -912,24 +901,6 @@ endfu
 fu! s:can_complete() abort
     return get({ exists('b:mc_conditions') ? 'b:' : 'g:' }mc_conditions,
                 \ s:methods[s:i], s:yes_you_can)(s:word)
-endfu
-
-"}}}
-" menu_is_up "{{{
-"
-" Purpose:
-"
-" just store 1 in `s:pumvisible`, at the very end of `s:next_method()`,
-" when a method has been invoked, and it succeeded to find completions displayed
-" in a menu.
-"
-" `s:pumvisible` is used as a flag to know whether the menu is open.
-" This flag allows `mucomplete#verify_completion()` to choose between acting
-" on the menu if there's one, or trying another method.
-
-fu! mucomplete#menu_is_up() abort
-    let s:pumvisible = 1
-    return ''
 endfu
 
 "}}}
@@ -963,7 +934,8 @@ fu! mucomplete#cycle(dir) abort
     let s:cycling   = 1
     let s:i_history = []
 
-    " Why do we test the existence of `s:N`?
+    " Why do we test the existence of `s:N`? "{{{
+    "
     " Because we could be stupid and ask to cycle in the chain, never having
     " entered the chain. That is, never having used a completion method in the
     " chain. Never hit Tab before.
@@ -977,12 +949,174 @@ fu! mucomplete#cycle(dir) abort
     " case. Asking for moving forward or backward inside the chain implies that
     " you have a position inside.
     " But if you were never in the chain, you don't have any position.
+"}}}
 
     return exists('s:N') ? "\<c-e>" . s:next_method() : ''
 endfu
 
 "}}}
-" s:next_method "{{{
+" cycle_or_select "{{{
+
+fu! mucomplete#cycle_or_select(dir) abort
+    if get(g:, 'mc_cycle_with_trigger', 0)
+        return mucomplete#cycle(a:dir)
+    else
+        return (a:dir > 0 ? "\<c-n>" : "\<c-p>")
+    endif
+endfu
+
+"}}}
+" disable_auto "{{{
+
+fu! mucomplete#disable_auto() abort
+    if exists('#MUcompleteAuto')
+        autocmd! MUcompleteAuto
+        augroup! MUcompleteAuto
+    endif
+    let s:auto = 0
+endfu
+
+"}}}
+" enable_auto "{{{
+
+fu! mucomplete#enable_auto() abort
+    let s:completedone = 0
+    let g:mc_manual    = 0
+
+    augroup MUcompleteAuto
+        autocmd!
+
+        " FIXME:
+        "
+        " By default autocmds do not nest, unless you use the `nested` argument.
+        " So, are the `noautocmd` commands really necessary?
+        " Or is it just a precaution?
+
+        " When are `CompleteDone` and `TextChangedI` triggered? "{{{
+        "
+        " `CompleteDone` is triggered after each method tried, regardless whether
+        " it succeeds or fails.
+        "
+        " `TextChangedI` is triggered when we insert some text manually, or once
+        " we select and validate an entry in a completion menu.
+        "
+        " But what happens if the completion fails or we exit the menu?
+        " It depends of the kind of completion:
+        "
+        "         C-x C-G    → does NOT trigger TextChangedI
+        "         C-x C-S
+        "         C-x C-V
+        "         C-x C-Z
+        "
+        "         C-x C-D    → triggers TextChangedI
+        "         C-x C-F
+        "         C-x C-I
+        "         C-x C-K
+        "         C-x C-L
+        "         C-x C-N
+        "         C-x C-O
+        "         C-x C-P
+        "         C-x C-T
+        "         C-x C-U
+        "         C-x C-]
+        "
+        " However, in our custom completion code, the event is NEVER triggered when the
+        " completion fails. Why?
+        " Because at the end of `s:next_method()`, the keys which are returned look
+        " something like this:
+        "
+        "     C-x C-n … Plug(MUcompleteNxt)
+        "
+        " If there wasn't `Plug(…)`, `TextChangedI` would always be triggered,
+        " regardless of wheter a method succeeds.
+        " But because of it, `TextChangedI` is not triggered when all the methods fail.
+        "
+        " Why? I don't know. Ask stackexchange or Lifepillar.
+        " How do you know `Plug(…)` is the cause of this?
+        " Write this inside vimrc:
+        "
+        "     imap        <Tab>             <C-x><C-n><Plug>(MyFunc)
+        "     ino  <expr> <Plug>(MyFunc)    MyFunc()
+        "
+        "     fu! MyFunc()
+        "         return ''
+        "     endfu
+        "
+        "     let g:tci = 0
+        "     augroup TEST
+        "         au!
+        "         au TextChangedI * let g:tci += 1
+        "     augroup END
+        "
+        " Write some unique text, and save / source vimrc (to reset `g:tci`).
+        " Go into insert mode at the end of the unique text, and hit Tab after it to
+        " try a completion.
+        " Look at the value of `g:tci`. It's still 0.
+        "
+        " Another way to watch when both `TextChangedI` and `CompleteDone` occur:
+        "
+        "     let g:debug = { 'cd' : 0, 'tci' : 0, }
+        "     augroup TEST
+        "         au!
+        "         au TextChangedI * let g:debug.tci += 1
+        "         au CompleteDone * let g:debug.cd += 1
+        "     augroup END
+        ""}}}
+
+        autocmd TextChangedI * noautocmd call s:act_on_textchanged()
+
+        " Why do we define `s:completedone` as `!empty(v:completed_item)`? "{{{
+        "
+        " We want to use it to prevent an autocompletion to be performed right
+        " after a successful one (in this case defining it as `1` would be enough),
+        " BUT we do want to allow an autocompletion after a failed one (`1`
+        " isn't enough anymore).
+        "
+        " But if the last failed, does it make sense to try a new one?
+        " It depends on which text a given method is trying to complete.
+        " If a method tries to complete this:
+        "
+        "     matchstr(strpart(getline('.'), 0, col('.') - 1), '\S\+$')
+        "
+        " … then it doesn't make sense to try an autocompletion after a failed one.
+        " Because inserting a new character will make the text to complete even harder.
+        " So, if it failed last time, it will fail with this new character.
+        " However, it can make sense with some methods, like 'digr', which tries to
+        " complete only the last 2 characters.
+        " In this case, inserting a new character doesn't make the text harder to
+        " complete, it just makes it different.
+        " It can be checked when we insert the text `xtxv`.
+        " If we define `s:completedone` as `1`, no autocompletion is tried against
+        " `xv` to suggest us `✔`.
+        " OTOH, if we define it as `!empty(v:completed_item)`, we get an
+        " autocompletion.
+"}}}
+
+        autocmd CompleteDone * noautocmd let s:completedone = !empty(v:completed_item)
+    augroup END
+    let s:auto = 1
+endfu
+
+"}}}
+" menu_is_up "{{{
+"
+" Purpose:
+"
+" just store 1 in `s:pumvisible`, at the very end of `s:next_method()`,
+" when a method has been invoked, and it succeeded to find completions displayed
+" in a menu.
+"
+" `s:pumvisible` is used as a flag to know whether the menu is open.
+" This flag allows `mucomplete#verify_completion()` to choose between acting
+" on the menu if there's one, or trying another method.
+
+fu! mucomplete#menu_is_up() abort
+    let s:pumvisible = 1
+    return ''
+endfu
+
+"}}}
+" next_method "{{{
 
 " Description "{{{
 "
@@ -1182,7 +1316,7 @@ fu! s:next_method() abort
     "     && !count(s:i_history, s:i)
     "
     " … ? We want to make sure that the method to be tried hasn't already been
-    " tried since the last time the user asked for a cycle.
+    " tried since the last time the user asked for a cycling.
     " Otherwise, we could be stuck in an endless loop of failing methods.
     " For example:
     "
@@ -1268,27 +1402,59 @@ fu! s:next_method() abort
 
     endif
 
-    " if s:i ==# s:N
-    "     let s:i = 0
-    " endif
+    " Why do we reset `s:i` here? "{{{
+    "
+    " Consider some unique text, let's say 'jtx', and suppose autocompletion is
+    " enabled.
+    " When I will insert `x`, an error will occur inside `s:act_on_textchanged()`.
+    " Specifically when it will try to get:
+    "
+    "     s:methods[s:i]
+    "
+    " The error occurs because at that moment, `s:i` = `s:N`, and there's no
+    " method whose index is `s:N`. `s:N` is the length of the chain, so the
+    " biggest index is `s:N - 1`.
+    "
+    " But what leads to this situation?
+    "
+    " When I insert the 1st character `j`, `TextChangedI` is triggered and
+    " `s:act_on_textchanged()` is called. The function does nothing if:
+    "
+    "     g:mc_auto_pattern = \k\k$
+    "
+    " Then I insert `t`. `TextChangedI` is triggered a second time, the function
+    " is called again, and this time it does something, because `jt` match the
+    " pattern `\k\k$`.
+    " It hits `Tab` for us, to try to autocomplete `jt`.
+    " If the text is unique then all the methods in the chain will fail, and `s:i`
+    " will end up with the value `s:N`.
+    " Even though the methods failed, `CompleteDone` was triggered after each of
+    " them, and `s:completedone` was set to `1` each time.
+    " `TextChangedI` was NOT triggered, because of our `Plug(MUcompleteNxt)`
+    " mapping at the end of `s:next_method()`, so `s:act_on_textchanged()` is not
+    " called again.
+    " Finally, when we insert `x`, `TextChangedI` is triggered a last (3rd) time,
+    " `s:act_on_textchanged()` is called and it executes its first block of code
+    " which requires to get the item `s:methods[s:i]`.
+    "
+    " A solution is to use get() like lifepillar did, but I don't like it,
+    " because it only treats the consequences of some underlying issue.
+    "
+    " I prefer treating the issue itself. Because who knows, maybe it could
+    " cause other unknown issues in the future.
+    "
+    " To tackle the root issue, we reset `s:i` to 0, here, when no completion
+    " mapping was hit and when `s:i = s:N`.
+    "
+    " We don't really need this reset anymore, because we've redefined
+    " `s:completedone`. Still, I keep it, because better be safe than sorry.
+"}}}
+
+    if s:i ==# s:N
+        let s:i = 0
+    endif
 
     return ''
-endfu
-
-"}}}
-" verify_completion "{{{
-"
-" Purpose:
-"
-" It's invoked by `<plug>(MUcompleteNxt)`, which itself is typed at
-" the very end of `s:next_method()`.
-" It checks whether the last completion succeeded by looking at
-" the state of the menu.
-" If it's open, the function calls `s:act_on_pumvisible()`.
-" If it's not, it recalls `s:next_method()` to try another method.
-
-fu! mucomplete#verify_completion() abort
-    return s:pumvisible ? s:act_on_pumvisible() : s:next_method()
 endfu
 
 "}}}
@@ -1298,20 +1464,39 @@ fu! mucomplete#tab_complete(dir) abort
     if pumvisible()
         return mucomplete#cycle_or_select(a:dir)
     else
-        let g:mc_with_key = 1
+        let g:mc_manual = 1
         return mucomplete#complete(a:dir)
     endif
 endfu
 
 "}}}
-" cycle_or_select "{{{
+" toggle_auto "{{{
 
-fu! mucomplete#cycle_or_select(dir) abort
-    if get(g:, 'mc_cycle_with_trigger', 0)
-        return mucomplete#cycle(a:dir)
+fu! mucomplete#toggle_auto() abort
+    if exists('#MUcompleteAuto')
+        call mucomplete#disable_auto()
+        echom '[MUcomplete] Auto off'
     else
-        return (a:dir > 0 ? "\<c-n>" : "\<c-p>")
+        call mucomplete#enable_auto()
+        echom '[MUcomplete] Auto on'
     endif
+endfu
+
+"}}}
+" verify_completion "{{{
+
+" Purpose: "{{{
+"
+" It's invoked by `<plug>(MUcompleteNxt)`, which itself is typed at
+" the very end of `s:next_method()`.
+" It checks whether the last completion succeeded by looking at
+" the state of the menu.
+" If it's open, the function calls `s:act_on_pumvisible()`.
+" If it's not, it recalls `s:next_method()` to try another method.
+"}}}
+
+fu! mucomplete#verify_completion() abort
+    return s:pumvisible ? s:act_on_pumvisible() : s:next_method()
 endfu
 
 "}}}
