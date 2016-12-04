@@ -945,20 +945,19 @@ endfu
 
 " Precondition: pumvisible() is false.
 fu! mucomplete#complete(dir) abort
-    let s:word = matchstr(getline('.')[:col('.')-2], '\S\+$')
-
+    let s:word    = matchstr(getline('.')[:col('.')-2], '\S\+$')
     if empty(s:word)
         return (a:dir > 0 ? "\<plug>(MC_Tab)" : "\<plug>(MC_C-d)")
     endif
 
-    let s:dir       = a:dir
-    let s:cycling   = 0
+    let s:cycling = 0
+    let s:dir     = a:dir
+
     let s:i_history = []
+    let s:i         = s:dir > 0 ? -1 : s:N
 
     let s:methods = get(b:, 'mc_chain', g:mc_chain)
     let s:N       = len(s:methods)
-
-    let s:i = s:dir > 0 ? -1 : s:N
 
     return s:next_method()
 endfu
@@ -967,8 +966,8 @@ endfu
 " cycle "{{{
 
 fu! mucomplete#cycle(dir) abort
-    let s:dir       = a:dir
     let s:cycling   = 1
+    let s:dir       = a:dir
     let s:i_history = []
 
     " Why do we test the existence of `s:N`? "{{{
@@ -986,6 +985,7 @@ fu! mucomplete#cycle(dir) abort
     " case. Asking for moving forward or backward inside the chain implies that
     " you have a position inside.
     " But if you were never in the chain, you don't have any position.
+    "
 "}}}
 
     return exists('s:N') ? "\<c-e>" . s:next_method() : ''
@@ -1136,8 +1136,8 @@ endfu
 
 "}}}
 " menu_is_up "{{{
-"
-" Purpose:
+
+" Purpose: "{{{
 "
 " just store 1 in `s:pumvisible`, at the very end of `s:next_method()`,
 " when a method has been invoked, and it succeeded to find completions displayed
@@ -1146,6 +1146,10 @@ endfu
 " `s:pumvisible` is used as a flag to know whether the menu is open.
 " This flag allows `mucomplete#verify_completion()` to choose between acting
 " on the menu if there's one, or trying another method.
+"
+" It's reset to 0 at the beginning of `s:act_on_pumvisible()`.
+"
+"}}}
 
 fu! mucomplete#menu_is_up() abort
     let s:pumvisible = 1
