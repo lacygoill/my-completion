@@ -521,63 +521,6 @@
 "     let s:auto = get(s:, 'auto', 0)
 "
 ""}}}
-" Why do we need to prepend `s:exit_ctrl_x` in front of "\<c-x>\<c-l>"? "{{{
-"
-" Suppose we have the following buffer:
-"
-"     hello world
-"
-" On another line, we write:
-"
-"     hello C-x C-l
-"
-" The line completion suggests us `hello world`, but we refuse and go on typing:
-"
-"     hello people
-"
-" If we hit C-x C-l again, the line completion will insert a newline.
-" Why?
-" It's probably one of Vim's quirks / bugs.
-" It shouldn't insert anything, because now the line is unique.
-"
-" According to lifepillar, this can cause a problem when autocompletion
-" is enabled.
-" I can see how. The user set up line completion in his completion chain.
-" Line completion is invoked automatically but he refuses the suggestion,
-" and goes on typing. Later, line completion is invoked a second time.
-" This time, there will be no suggestion, because the current line is likely
-" unique (the user typed something that was nowhere else), but line completion
-" will still insert a newline.
-"
-" Here's what lifepillar commented on the patch that introduced it:
-"
-"     Fix 'line' completion method inserting a new line.
-
-"     Line completion seems to work differently from other completion methods:
-"     typing a character that does not belong to an entry does not exit
-"     completion. Before this commit, with autocompletion on such behaviour
-"     resulted in µcomplete inserting a new line while the user was typing,
-"     because µcomplete would insert <c-x><c-l> while in ctrl-x submode.
-
-"     To fix that, we use the same trick as with 'c-p': make sure that we are
-"     out of ctrl-x submode before typing <c-x><c-l>.
-"
-" To find the commit:
-"
-"     $ gsearch 's:cnp."\<c-x>\<c-l>"'
-"
-" There's a case, though, where adding a newline can make sense for line
-" completion. When we're at the END of a line existing in multiple places, and
-" we hit `C-x C-l`. Invoking line completion twice inserts a newline to suggest
-" us the next line:
-"
-"     We have 2 identical lines:    L1 and L1'
-"     After L1, there's L2.
-"     The cursor is at the end of L1'.
-"     The first `C-x C-l` invocation only suggests L1.
-"     The second one inserts a newline and suggests L2.
-"
-"}}}
 
 " To look for all the global variables used by this plugin, search the
 " pattern:
@@ -639,6 +582,63 @@ let s:auto    = get(s:, 'auto', 0)
 
 let s:exit_ctrl_x    = "\<c-g>\<c-g>"
 
+" Why do we need to prepend `s:exit_ctrl_x` in front of "\<c-x>\<c-l>"? "{{{
+"
+" Suppose we have the following buffer:
+"
+"     hello world
+"
+" On another line, we write:
+"
+"     hello C-x C-l
+"
+" The line completion suggests us `hello world`, but we refuse and go on typing:
+"
+"     hello people
+"
+" If we hit C-x C-l again, the line completion will insert a newline.
+" Why?
+" It's probably one of Vim's quirks / bugs.
+" It shouldn't insert anything, because now the line is unique.
+"
+" According to lifepillar, this can cause a problem when autocompletion
+" is enabled.
+" I can see how. The user set up line completion in his completion chain.
+" Line completion is invoked automatically but he refuses the suggestion,
+" and goes on typing. Later, line completion is invoked a second time.
+" This time, there will be no suggestion, because the current line is likely
+" unique (the user typed something that was nowhere else), but line completion
+" will still insert a newline.
+"
+" Here's what lifepillar commented on the patch that introduced it:
+"
+"     Fix 'line' completion method inserting a new line.
+
+"     Line completion seems to work differently from other completion methods:
+"     typing a character that does not belong to an entry does not exit
+"     completion. Before this commit, with autocompletion on such behaviour
+"     resulted in µcomplete inserting a new line while the user was typing,
+"     because µcomplete would insert <c-x><c-l> while in ctrl-x submode.
+
+"     To fix that, we use the same trick as with 'c-p': make sure that we are
+"     out of ctrl-x submode before typing <c-x><c-l>.
+"
+" To find the commit:
+"
+"     $ gsearch 's:cnp."\<c-x>\<c-l>"'
+"
+" There's a case, though, where adding a newline can make sense for line
+" completion. When we're at the END of a line existing in multiple places, and
+" we hit `C-x C-l`. Invoking line completion twice inserts a newline to suggest
+" us the next line:
+"
+"     We have 2 identical lines:    L1 and L1'
+"     After L1, there's L2.
+"     The cursor is at the end of L1'.
+"     The first `C-x C-l` invocation only suggests L1.
+"     The second one inserts a newline and suggests L2.
+"
+"}}}
 let s:compl_mappings = {
                        \ 'abbr' : "\<c-r>=mucomplete#abbr#complete()\<cr>",
                        \ 'c-n'  : s:exit_ctrl_x."\<c-n>",
@@ -1201,6 +1201,7 @@ endfu
 "}}}
 
 fu! s:next_method() abort
+    let g:debug = get(g:, 'debug', []) + [s:i]
 
     if s:cycle
 
@@ -1324,6 +1325,7 @@ fu! s:next_method() abort
         ""}}}
 
         let s:i += s:dir
+        let g:debug = get(g:, 'debug', []) + [s:i]
 
         " Why the first 2 conditions? "{{{
         "
@@ -1346,6 +1348,7 @@ fu! s:next_method() abort
 
         while s:i != -1 && s:i != s:N && !s:can_complete()
             let s:i += s:dir
+            let g:debug = get(g:, 'debug', []) + [s:i]
         endwhile
     endif
 
