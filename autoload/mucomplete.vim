@@ -509,9 +509,18 @@
 "
 " … instead of simply:
 "
-"     getline('.')[:col('.')-1]
+"     getline('.')[:col('.')-2]
 "
 "}}}
+"FIXME: "{{{
+"
+" Lifepillar initialized `s:auto` to 0 inside the plugin.
+" It causes an issue if autocompletion is enabled and we manually source the
+" script. It should be:
+"
+"     let s:auto = get(s:, 'auto', 0)
+"
+""}}}
 " Why do we need to prepend `s:exit_ctrl_x` in front of "\<c-x>\<c-l>"? "{{{
 "
 " Suppose we have the following buffer:
@@ -572,9 +581,46 @@
 
 " To look for all the global variables used by this plugin, search the
 " pattern:
-"         \v^(".*)@!.*\zsg:[^ ,]
+"         \v^(\s*".*)@!.*\zsg:[^ ,]
 
 " Variables "{{{
+
+" Internal state
+let s:methods      = []
+let s:word         = ''
+
+let s:dir     = 1
+let s:cycling = 0
+
+" Indexes of the methods which have been tried since the last time we asked
+" for a cycling.
+let s:i_history = []
+
+let s:i          = 0
+let s:pumvisible = 0
+
+" Purpose of `s:auto`: "{{{
+"
+" `s:auto` is a flag which, when it's set, means that autocompletion is enabled.
+" Its used by `s:act_on_pumvisible()` to know whether it must insert the first
+" entry in the menu. Indeed, when autocompletion is enabled, we don't want to
+" automatically insert anything. Bad idea.
+" It would constantly insert undesired text, and the user would have to undo
+" it. The popup menu with suggestions is enough.
+"
+"}}}
+" Why do we use `get()` ? "{{{
+"
+" Consider this:
+" autocompletion is enabled, and we source manually the plugin, it will
+" wrongly, set `s:auto` to 0. The consequence will be that now autocompletions
+" will automatically insert text.
+"
+"}}}
+
+let s:auto    = get(s:, 'auto', 0)
+
+
 
 let s:exit_ctrl_x    = "\<c-g>\<c-g>"
 
@@ -602,30 +648,6 @@ let s:compl_mappings = {
 unlet s:exit_ctrl_x
 
 let s:select_entry = { 'c-p' : "\<c-p>\<down>", 'keyp': "\<c-p>\<down>" }
-" Internal state
-let s:methods      = []
-let s:word         = ''
-
-" Purpose of `s:auto`: "{{{
-"
-" `s:auto` is a flag which, when it's set, means that autocompletion is enabled.
-" Its used by `s:act_on_pumvisible()` to know whether it must insert the first
-" entry in the menu. Indeed, when autocompletion is enabled, we don't want to
-" automatically insert anything. Bad idea.
-" It would constantly insert undesired text, and the user would have to undo
-" it. The popup menu with suggestions is enough.
-"}}}
-
-let s:auto         = 0
-let s:dir          = 1
-let s:cycling      = 0
-
-" Indexes of the methods which have been tried since the last time we asked
-" for a cycling.
-let s:i_history = []
-
-let s:i          = 0
-let s:pumvisible = 0
 
 " Default pattern to decide when automatic completion should be triggered.
 let g:mc_auto_pattern = '\k\k$'
@@ -875,7 +897,7 @@ fu! s:act_on_textchanged() abort
 
     " Purpose of g:mc_auto_pattern: "{{{
     "
-    " getline('.')[…] matches the characters from the beginning of the line up
+    " strpart(…) matches the characters from the beginning of the line up
     " to the cursor.
     "
     " We compare them to `{g:|b:}mc_auto_pattern`, which is a pattern
@@ -897,10 +919,11 @@ fu! s:act_on_textchanged() abort
     "     \a\a  <  \a  <  \k
 "}}}
 
-    elseif getline('.')[:col('.')-1] =~#
+    elseif getline('.')[:col('.')-2] =~#
                 \  { exists('b:mc_auto_pattern') ? 'b:' : 'g:' }mc_auto_pattern
 
         sil call feedkeys("\<plug>(MC_Auto)", 'i')
+    else
     endif
 endfu
 
@@ -922,7 +945,7 @@ endfu
 
 " Precondition: pumvisible() is false.
 fu! mucomplete#complete(dir) abort
-    let s:word = matchstr(getline('.')[:col('.') - 1], '\S\+$')
+    let s:word = matchstr(getline('.')[:col('.')-2], '\S\+$')
 
     if empty(s:word)
         return (a:dir > 0 ? "\<plug>(MC_Tab)" : "\<plug>(MC_C-d)")
@@ -1090,7 +1113,7 @@ fu! mucomplete#enable_auto() abort
         " It depends on which text a given method is trying to complete.
         " If a method tries to complete this:
         "
-        "     matchstr(getline('.')[:col('.')-1], '\S\+$')
+        "     matchstr(getline('.')[:col('.')-2], '\S\+$')
         "
         " … then it doesn't make sense to try an autocompletion after a failed one.
         " Because inserting a new character will make the text to complete even harder.
