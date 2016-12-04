@@ -84,7 +84,7 @@
 " Therefore, the variable `s:pumvisible` is not set properly (1).
 "
 " After hitting the completion mappings, and incorrectly set the `s:pumvisible`
-" variable, `s:next_method()` hit `<plug>(MUcompleteNxt)`, which calls
+" variable, `s:next_method()` hit `<plug>(MC_next_method)`, which calls
 " `verify_completion()`.
 " The latter relies on `s:pumvisible` to decide whether it should call `act_on
 " pumvisible()` or try another method and recall `s:next_method()`.
@@ -589,15 +589,30 @@
 let s:methods      = []
 let s:word         = ''
 
-let s:dir     = 1
-let s:cycling = 0
+" flag: in which direction will we move in the chain
+let s:dir   = 1
+
+" flag: did we ask to move in the chain ?
+let s:cycle = 0
 
 " Indexes of the methods which have been tried since the last time we asked
 " for a cycling.
 let s:i_history = []
 
-let s:i          = 0
+" number (positive or negative):   idx of the current method to try
+let s:i = 0
+" The valid values of `s:i` will vary between 0 and s:N-1.
+" It is initialized by `complete()`, which gives it the value:
+"
+"         -1      if we move forward in the chain
+"         s:N     "          backward "
+"
+" It's updated by `s:next_method()`.
+
+" flag:   state of the popup menu
 let s:pumvisible = 0
+" Its value is tested in `verify_completion()`, which is being called at the end
+" of `s:next_method()`.
 
 " Purpose of `s:auto`: "{{{
 "
@@ -943,15 +958,14 @@ endfu
 "}}}
 " complete "{{{
 
-" Precondition: pumvisible() is false.
 fu! mucomplete#complete(dir) abort
     let s:word    = matchstr(getline('.')[:col('.')-2], '\S\+$')
     if empty(s:word)
         return (a:dir > 0 ? "\<plug>(MC_Tab)" : "\<plug>(MC_C-d)")
     endif
 
-    let s:cycling = 0
-    let s:dir     = a:dir
+    let s:cycle = 0
+    let s:dir   = a:dir
 
     let s:i_history = []
     let s:i         = s:dir > 0 ? -1 : s:N
@@ -966,7 +980,7 @@ endfu
 " cycle "{{{
 
 fu! mucomplete#cycle(dir) abort
-    let s:cycling   = 1
+    let s:cycle     = 1
     let s:dir       = a:dir
     let s:i_history = []
 
@@ -993,6 +1007,12 @@ endfu
 
 "}}}
 " cycle_or_select "{{{
+
+" Purpose:
+" When we hit Tab or S-Tab, decide whether we want to cycle in the chain, or
+" select another entry in the menu.
+" If we don't use Tab / S-Tab to cycle in the chain, we could probably get rid
+" of this function, and merge its contents with `tab_complete()`.
 
 fu! mucomplete#cycle_or_select(dir) abort
     if get(g:, 'mc_cycle_with_trigger', 0)
@@ -1062,7 +1082,7 @@ fu! mucomplete#enable_auto() abort
         " Because at the end of `s:next_method()`, the keys which are returned look
         " something like this:
         "
-        "     C-x C-n … Plug(MUcompleteNxt)
+        "     C-x C-n … Plug(MC_next_method)
         "
         " If there wasn't `Plug(…)`, `TextChangedI` would always be triggered,
         " regardless of wheter a method succeeds.
@@ -1165,36 +1185,24 @@ endfu
 "
 "     - mucomplete#verify_completion()    after a failed completion
 "     - mucomplete#complete()             1st attempt to complete (auto / manual)
-"     - mucomplete#cycle()                after a cycling
-
-" Precondition: pumvisible() is false.
-"
-"         s:dir     = 1     flag:                            initial direction,                  never changes
-"         s:i       = -1    number (positive or negative):   idx of the method to try,           CHANGES
-"         s:cycling = 0     flag:                            did we ask to move in the chain ?,  never changes
-"         s:N       = 7     number (positive):               number of methods in the chain,     never changes
-"
-" The valid values of `s:i` will vary between 0 and s:N-1.
-" It is initialized by `cycle_or_select()`, which gives it the value:
-"
-"         -1      if we go forward in the chain
-"         s:N     "        backward "
+"     - mucomplete#cycle()                when we cycle
 "
 "}}}
 " Purpose: "{{{
 "
-" The function is going to {in|de}crement the index of the next method to try.
+" The function is going to [in|de]crement the index of the next method to try.
 " It does it one time.
 " Then it checks whether this next method can be applied.
-" If it's not, it does it repeatedly until:
+" If it's not, it [in|de]crement it repeatedly until:
 "
-"     - it finds one if we're manually cycling (`s:cycling` is set)
+"     - it finds one if we're manually cycling (`s:cycle` is set)
 "     - it finds one OR we reach the beginning/end of the chain if we're not cycling
+"
 "}}}
 
 fu! s:next_method() abort
 
-    if s:cycling
+    if s:cycle
 
         " Explanation of the formula: "{{{
         "
@@ -1256,7 +1264,7 @@ fu! s:next_method() abort
         " can be applied. Besides, `s:methods[s:N]` does not even exist.
         "
         " So, this check is necessary. But it cause an issue.
-        " If we've hit `C-k` to go back in the chain (s:cycling is set), and we
+        " If we've hit `C-k` to go back in the chain (`s:cycle` is set), and we
         " reach the beginning of the chain (s:i = 0), we won't be able to get
         " back any further. We won't be able to go back to the end of the
         " chain, because the function won't even try the last / -1 method.
@@ -1319,7 +1327,7 @@ fu! s:next_method() abort
 
         " Why the first 2 conditions? "{{{
         "
-        " In the previous case (`if s:cycling`), the only condition to stay in
+        " In the previous case (`if s:cycle`), the only condition to stay in
         " the loop was:
         "
         "     !s:can_complete()
@@ -1411,7 +1419,7 @@ fu! s:next_method() abort
         " a list. We use it to compare its items with the index of the next
         " method to be tried.
 
-        if s:cycling
+        if s:cycle
             let s:i_history += [s:i]
         endif
 
@@ -1420,7 +1428,7 @@ fu! s:next_method() abort
         " 2 - Store the state of the menu in `s:pumvisible` through
         "     `mucomplete#menu_is_up()`.
         "
-        " 3 - call `mucomplete#verify_completion()` through `<plug>(MUcompleteNxt)`
+        " 3 - call `mucomplete#verify_completion()` through `<plug>(MC_next_method)`
         "
         ""}}}
 
@@ -1439,7 +1447,7 @@ fu! s:next_method() abort
         " "}}}
 
         return s:compl_mappings[s:methods[s:i]] .
-                    \ "\<c-r>\<c-r>=pumvisible()?mucomplete#menu_is_up():''\<cr>\<plug>(MUcompleteNxt)"
+                    \ "\<c-r>\<c-r>=pumvisible()?mucomplete#menu_is_up():''\<cr>\<plug>(MC_next_method)"
 
     endif
 
@@ -1471,7 +1479,7 @@ fu! s:next_method() abort
     " will end up with the value `s:N`.
     " Even though the methods failed, `CompleteDone` was triggered after each of
     " them, and `s:completedone` was set to `1` each time.
-    " `TextChangedI` was NOT triggered, because of our `Plug(MUcompleteNxt)`
+    " `TextChangedI` was NOT triggered, because of our `Plug(MC_next_method)`
     " mapping at the end of `s:next_method()`, so `s:act_on_textchanged()` is not
     " called again.
     " Finally, when we insert `x`, `TextChangedI` is triggered a last (3rd) time,
@@ -1513,6 +1521,18 @@ endfu
 "}}}
 " tab_complete "{{{
 
+" We can't get rid of this function, and put its code inside `complete()`.
+" If we did that, every time `complete()` would be called, `g:mc_manual` would
+" be set to 1. It would be wrong, when `complete()` would be called by the
+" autocompletion (`<Plug>(MC_Auto)`).
+"
+" We could find a workaround, by passing a second argument to `complete()`
+" inside the mappings Tab, S-Tab, and <plug>(MC_auto).
+" It would serve as a flag whose meaning is whether we're performing a manual
+" or automatic completion.
+" But, it means that every time the autocompletion would kick in, it would
+" test whether the popup menu is visible. It could make it a bit slower…
+
 fu! mucomplete#tab_complete(dir) abort
     if pumvisible()
         return mucomplete#cycle_or_select(a:dir)
@@ -1528,10 +1548,10 @@ endfu
 fu! mucomplete#toggle_auto() abort
     if exists('#MC_Auto')
         call mucomplete#disable_auto()
-        echom '[MUcomplete] Auto off'
+        echom '[MC] Auto off'
     else
         call mucomplete#enable_auto()
-        echom '[MUcomplete] Auto on'
+        echom '[MC] Auto on'
     endif
 endfu
 
@@ -1540,12 +1560,13 @@ endfu
 
 " Purpose: "{{{
 "
-" It's invoked by `<plug>(MUcompleteNxt)`, which itself is typed at
+" It's invoked by `<plug>(MC_next_method)`, which itself is typed at
 " the very end of `s:next_method()`.
 " It checks whether the last completion succeeded by looking at
 " the state of the menu.
 " If it's open, the function calls `s:act_on_pumvisible()`.
 " If it's not, it recalls `s:next_method()` to try another method.
+"
 "}}}
 
 fu! mucomplete#verify_completion() abort
