@@ -534,18 +534,6 @@
 
 " Variables "{{{
 
-if !empty(mapcheck('<c-g><c-g>', 'i'))
-    echohl WarningMsg
-    let msg = "Warning: you have a mapping whose {lhs} is or begins with C-g C-g\n\n".
-            \ "MC (My Completion) hits those keys before hitting the keys of some methods.\n".
-            \ "It does this to make sure you are out of C-x submode before trying them.\n\n".
-            \ "Your current mapping could lead to some unexpected behavior.\n".
-            \ "Please remove/change it.".
-            \ execute('verb imap <c-g><c-g>')."\n\n"
-    echo msg
-    echohl None
-endif
-
 " Internal state
 let s:methods      = []
 let s:word         = ''
@@ -598,7 +586,31 @@ let s:auto    = get(s:, 'auto', 0)
 
 
 
+" We could also use "\<c-x>\<c-z>\<bs>" "{{{
+" In this case update the warning.
+"
+" Currently we have a mapping using C-x C-z, installed by the unicode plugin.
+" We would have to unmap it in this script:
+"
+"     iunmap <C-x><C-z>
+"
+" We can't unmap it in the vimrc, because it would be too soon. The mappings
+" for a plugin are defined after the vimrc is sourced.
+""}}}
+
 let s:exit_ctrl_x    = "\<c-g>\<c-g>"
+
+if !empty(mapcheck('<c-g><c-g>', 'i'))
+    echohl WarningMsg
+    let msg = "Warning: you have a mapping whose {lhs} is or begins with C-g C-g\n\n".
+            \ "MC (My Completion) hits those keys before hitting the keys of some methods.\n".
+            \ "It does this to make sure you are out of C-x submode before trying them.\n\n".
+            \ "Your current mapping could lead to some unexpected behavior.\n".
+            \ "Please remove/change it.".
+            \ execute('verb imap <c-g><c-g>')."\n\n"
+    echo msg
+    echohl None
+endif
 
 " Why do we need to prepend `s:exit_ctrl_x` in front of "\<c-x>\<c-l>"? "{{{
 "
@@ -657,6 +669,26 @@ let s:exit_ctrl_x    = "\<c-g>\<c-g>"
 "     The second one inserts a newline and suggests L2.
 "
 "}}}
+" Why do we use: "\<plug>(DigraphComplete)" "{{{
+"                "\<plug>(UnicodeComplete)"
+"
+" … instead of:
+"
+"     "\<c-x>\<c-g>"
+"     "\<c-x>\<c-z>"
+"
+" … ? Because, if one day we want to use `c-x c-z` as keys to exit c-x submode,
+" it wouldn't work anymore.
+"
+" `c-x c-g` is not concerned, because it doesn't seem to work as exit keys.
+" In this key sequence, for some reason, c-x makes us leave c-x submode and
+" therefore c-g is interpreted as a prefix in insert mode.
+"
+" Nevertheless, I prefer to use the plug mapping for consistency reasons:
+" we use it for the 'unic' method, so we do the same for the 'digr' method.
+"
+"}}}
+
 let s:compl_mappings = {
                        \ 'abbr' : "\<c-r>=mucomplete#abbr#complete()\<cr>",
                        \ 'c-n'  : s:exit_ctrl_x."\<c-n>",
@@ -664,7 +696,7 @@ let s:compl_mappings = {
                        \ 'cmd'  : s:exit_ctrl_x."\<c-x>\<c-v>",
                        \ 'defs' : s:exit_ctrl_x."\<c-x>\<c-d>",
                        \ 'dict' : s:exit_ctrl_x."\<c-x>\<c-k>",
-                       \ 'digr' : s:exit_ctrl_x."\<c-x>\<c-g>",
+                       \ 'digr' : s:exit_ctrl_x."\<plug>(DigraphComplete)",
                        \ 'file' : "\<c-r>=mucomplete#file#complete()\<cr>",
                        \ 'incl' : s:exit_ctrl_x."\<c-x>\<c-i>",
                        \ 'keyn' : s:exit_ctrl_x."\<c-x>\<c-n>",
@@ -675,9 +707,10 @@ let s:compl_mappings = {
                        \ 'tags' : s:exit_ctrl_x."\<c-x>\<c-]>",
                        \ 'thes' : s:exit_ctrl_x."\<c-x>\<c-t>",
                        \ 'ulti' : "\<c-r>=mucomplete#ultisnips#complete()\<cr>",
-                       \ 'unic' : s:exit_ctrl_x."\<c-x>\<c-z>",
+                       \ 'unic' : s:exit_ctrl_x."\<plug>(UnicodeComplete)",
                        \ 'user' : s:exit_ctrl_x."\<c-x>\<c-u>",
                        \ }
+
 unlet s:exit_ctrl_x
 
 let s:select_entry = { 'c-p' : "\<c-p>\<down>", 'keyp': "\<c-p>\<down>" }
