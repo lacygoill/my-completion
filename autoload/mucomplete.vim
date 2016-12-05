@@ -1598,7 +1598,8 @@ endfu
 "}}}
 " tab_complete "{{{
 
-" We can't get rid of this function, and put its code inside `complete()`.
+" Why don't we merge this function with `complete()`? "{{{
+"
 " If we did that, every time `complete()` would be called, `g:mc_manual` would
 " be set to 1. It would be wrong, when `complete()` would be called by the
 " autocompletion (`<Plug>(MC_Auto)`).
@@ -1609,6 +1610,8 @@ endfu
 " or automatic completion.
 " But, it means that every time the autocompletion would kick in, it would
 " test whether the popup menu is visible. It could make it a bit slower…
+"
+""}}}
 
 fu! mucomplete#tab_complete(dir) abort
     if pumvisible()
