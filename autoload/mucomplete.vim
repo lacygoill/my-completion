@@ -26,8 +26,8 @@
 "
 " … in your vimrc
 "
-" In fact, the bug occurs when the user asks to move in the chain (cycle)
-" without having invoked a method in the chain at least once.
+" In fact, the bug occurs when the user is cycling without having invoked a method
+" in the chain at least once.
 "
 " Initially, I thought the solution was to initialize `s:N` in `cycle()`,
 " exactly as it was defined in `complete()`.
@@ -167,7 +167,7 @@
 " This should prevent any kind of spurious loop.
 " Finally, when `s:cycle` is set to 0, we would empty the list, so that the
 " methods whose indexes are in this temporary list could be tested again, the
-" next time we would ask for a completion via Tab or via a new cycle (C-h, C-l).
+" next time we would ask for a completion via Tab or via cycling (C-h, C-l).
 "
 "}}}
 " FIXME: "{{{
@@ -516,10 +516,10 @@ let s:word         = ''
 let s:dir   = 1
 
 " flag: did we ask to move in the chain ?
-let s:cycle = 0
+let s:cycling = 0
 
-" Indexes of the methods which have been tried since the last time we asked
-" for a cycling.
+" Indexes of the methods which have been tried since the last time we've been
+" cycling.
 let s:i_history = []
 
 " number (positive or negative):   idx of the current method to try
@@ -988,7 +988,7 @@ fu! mucomplete#complete(dir) abort
         return (a:dir > 0 ? "\<plug>(MC_Tab)" : "\<plug>(MC_C-d)")
     endif
 
-    let s:cycle = 0
+    let s:cycling = 0
     let s:dir   = a:dir
 
     let s:i_history = []
@@ -1004,13 +1004,13 @@ endfu
 " cycle "{{{
 
 fu! mucomplete#cycle(dir) abort
-    let s:cycle     = 1
+    let s:cycling   = 1
     let s:dir       = a:dir
     let s:i_history = []
 
     " Why do we test the existence of `s:N`? "{{{
     "
-    " Because we could be stupid and ask to cycle in the chain, never having
+    " Because we could be stupid and try cycling in the chain, never having
     " entered the chain. That is, never having used a completion method in the
     " chain. Never hit Tab before.
     " When it happens, `s:next_method()` raises an error because `s:N` doesn't
@@ -1245,13 +1245,13 @@ endfu
 " Then it checks whether this next method can be applied.
 " If it's not, it [in|de]crement it repeatedly until:
 "
-"     - it finds one if we're manually cycling (`s:cycle` is set)
+"     - it finds one if we're cycling
 "     - it finds one OR we reach the beginning/end of the chain if we're not cycling
 "
 "}}}
 
 fu! s:next_method() abort
-    if s:cycle
+    if s:cycling
 
         " Explanation of the formula: "{{{
         "
@@ -1307,13 +1307,13 @@ fu! s:next_method() abort
         " At the end of this function, before hitting the completion mappings,
         " we will make sure that `s:i` is different than `-1` and `s:N`.
         "
-        " Because, if we're not cycling, and the value of `s:i` is `-1` or
-        " `s:N`, it means we've tested all the methods in the chain. It's
-        " pointless to go on. We could even get stuck in a loop if no methods
-        " can be applied. Besides, `s:methods[s:N]` does not even exist.
+        " Because, if we aren't cycling, and the value of `s:i` is `-1`
+        " or `s:N`, it means we've tested all the methods in the chain.
+        " It's pointless to go on. We could even get stuck in a loop if no
+        " methods can be applied. Besides, `s:methods[s:N]` does not even exist.
         "
         " So, this check is necessary. But it cause an issue.
-        " If we've hit `C-k` to go back in the chain (`s:cycle` is set), and we
+        " If we've hit `C-k` to go back in the chain (`s:cycling` is set), and we
         " reach the beginning of the chain (s:i = 0), we won't be able to get
         " back any further. We won't be able to go back to the end of the
         " chain, because the function won't even try the last / -1 method.
@@ -1336,11 +1336,11 @@ fu! s:next_method() abort
         " condition that `s:i` is different than `-1` and `s:N`.
         "
         " But it's unnecessary. We can't be stuck in a loop.
-        " Indeed, if we ask for a cycling, it means that the popup menu is
-        " currently visible and that a method was successful.
-        " So, when we ask for a cycling, we can be sure that there's AT LEAST
-        " one method which can be applied, i.e. a method for which
-        " `s:can_complete()` returns true/1.
+        " Indeed, if we're cycling, it means that the popup menu is currently
+        " visible and that a method was successful.
+        " So, when we're cycling, we can be sure that there's AT LEAST one method
+        " which can be applied, i.e. a method for which `s:can_complete()` returns
+        " true/1.
         "
         " Besides, `s:i` can be equal to `-1` or `s:N`.
         " It can't be equal to `s:N` because it was defined as the result of
@@ -1376,7 +1376,7 @@ fu! s:next_method() abort
 
         " Why the first 2 conditions? "{{{
         "
-        " In the previous case (`if s:cycle`), the only condition to stay in
+        " In the previous case (`if s:cycling`), the only condition to stay in
         " the loop was:
         "
         "     !s:can_complete()
@@ -1385,7 +1385,7 @@ fu! s:next_method() abort
         "
         "     s:i != -1 && s:i != s:N
         "
-        " Indeed, we're not cycling. We've just hit Tab/S-Tab.
+        " Indeed, we aren't cycling. We've just hit Tab/S-Tab.
         " So, we don't know whether there's a method which can be applied.
         " If there's none, we could be stuck in a loop.
         " This additional condition makes sure that we stop once we reach the
@@ -1414,7 +1414,7 @@ fu! s:next_method() abort
     "     && !count(s:i_history, s:i)
     "
     " … ? We want to make sure that the method to be tried hasn't already been
-    " tried since the last time the user asked for a cycling.
+    " tried since the last time the user was cycling.
     " Otherwise, we could be stuck in an endless loop of failing methods.
     " For example:
     "
@@ -1448,9 +1448,9 @@ fu! s:next_method() abort
     " Why the 2 first conditions? "{{{
     "
     " If we're cycling, `s:i` can't be `-1` nor `s:N`.
-    " However, if we're NOT cycling (Tab, S-Tab), then if all the methods
-    " failed, we could reach the beginning/end of the chain and then `s:i`
-    " could be `-1` or `s:N`.
+    " However, if we are NOT cycling (Tab, S-Tab), then if all the
+    " methods failed, we could reach the beginning/end of the chain and then
+    " `s:i` could be `-1` or `s:N`.
     "
     " In this case, we don't want to try a method.
     " Indeed, we could be stuck in a loop, and it doesn't make any sense to
@@ -1464,11 +1464,11 @@ fu! s:next_method() abort
 
     if s:i != -1 && s:i != s:N && !count(s:i_history, s:i)
 
-        " If we're cycling, we store the index of the method to be tried, in
-        " a list. We use it to compare its items with the index of the next
-        " method to be tried.
+        " If we're cycling, we store the index of the method to be tried, in a
+        " list. We use it to compare its items with the index of the next method
+        " to be tried.
 
-        if s:cycle
+        if s:cycling
             let s:i_history += [s:i]
         endif
 
