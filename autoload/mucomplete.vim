@@ -528,6 +528,18 @@
 
 " Variables "{{{
 
+if !empty(mapcheck('<c-g><c-g>', 'i'))
+    echohl WarningMsg
+    let msg = "Warning: you have a mapping whose {lhs} is or begins with C-g C-g\n\n".
+            \ "MC (My Completion) hits those keys before hitting the keys of some methods.\n".
+            \ "It does this to make sure you are out of C-x submode before trying them.\n\n".
+            \ "Your current mapping could lead to some unexpected behavior.\n".
+            \ "Please remove/change it.".
+            \ execute('verb imap <c-g><c-g>')."\n\n"
+    echo msg
+    echohl None
+endif
+
 " Internal state
 let s:methods      = []
 let s:word         = ''
