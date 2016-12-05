@@ -982,6 +982,27 @@ endfu
 "}}}
 " complete "{{{
 
+" Why don't we merge this function with `next_method()`? "{{{
+"
+" Because, among other things, the latter would reset `s:i` each time it would
+" be called, so the index of the method to try would be stuck on the same value.
+"
+" We couldn't merge it into `tab_complete()` either, because we want to use
+" the latter for when we hit Tab manually, not for autocompletion.
+" Eventually, hitting Tab will call `complete()`, and autocompletion also
+" calls (directly) this function. That's why we simply call it `complete()`,
+" because all kind of completions (manual/auto) use it.
+"
+" BUT, by making the 2 kind of completions call different functions / hook
+" into the algo at different points, we can implement some logic, such as:
+"
+"     - if the completion is automatic, don't try this method because it's too
+"                                       expensive
+"
+"     - "                    manual,    try first to expand a snippet
+"
+"}}}
+
 fu! mucomplete#complete(dir) abort
     let s:word    = matchstr(getline('.')[:col('.')-2], '\S\+$')
     if empty(s:word)
@@ -989,7 +1010,7 @@ fu! mucomplete#complete(dir) abort
     endif
 
     let s:cycling = 0
-    let s:dir   = a:dir
+    let s:dir     = a:dir
 
     let s:i_history = []
     let s:i         = s:dir > 0 ? -1 : s:N
@@ -1002,6 +1023,13 @@ endfu
 
 "}}}
 " cycle "{{{
+
+" Why don't we merge this function with `cycle_or_select()`? "{{{
+"
+" Because of the mappings c-j and c-k which cycle in the chain. They don't want
+" to call `cycle_or_select()`, their purpose is really to call `cycle()`.
+"
+"}}}
 
 fu! mucomplete#cycle(dir) abort
     let s:cycling   = 1
