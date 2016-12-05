@@ -192,34 +192,6 @@
 "
 " "}}}
 " FIXME: "{{{
-
-" In the completion mapping for the 'spel' method:
-"
-"         \ 'spel': "\<c-o>:\<cr>\<c-r>=mucomplete#spel#complete()\<cr>",
-"
-" … why do we prefix it with `\<c-o>:\<cr>`?
-"
-" If we configure the chain completion, like this:
-"
-"         let g:mc_chain = ['keyn', 'spel']
-"
-" … we enter a buffer and enable the spell correction (`cos`),
-" we type `helo`, and hit `Tab` to complete/correct the word into `hello`.
-" The menu opens but when we type `C-n`, it doesn't select the first entry.
-" It gives us the message:
-"
-"         Keyword Local completion Back at original
-"
-" The second time we hit `C-n`, we can finally choose our correction.
-" But why only after the 2nd time?
-" And why does it seem that the plugin tries the `keyn` method?
-" `C-n` shouldn't make it do that.
-"
-" The current solution seems this weird prefix.
-" But I don't understand it.
-
-""}}}
-" FIXME: "{{{
 "
 " Given the following buffer `foo`:
 "
@@ -308,8 +280,6 @@
 " It would fix the first issue.
 "
 " Tell lifepillar about it. Share our implementation.
-" And ask him, why we have to prefix our mapping with `C-o : CR` to avoid
-" a spurious bug.
 "
 "}}}
 " FIXME: "{{{
@@ -439,6 +409,10 @@
 "}}}
 " FIXME: "{{{
 "
+" I keep this section, but it's not a good idea because it could cause
+" autocompletion to hit Tab indefinitely.
+" See `mucomplete#enable_auto()` for more info.
+"
 " Lifepillar gave the value 1 to `s:completedone`.
 " I think `!empty(v:completed_item)` would be better, because it would allow
 " to have an autocompletion even when the previous one failed.
@@ -530,7 +504,7 @@
 
 " To look for all the global variables used by this plugin, search the
 " pattern:
-"         \v^(\s*".*)@!.*\zsg:[^ ,]
+"         \v^%(\s*".*)@!.*\zsg:[^ ,]
 
 " Variables "{{{
 
@@ -703,7 +677,7 @@ let s:compl_mappings = {
                        \ 'keyp' : s:exit_ctrl_x."\<c-x>\<c-p>",
                        \ 'line' : s:exit_ctrl_x."\<c-x>\<c-l>",
                        \ 'omni' : s:exit_ctrl_x."\<c-x>\<c-o>",
-                       \ 'spel' : "\<c-o>:\<cr>\<c-r>=mucomplete#spel#complete()\<cr>",
+                       \ 'spel' : "\<c-r>=mucomplete#spel#complete()\<cr>",
                        \ 'tags' : s:exit_ctrl_x."\<c-x>\<c-]>",
                        \ 'thes' : s:exit_ctrl_x."\<c-x>\<c-t>",
                        \ 'ulti' : "\<c-r>=mucomplete#ultisnips#complete()\<cr>",
@@ -1110,12 +1084,12 @@ fu! mucomplete#enable_auto() abort
         " But what happens if the completion fails or we exit the menu?
         " It depends of the kind of completion:
         "
-        "         C-x C-G    → does NOT trigger TextChangedI
+        "         C-x C-G ('digr')    → does NOT trigger TextChangedI
         "         C-x C-S
         "         C-x C-V
-        "         C-x C-Z
+        "         C-x C-Z ('unic')
         "
-        "         C-x C-D    → triggers TextChangedI
+        "         C-x C-D             → triggers TextChangedI
         "         C-x C-F
         "         C-x C-I
         "         C-x C-K
@@ -1127,20 +1101,14 @@ fu! mucomplete#enable_auto() abort
         "         C-x C-U
         "         C-x C-]
         "
-        " However, in our custom completion code, the event is NEVER triggered when the
-        " completion fails. Why?
-        " Because at the end of `s:next_method()`, the keys which are returned look
+        " However, in our custom completion code, when all the methods fail,
+        " it's hard to tell if and/or when it occurs.
+        " At the end of `s:next_method()`, the keys which are returned look
         " something like this:
         "
         "     C-x C-n … Plug(MC_next_method)
         "
-        " If there wasn't `Plug(…)`, `TextChangedI` would always be triggered,
-        " regardless of wheter a method succeeds.
-        " But because of it, `TextChangedI` is not triggered when all the methods fail.
-        "
-        " Why? I don't know. Ask stackexchange or Lifepillar.
-        " How do you know `Plug(…)` is the cause of this?
-        " Write this inside vimrc:
+        " Now, write this inside vimrc:
         "
         "     imap        <Tab>             <C-x><C-n><Plug>(MyFunc)
         "     ino  <expr> <Plug>(MyFunc)    MyFunc()
@@ -1159,6 +1127,18 @@ fu! mucomplete#enable_auto() abort
         " Go into insert mode at the end of the unique text, and hit Tab after it to
         " try a completion.
         " Look at the value of `g:tci`. It's still 0.
+        " Now, change `MyFunc()` like this:
+        "
+        "     fu! MyFunc()
+        "         return "\<c-x>\<c-v>"
+        "     endfu
+        "
+        " This time, hitting Tab will increment `g:tci`, meaning
+        " `TextChangedI` occurred. But did it occur after `c-x c-n` or after
+        " `c-x c-v`?
+        " So depending on the value of the chain, `TextChangedI` may or may
+        " not occur. And when it does, I don't know at which point(s) in the
+        " chain it occurs.
         "
         " Another way to watch when both `TextChangedI` and `CompleteDone` occur:
         "
@@ -1168,16 +1148,36 @@ fu! mucomplete#enable_auto() abort
         "         au TextChangedI * let g:debug.tci += 1
         "         au CompleteDone * let g:debug.cd += 1
         "     augroup END
+        "
         ""}}}
 
         autocmd TextChangedI * noautocmd call s:act_on_textchanged()
 
-        " Why do we define `s:completedone` as `!empty(v:completed_item)`? "{{{
+        " Why don't we define `s:completedone` as `!empty(v:completed_item)`? "{{{
+        " Because it could make autocompletion hit Tab indefinitely.
+        " Here's how to reproduce this bug:
         "
-        " We want to use it to prevent an autocompletion to be performed right
-        " after a successful one (in this case defining it as `1` would be enough),
-        " BUT we do want to allow an autocompletion after a failed one (`1`
-        " isn't enough anymore).
+        "     1. let g:mc_chain = [ 'keyn', 'cmd' ]
+        "
+        "     2. open a buffer and write `test`
+        "
+        "     3. write `te`, the autocompletion kicks in and suggests `test`
+        "        accept and insert
+        "
+        "     4. write `va` → autocompletion keeps trying to complete `va`
+        "
+        " FIXME:
+        "
+        " It's a weird bug, because if we write `va` on a different line, it
+        " doesn't occur.
+        "
+        " Anyway, why WAS it tempting to redefine `s:completedone` like this?
+        "
+        " We want to use `s:completedone` to prevent an autocompletion to be
+        " performed right after a successful one.
+        " In this case defining it as `1` would be enough.
+        " BUT we wanted to allow an autocompletion after a failed one.
+        " `1` isn't enough anymore.
         "
         " But if the last failed, does it make sense to try a new one?
         " It depends on which text a given method is trying to complete.
@@ -1199,7 +1199,7 @@ fu! mucomplete#enable_auto() abort
         " autocompletion.
 "}}}
 
-        autocmd CompleteDone * noautocmd let s:completedone = !empty(v:completed_item)
+        autocmd CompleteDone * noautocmd let s:completedone = 1
     augroup END
     let s:auto = 1
 endfu
