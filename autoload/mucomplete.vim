@@ -521,6 +521,12 @@
 "     let s:auto = get(s:, 'auto', 0)
 "
 ""}}}
+" FIXME: "{{{
+"
+" tell Lifepillar that he should add a warning in case the user mapped sth to
+" C-b or C-x C-b
+"
+""}}}
 
 " To look for all the global variables used by this plugin, search the
 " pattern:
