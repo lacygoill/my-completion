@@ -475,6 +475,16 @@
 " C-b or C-x C-b
 "
 ""}}}
+" FIXME: "{{{
+"
+" Tell lifepillar to add the -bar attribute to the command
+" otherwise something like this:
+"
+"     if condition | MUcompleteAutoOff | endif
+"
+" … doesn't work.
+"
+""}}}
 
 " To look for all the global variables used by this plugin, search the
 " pattern:
@@ -669,17 +679,15 @@ let g:mc_auto_pattern = '\k\k$'
 " Default completion chain
 
 let g:mc_chain = [
-                 \ 'abbr',
-                 \ 'c-p' ,
-                 \ 'cmd' ,
-                 \ 'dict',
-                 \ 'digr',
                  \ 'file',
                  \ 'keyp',
+                 \ 'abbr',
+                 \ 'dict',
+                 \ 'c-p' ,
+                 \ 'digr',
                  \ 'line',
                  \ 'omni',
                  \ 'spel',
-                 \ 'tags',
                  \ 'ulti',
                  \ 'unic',
                  \ ]
@@ -709,10 +717,10 @@ let g:mc_conditions = {
                       \ 'digr' : { t -> get(g:, 'loaded_unicodePlugin', 0) },
                       \ 'file' : { t -> t =~# '\v[/~]\f*$' },
                       \ 'omni' : { t -> !empty(&l:omnifunc) },
-                      \ 'spel' : { t -> &l:spell && !empty(&l:spelllang) },
-                      \ 'tags' : { t -> !empty(tagfiles()) },
+                      \ 'spel' : { t -> &l:spell    && !empty(&l:spelllang) },
+                      \ 'tags' : { t -> g:mc_manual && !empty(tagfiles()) },
                       \ 'ulti' : { t -> get(g:, 'did_plugin_ultisnips', 0) },
-                      \ 'unic' : { t -> get(g:, 'loaded_unicodePlugin', 0) },
+                      \ 'unic' : { t -> g:mc_manual && get(g:, 'loaded_unicodePlugin', 0) },
                       \ 'user' : { t -> !empty(&l:completefunc) },
                       \ }
 
@@ -1562,6 +1570,38 @@ fu! s:setup_dict_option() abort
 endfu
 
 "}}}
+" snippet_or_complete "{{{
+
+fu! mucomplete#snippet_or_complete(dir) abort
+    if pumvisible()
+        return a:dir > 0 ? "\<c-n>" : "\<c-p>"
+    endif
+
+    call UltiSnips#ExpandSnippetOrJump()
+    if !g:ulti_expand_or_jump_res
+        call feedkeys("\<plug>(MC_".(a:dir > 0 ? "" : "s")."tab_complete)", 'i')
+    endif
+    return ''
+endfu
+
+augroup autocompletion_during_snippet_expansion
+    au!
+    au User UltiSnipsEnterFirstSnippet call s:setup_auto()
+    au User UltiSnipsExitLastSnippet   call s:teardown_auto()
+augroup END
+
+fu! s:setup_auto() abort
+    let s:is_in_auto_mode = s:auto
+    McAutoEnable
+endfu
+
+fu! s:teardown_auto() abort
+    if !s:is_in_auto_mode
+        McAutoDisable
+    endif
+endfu
+
+"}}}
 " tab_complete "{{{
 
 " Why don't we merge this function with `complete()`? "{{{
@@ -1580,12 +1620,8 @@ endfu
 ""}}}
 
 fu! mucomplete#tab_complete(dir) abort
-    if pumvisible()
-        return (a:dir > 0 ? "\<c-n>" : "\<c-p>")
-    else
         let g:mc_manual = 1
         return mucomplete#complete(a:dir)
-    endif
 endfu
 
 "}}}
