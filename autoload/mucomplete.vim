@@ -930,10 +930,22 @@ fu! s:act_on_textchanged() abort
         " next component, in case there's one.
         " We just make sure that the character before the cursor is in 'isf'.
 "}}}
+        " Why do we use `get()`? "{{{
+        "
+        " Without it, sometimes, we have an error such as:
+        "
+        "     Error detected while processing function <SNR>67_act_on_textchanged:
+        "     line   81:
+        "     E684: list index out of range: 0
+        "     Error detected while processing function <SNR>67_act_on_textchanged:
+        "     line   81:
+        "     E15: Invalid expression: s:methods[s:i] ==# 'file' && matchstr(getline('.'), '.\%'.col('.').'c') =~# '\v\f'
+        "
+        ""}}}
 
-           if s:methods[s:i] ==# 'file' && matchstr(getline('.'), '.\%'.col('.').'c') =~# '\v\f'
-               sil call mucomplete#file#complete()
-           endif
+        if get(s:methods, s:i, '') ==# 'file' && matchstr(getline('.'), '.\%'.col('.').'c') =~# '\v\f'
+            sil call mucomplete#file#complete()
+        endif
 
     " Purpose of g:mc_auto_pattern: "{{{
     "
@@ -1563,17 +1575,14 @@ fu! s:next_method() abort
     " `s:act_on_textchanged()` is called and it executes its first block of code
     " which requires to get the item `s:methods[s:i]`.
     "
-    " A solution is to use get() like lifepillar did, but I don't like it,
-    " because it only treats the consequences of some underlying issue.
+    " A solution is to use get() like lifepillar did, but it only treats the
+    " consequences of some underlying issue.
     "
-    " I prefer treating the issue itself. Because who knows, maybe it could
+    " I want to also treat the issue itself. Because who knows, maybe it could
     " cause other unknown issues in the future.
     "
     " To tackle the root issue, we reset `s:i` to 0, here, when no completion
     " mapping was hit and when `s:i = s:N`.
-    "
-    " We don't really need this reset anymore, because we've redefined
-    " `s:completedone`. Still, I keep it, because better be safe than sorry.
 "}}}
 
     if s:i ==# s:N
