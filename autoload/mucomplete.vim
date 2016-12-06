@@ -485,6 +485,11 @@
 " … doesn't work.
 "
 ""}}}
+" FIXME: "{{{
+"
+" Tell Lifepillar to set `g:mc_manual` to 1 when cycling.
+"
+"}}}
 
 " To look for all the global variables used by this plugin, search the
 " pattern:
