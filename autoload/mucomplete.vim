@@ -1027,6 +1027,7 @@ endfu
 
 fu! mucomplete#cycle(dir) abort
     let s:cycling   = 1
+    let g:mc_manual = 1
     let s:dir       = a:dir
     let s:i_history = []
 
