@@ -1313,7 +1313,6 @@ fu! s:next_method() abort
         " … where N is the length of the list we're indexing.
 "
 "}}}
-
         " Why do we add `s:N` ? "{{{
         "
         " At the end of this function, before hitting the completion mappings,
@@ -1433,7 +1432,6 @@ fu! s:next_method() abort
     "       2 → 4 → 2 → 4 → …
     "
     ""}}}
-
     " FIXME: "{{{
     "
     " Lifepillar writes:
@@ -1456,7 +1454,6 @@ fu! s:next_method() abort
     "     x != a    &&  x != b    ⇔    ???
     "
     "     "}}}
-
     " Why the 2 first conditions? "{{{
     "
     " If we're cycling, `s:i` can't be `-1` nor `s:N`.
@@ -1492,7 +1489,6 @@ fu! s:next_method() abort
         " 3 - call `mucomplete#verify_completion()` through `<plug>(MC_next_method)`
         "
         ""}}}
-
         " FIXME: "{{{
         "
         " Why does lifepillar use C-r twice.
