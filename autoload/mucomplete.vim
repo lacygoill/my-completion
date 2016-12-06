@@ -687,12 +687,12 @@ let g:mc_chain = [
                  \ 'file',
                  \ 'keyp',
                  \ 'abbr',
-                 \ 'dict',
                  \ 'c-p' ,
                  \ 'digr',
                  \ 'line',
                  \ 'omni',
                  \ 'spel',
+                 \ 'dict',
                  \ 'ulti',
                  \ 'unic',
                  \ ]
@@ -718,10 +718,11 @@ let g:mc_chain = [
 
 let s:yes_you_can   = { _ -> 1 }
 let g:mc_conditions = {
-                      \ 'dict' : { t -> s:setup_dict_option() },
-                      \ 'digr' : { t -> get(g:, 'loaded_unicodePlugin', 0) },
+                      \ 'c-p'  : { t -> g:mc_manual },
+                      \ 'dict' : { t -> s:setup_dict_option() && g:mc_manual },
+                      \ 'digr' : { t -> g:mc_manual && get(g:, 'loaded_unicodePlugin', 0) },
                       \ 'file' : { t -> t =~# '\v[/~]\f*$' },
-                      \ 'omni' : { t -> !empty(&l:omnifunc) },
+                      \ 'omni' : { t -> !empty(&l:omnifunc) && &ft !=# 'markdown' },
                       \ 'spel' : { t -> &l:spell    && !empty(&l:spelllang) },
                       \ 'tags' : { t -> g:mc_manual && !empty(tagfiles()) },
                       \ 'ulti' : { t -> get(g:, 'did_plugin_ultisnips', 0) },
