@@ -443,32 +443,6 @@
 ""}}}
 " FIXME: "{{{
 "
-" Inside `s:act_on_textchanged()`,
-"
-" We write several times `s:methods[s:i]` in this file.
-" Lifepillar uses `get()` only 2 times to get this value.
-" Once in `s:act_on_textchanged()`, and once in `s:act_on_pumvisible()`.
-" Only for the 1st occurrence.
-"
-" The reason why he does it inside `s:act_on_textchanged()` is to prevent
-" a bug which may occur, when autocompletion is enabled and all the methods in
-" the chain fail.
-" I describe the bug at the end of `s:next_method()`, where I wrote a better
-" fix:
-"
-"     if s:i ==# s:N
-"         let s:i = 0
-"     endif
-"
-" Submit a PR for this fix.
-"
-" But should we also use `get()` for the 1st occurrence of `s:methods[s:i]`
-" in `s:act_on_pumvisible()`? Why does Lifepillar use it there too? Ask him
-" inside the PR.
-"
-"}}}
-" FIXME: "{{{
-"
 " Inside `s:act_on_textchanged()`, why does lifepillar write:
 "
 "     match(strpart(…), g:…) > -1
@@ -828,7 +802,7 @@ fu! s:act_on_pumvisible() abort
     "
 "}}}
 
-    return s:auto || s:methods[s:i] ==# 'spel'
+    return s:auto || get(s:methods, s:i, '') ==# 'spel'
                 \ ? ''
                 \ : (stridx(&l:completeopt, 'noselect') == -1
                 \     ? (stridx(&l:completeopt, 'noinsert') == - 1 ? '' : "\<c-p>\<c-n>")
@@ -1067,23 +1041,6 @@ fu! mucomplete#cycle(dir) abort
 "}}}
 
     return exists('s:N') ? "\<c-e>" . s:next_method() : ''
-endfu
-
-"}}}
-" cycle_or_select "{{{
-
-" Purpose:
-" When we hit Tab or S-Tab, decide whether we want to cycle in the chain, or
-" select another entry in the menu.
-" If we don't use Tab / S-Tab to cycle in the chain, we could probably get rid
-" of this function, and merge its contents with `tab_complete()`.
-
-fu! mucomplete#cycle_or_select(dir) abort
-    if get(g:, 'mc_cycle_with_trigger', 0)
-        return mucomplete#cycle(a:dir)
-    else
-        return (a:dir > 0 ? "\<c-n>" : "\<c-p>")
-    endif
 endfu
 
 "}}}
@@ -1624,7 +1581,7 @@ endfu
 
 fu! mucomplete#tab_complete(dir) abort
     if pumvisible()
-        return mucomplete#cycle_or_select(a:dir)
+        return (a:dir > 0 ? "\<c-n>" : "\<c-p>")
     else
         let g:mc_manual = 1
         return mucomplete#complete(a:dir)
