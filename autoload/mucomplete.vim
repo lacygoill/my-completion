@@ -499,7 +499,6 @@
 
 " Internal state
 let s:methods = []
-let s:N       = 0
 let s:word    = ''
 
 " flag: in which direction will we move in the chain
@@ -1056,7 +1055,7 @@ fu! mucomplete#cycle(dir) abort
     "
 "}}}
 
-    return "\<c-e>" . s:next_method()
+    return exists('s:N') ? "\<c-e>" . s:next_method() : ''
 endfu
 
 "}}}
