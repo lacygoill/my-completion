@@ -498,11 +498,12 @@
 " Variables "{{{
 
 " Internal state
-let s:methods      = []
-let s:word         = ''
+let s:methods = []
+let s:N       = 0
+let s:word    = ''
 
 " flag: in which direction will we move in the chain
-let s:dir   = 1
+let s:dir = 1
 
 " flag: did we ask to move in the chain ?
 let s:cycling = 0
@@ -1055,7 +1056,7 @@ fu! mucomplete#cycle(dir) abort
     "
 "}}}
 
-    return exists('s:N') ? "\<c-e>" . s:next_method() : ''
+    return "\<c-e>" . s:next_method()
 endfu
 
 "}}}
