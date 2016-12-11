@@ -51,301 +51,6 @@
 " of `s:N` before invoking `s:next_method()`.
 "
 "}}}
-"FIXME: "{{{
-"
-" Write this in `/tmp/vimrc.vim`:
-
-" let g:mucomplete#cycle_with_trigger = 1
-" let g:mc_cycle_with_trigger = 1
-" set cot=menuone
-" set rtp+=~/.vim/plugged/vim-mucomplete
-" setlocal tw=78
-"
-"    xx                                                  zzz
-" zzzyyyyyyyyyyyyyyyyyyy
-
-
-" Uncomment the 5 first lines of code.
-" Launch Vim like this:
-"
-"     $ vim -Nu /tmp/vimrc.vim /tmp/vimrc.vim
-"
-" Place the cursor after `zzz` and hit Tab twice.
-" The plugin gets stuck in a loop (high cpu).
-"
-" In fact we don't even need the first 2 lines.
-" We can reproduce the bug without them, by hitting the key to move
-" forward in the completion chain (C-j, …).
-
-" The problem comes from the fact that `s:next_method()` fails to see that
-" the popup menu is visible.
-" Maybe because in this particular configuration, the menu can't be opened, or
-" because there's some delay.
-" Therefore, the variable `s:pumvisible` is not set properly (1).
-"
-" After hitting the completion mappings, and incorrectly set the `s:pumvisible`
-" variable, `s:next_method()` hit `<plug>(MC_next_method)`, which calls
-" `verify_completion()`.
-" The latter relies on `s:pumvisible` to decide whether it should call `act_on
-" pumvisible()` or try another method and recall `s:next_method()`.
-"
-" The endless loop can be observed by creating global variables at various
-" places in `s:next_method()`, then triggering the bug, and finally echo their
-" values.
-" For example, assuming we use this chain:
-
-"         let g:mc_chain = ['file', 'omni', 'keyn', 'dict', 'spel', 'path', 'ulti']
-"
-" … if we add the line:
-"
-"         let g:idx_list   = get(g:, 'idx_list', []) + [s:i]
-"
-" … just after:
-"
-"         let s:i = (s:i + s:dir + s:N) % s:N
-"
-" When we echo `g:idx_list`, we get a big list of 3's ([3, 3, 3, …]).
-
-" If we add the line:
-"
-"         let g:idx_list   = get(g:, 'idx_list', []) + [s:i]
-"
-" … just after (`s:cycle` is set to 1):
-"
-"         let s:i = (s:i + s:dir + s:N) % s:N
-"
-" When we echo `g:idx_list`, we get a circular list:
-"
-"         [4, 5, 6, 0, 1, 2, 4, 5, 6, 0, 1, 2, …]
-"
-" If we add the line:
-"
-"         let g:idx_list   = get(g:, 'idx_list', []) + [s:i]
-"
-" … just after the while loop, when we echo `g:idx_list`, we get a big list of
-" 2's ([2, 2, 2, …]).
-"
-" Which shows that each time `s:next_method()` is called, it finds the same
-" next method, n°2.
-"
-" To prevent this, before hitting the completion mappings, we have to ask
-" `s:next_method()` to check whether the next method is different than the
-" current one.
-" To do so, we can store the current index in a variable at the beginning of
-" the function:
-"
-"         let old_i = s:i
-"
-" Then, add to the test:
-"
-"         if (s:i+1) % (s:N+1) != 0
-"
-" … (which conditions whether the completion mappings will be hit), the
-" following statement:
-"
-"         … && s:i != old_i
-"
-" There's still a problem though I haven't encountered yet though.
-" Maybe in some particular circumstances, we could get stuck in a different
-" kind of loop…
-" Imagine, `s:next_method()` finds that the next method to try is `2`.
-" It tries it, but it fails. So, `s:next_method()` is recalled.
-" This time, it finds that the next method to try is `4`.
-" It tries it, but it fails. So, `s:next_method()` is recalled.
-" This time, it finds that the next method is, again, `2`.
-"
-" At this moment, we could be entering a loop from which we couldn't get out,
-" even with the `old_i` variable.
-"
-" I've been thinking at a more robust solution to this problem.
-" When `s:cycle` is set to 1, maybe we should create a variable
-" (`s:i_history`), in which we would store all the indexes of the
-" methods tried.
-" Inside `s:next_method()`, before hitting a completion mapping, we would
-" make sure that the index of the method we're going to try is not in this
-" list.
-" This should prevent any kind of spurious loop.
-" Finally, when `s:cycle` is set to 0, we would empty the list, so that the
-" methods whose indexes are in this temporary list could be tested again, the
-" next time we would ask for a completion via Tab or via cycling (C-h, C-l).
-"
-"}}}
-" FIXME: "{{{
-"
-" I think lifepillar made a conceptual mistake in the original code.
-" He allowed the user to define its own version of
-" `g:mucomplete#can_complete.default`
-" Then, the plugin merges whatever the user defined in there with some default
-" value, via `extend()`.
-" It works, but if the user source their vimrc a second time, the default
-" values of the plugin are lost.
-"
-""}}}
-" FIXME:"{{{
-"
-" In the `ulti` method, I think lifepillar introduced a regression here:
-"
-"     https://github.com/lifepillar/vim-mucomplete/issues/28
-"
-" Because, he inverted the order of the arguments passed to `stridx()`, which
-" seems to prevent the `ulti` method to function properly.
-"
-" "}}}
-" FIXME: "{{{
-"
-" Given the following buffer `foo`:
-"
-"     hello world
-"     hello world
-"     hello world
-
-" And the following `vimrc`:
-"
-"     set cot+=noselect,menu,menuone
-"     set rtp+=~/.vim/plugged/vim-mucomplete
-
-" Start Vim like this:
-"
-"     $ vim -Nu vimrc foo
-"
-" Hit `*` on `world` to populate the search register.
-" Type `cgn`, to change the last used search pattern.
-" Insert `wo`, then `Tab` to complete `wo`.
-" Hit escape to go back in normal mode.
-" Hit `.` to repeat the change to the next occurrence of `hello`.
-" `hello` is changed into `wo` instead of the last completed text.
-"
-" Does the plugin breaks the undo sequence when we hit Tab?
-" Yes, it seems that `s:act_on_pumvisible()` sometimes hit Up or Down,
-" to force the insertion of an entry, no matter the value of 'cot'.
-" It probably breaks the undo sequence, and somehow the dot command/register
-" only remembers what was inserted before.
-"
-" This is a bit weird, because when the undo sequence is broken, dot usually
-" remembers what was inserted AFTER (not before).
-" You can check it by inserting foo, then hitting `Up` or `Down`, then inserting
-" bar. Leave insert mode then hit dot. `bar` will be inserted, not `foo`.
-"
-" Anyway, Up/Down breaks the undo sequence, so whatever the dot command will
-" remember, it will always be incomplete.
-"
-" But the problem isn't always present. It depends on the value of 'cot'.
-" In the original plugin, the bug occurs when 'cot' contains 'noselect', or
-" when it doesn't contain 'noselect', but does contain 'noinsert'.
-"
-" I fixed the bug in the the 2nd case, by replacing `Up` with `C-p`.
-" But I didn't fixed it in the 1st case.
-" Indeed, in the 2nd case, 'cot' contains ONLY 'noinsert'.
-" So, the user just wants to prevent the insertion; he's still OK with the
-" selection.
-" All we have to do to force the insertion is sth like:
-"
-"         Up  C-n    (lifepillar) works but breaks   undo sequence
-"         C-p C-n    (me)         works and preserve undo sequence
-"
-" However, in the 1st case, the user has 'noselect', so he doesn't want an
-" entry to be selected. In this case, Vim doesn't do anything. To force, the
-" insertion without selecting anything (to respect the user's decision),
-" there's only one solution:
-"
-"         C-n Up    (lifepillar) works but breaks undo sequence
-"
-" The other solutions would either not work or violate a user's decision:
-"
-"         C-n       (me)         works but doesn't respect the user's decision
-"                                of not selecting an entry
-"
-"         C-n C-p   (me)         doesn't work at all
-"                                C-n would temporarily insert an entry,
-"                                then C-p would immediately remove it
-"
-"}}}
-" FIXME: "{{{
-"
-" The 'uspl' method of lifepillar doesn't work when the cursor is just at the
-" end of word but not at the end of the line.
-" Example:
-"
-"     helzo| people
-"
-" The pipe represents the cursor, where the method is invoked.
-" 'uspl' tries to fix the word `people` instead of `helzo`.
-" It probably comes down to the usage of the `:norm` command.
-"
-" Besides the method uses 2 functions, one to collect suggestions, and another
-" to display them in a menu.
-"
-" One function could be enough. And we could get rid of the problematic
-" `:norm` command, using the `spellbadword()` and `spellsuggest()` functions.
-" It would fix the first issue.
-"
-" Tell lifepillar about it. Share our implementation.
-"
-"}}}
-" FIXME: "{{{
-"
-" The methods `c-n` and `c-p` are tricky to invoke.
-"
-" Indeed, we don't know in advance WHEN they will be invoked.
-" As the first ones? Or after other failing methods?
-"
-" For example, if `c-n` is the first method to be invoked after hitting Tab,
-" then there's NO problem.
-" But if it's invoked after another one, there MIGHT be a problem.
-" Suppose the previous failing method left us in `C-x` submode (C-x C-…),
-" then `C-n` will be interpreted, WRONGLY, as an attempt to cycle in the menu.
-" So, we should prefix `C-n` with `C-e` to exit `C-x` submode, right?
-" Nope.
-" Because then, if the `C-n` method was the first one to be invoked, then
-" `C-e` will be interpreted as ’copy the character below the current one’.
-"
-" MUcomplete.vim chooses the solution of prefixing the trigger keys with:
-"
-"         C-x C-b BS
-"
-" What does it do?
-" `C-b` is not a valid key in C-x submode. Any invalid key makes us leave the
-" submode, and is inserted. So, we leave the submode, C-b is inserted, and BS
-" deletes it.
-" And why did lifepillar choose SPECIFICALLY C-b?
-" For 2 reasons.
-"
-"     1 - It's invalid in C-x submode, as we just saw it.
-"     2 - It's unmapped in basic insert mode, see: :h i_CTRL-B-gone
-"
-" So, C-b is a good choice because it won't cause any side-effect.
-"
-" All in all, this trick works.
-" BUT, there's a problem for me. I have remapped C-B to move the cursor back.
-" Because of this, the trick won't work.
-"
-" We have to choose another key. I'm going to use `C-g C-g`.
-" Why this key?
-" Because by default, C-g is used as a prefix in insert mode for various kind
-" of actions. To get a list of them, type: :h i_^g C-d
-" Currently, behind this prefix, there is:
-"
-"         CTRL-J
-"         CTRL-K
-"         Down
-"         Up
-"         j
-"         k
-"         u
-"         U
-"
-" Vim may map other actions in the future on other keys, but for the moment
-" nothing is mapped on CTRL-G.
-"
-" It seems to work, but are we sure it is as good as `C-x C-b`?
-" Ask lifepillar what he thinks, here:
-"
-"     https://github.com/lifepillar/vim-mucomplete/issues/4
-"
-" But don't ask him to integrate the change. He doesn't want. He added the tag
-" `wontfix` and closed the issue.
-"
-" "}}}
 " FIXME: "{{{
 "
 " In `s:act_on_textchanged()`, shouldn't:
@@ -360,30 +65,6 @@
 " A multibyte character can be in 'isf'.
 "
 "}}}
-" FIXME: "{{{
-"
-" In the completion mappings (C-x C-f, C-x C-n, …), lifepillar used the prefix
-" `s:cnp` (I call it `s:exit_ctrl_x`), only when he thought it was necessary.
-" For example, he thought it was not necessary to exit `C-x` submode before
-" trying the 'omni' method.
-" Indeed, if you try the 'keyn' method and it fails, you can try the 'omni'
-" method immediately, without exiting the submode:
-"
-"     C-x C-n    C-x C-o    ✔
-"
-" But it seems that the necessity of exiting the submode is not a function of
-" only the next method to try, but also of the previous method.
-" For example, we need to exit the submode when we just tried the 'cmd' method
-" and it failed (no matter the next method, including the 'omni' method):
-"
-"     C-x C-v (fail)                     C-x C-o    ✘
-"     C-x C-v (fail)   {exit submode}    C-x C-o    ✔
-"
-" So, I ended up using the prefix for all the methods where the completion
-" mapping doesn't begin with `C-r =`. Because in this case, it seems there's
-" no problem, even if the previous method failed.
-"
-""}}}
 " FIXME: "{{{
 "
 " When the current method is 'dict', `C-k` selects the next entry in the menu
@@ -460,36 +141,6 @@
 "     getline('.')[:col('.')-2]
 "
 "}}}
-"FIXME: "{{{
-"
-" Lifepillar initialized `s:auto` to 0 inside the plugin.
-" It causes an issue if autocompletion is enabled and we manually source the
-" script. It should be:
-"
-"     let s:auto = get(s:, 'auto', 0)
-"
-""}}}
-" FIXME: "{{{
-"
-" tell Lifepillar that he should add a warning in case the user mapped sth to
-" C-b or C-x C-b
-"
-""}}}
-" FIXME: "{{{
-"
-" Tell lifepillar to add the -bar attribute to the command
-" otherwise something like this:
-"
-"     if condition | MUcompleteAutoOff | endif
-"
-" … doesn't work.
-"
-""}}}
-" FIXME: "{{{
-"
-" Tell Lifepillar to set `g:mc_manual` to 1 when cycling.
-"
-"}}}
 
 " To look for all the global variables used by this plugin, search the
 " pattern:
@@ -497,8 +148,13 @@
 
 " Variables "{{{
 
+" Default completion chain
+
+let g:mc_chain = get(g:, 'mc_chain', ['file', 'keyp', 'abbr', 'c-p' , 'digr', 'line', 'dict', 'ulti'])
+
 " Internal state
-let s:methods = []
+let s:methods = get(b:, 'mc_chain', g:mc_chain)
+let s:N       = len(s:methods)
 let s:word    = ''
 
 " flag: in which direction will we move in the chain
@@ -656,22 +312,22 @@ let s:compl_mappings = {
                        \ 'abbr' : "\<c-r>=mucomplete#abbr#complete()\<cr>",
                        \ 'c-n'  : s:exit_ctrl_x."\<c-n>",
                        \ 'c-p'  : s:exit_ctrl_x."\<c-p>",
-                       \ 'cmd'  : s:exit_ctrl_x."\<c-x>\<c-v>",
-                       \ 'defs' : s:exit_ctrl_x."\<c-x>\<c-d>",
-                       \ 'dict' : s:exit_ctrl_x."\<c-x>\<c-k>",
-                       \ 'digr' : s:exit_ctrl_x."\<plug>(DigraphComplete)",
+                       \ 'cmd'  : "\<c-x>\<c-v>",
+                       \ 'defs' : "\<c-x>\<c-d>",
+                       \ 'dict' : "\<c-x>\<c-k>",
+                       \ 'digr' : "\<plug>(DigraphComplete)",
                        \ 'file' : "\<c-r>=mucomplete#file#complete()\<cr>",
-                       \ 'incl' : s:exit_ctrl_x."\<c-x>\<c-i>",
-                       \ 'keyn' : s:exit_ctrl_x."\<c-x>\<c-n>",
-                       \ 'keyp' : s:exit_ctrl_x."\<c-x>\<c-p>",
+                       \ 'incl' : "\<c-x>\<c-i>",
+                       \ 'keyn' : "\<c-x>\<c-n>",
+                       \ 'keyp' : "\<c-x>\<c-p>",
                        \ 'line' : s:exit_ctrl_x."\<c-x>\<c-l>",
-                       \ 'omni' : s:exit_ctrl_x."\<c-x>\<c-o>",
+                       \ 'omni' : "\<c-x>\<c-o>",
                        \ 'spel' : "\<c-r>=mucomplete#spel#complete()\<cr>",
-                       \ 'tags' : s:exit_ctrl_x."\<c-x>\<c-]>",
-                       \ 'thes' : s:exit_ctrl_x."\<c-x>\<c-t>",
+                       \ 'tags' : "\<c-x>\<c-]>",
+                       \ 'thes' : "\<c-x>\<c-t>",
                        \ 'ulti' : "\<c-r>=mucomplete#ultisnips#complete()\<cr>",
-                       \ 'unic' : s:exit_ctrl_x."\<plug>(UnicodeComplete)",
-                       \ 'user' : s:exit_ctrl_x."\<c-x>\<c-u>",
+                       \ 'unic' : "\<plug>(UnicodeComplete)",
+                       \ 'user' : "\<c-x>\<c-u>",
                        \ }
 
 unlet s:exit_ctrl_x
@@ -680,22 +336,6 @@ let s:select_entry = { 'c-p' : "\<c-p>\<down>", 'keyp': "\<c-p>\<down>" }
 
 " Default pattern to decide when automatic completion should be triggered.
 let g:mc_auto_pattern = '\k\k$'
-
-" Default completion chain
-
-let g:mc_chain = [
-                 \ 'file',
-                 \ 'keyp',
-                 \ 'abbr',
-                 \ 'c-p' ,
-                 \ 'digr',
-                 \ 'line',
-                 \ 'omni',
-                 \ 'spel',
-                 \ 'dict',
-                 \ 'ulti',
-                 \ 'unic',
-                 \ ]
 
 " Conditions to be verified for a given method to be applied."{{{
 "
@@ -1037,25 +677,7 @@ fu! mucomplete#cycle(dir) abort
     let s:dir       = a:dir
     let s:i_history = []
 
-    " Why do we test the existence of `s:N`? "{{{
-    "
-    " Because we could be stupid and try cycling in the chain, never having
-    " entered the chain. That is, never having used a completion method in the
-    " chain. Never hit Tab before.
-    " When it happens, `s:next_method()` raises an error because `s:N` doesn't
-    " exist. Indeed `s:N` is created by `mucomplete#complete()`, which is
-    " called when we hit Tab and use a method in the chain.
-    " We must call this function at least once for `s:N` to be created.
-    "
-    " We could also initialize `s:N` outside `mucomplete#complete()`, but
-    " I don't think it makes a lot of sense to try and support such an edge
-    " case. Asking for moving forward or backward inside the chain implies that
-    " you have a position inside.
-    " But if you were never in the chain, you don't have any position.
-    "
-"}}}
-
-    return exists('s:N') ? "\<c-e>" . s:next_method() : ''
+    return "\<c-e>" . s:next_method()
 endfu
 
 "}}}
@@ -1655,7 +1277,9 @@ endfu
 "}}}
 
 fu! mucomplete#verify_completion() abort
-    return s:pumvisible ? s:act_on_pumvisible() : s:next_method()
+    return s:pumvisible
+                \ ? s:act_on_pumvisible()
+                \ : s:next_method()
 endfu
 
 "}}}
