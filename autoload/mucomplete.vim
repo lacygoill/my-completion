@@ -480,13 +480,19 @@ endfu
 
 fu! s:act_on_textchanged() abort
 
+    " If the popup menu is already visible, no need to autocomplete anything.
+
+    if pumvisible()
+        return ''
+    endif
+
     " s:completedone "{{{
     "
-    " s:completedone is a flag, which is only on when 2 conditions are met:
+    " s:completedone is a flag, which is only on when 3 conditions are met:
     "
     "     - autocompletion is enabled
-    "     - some text has been completed
-    "      `CompleteDone` event + `!empty(v:completed_item)`
+    "     - a completion has ended (successfully or not); `CompleteDone` event
+    "     - we inserted a whitespace or we're at the beginning of a line
     "
     " It's almost always off, because as soon as it's enabled,
     " the `TextChangedI` event is triggered, and `s:act_on_textchanged()` is
@@ -504,6 +510,23 @@ fu! s:act_on_textchanged() abort
 "}}}
 
     if s:completedone
+
+    " When an autocompletion has just been performed, we don't need a new one
+    " until we insert a whitespace or we're at the beginning of a new line.
+    " Indeed, if autocompleting a word just failed, it doesn't make sense to
+    " go on trying to autocomplete it, every time we add a character.
+    "
+    " Besides, autocompletion will be performed only when `s:completedone` is set.
+    " Based on these 2 informations, when `s:completedone` is set to 1,
+    " we shouldn't reset it to 0 until we insert a whitespace:
+    "
+    "     matchstr(getline('.'), '.\%'.col('.').'c') =~# '\s'
+    "
+    " … or we are at the beginning of a new line.
+    "
+    "     col('.') == 1
+
+        if matchstr(getline('.'), '.\%'.col('.').'c') =~# '\s' || col('.') == 1
 
     " If the text changed AND a completion was done, we reset: "{{{
     "
@@ -543,8 +566,9 @@ fu! s:act_on_textchanged() abort
     "
     "     "}}}
 
-        let s:completedone = 0
-        let g:mc_manual    = 0
+            let s:completedone = 0
+            let g:mc_manual = 0
+        endif
 
         " Why do we call mucomplete#file#complete()? "{{{
         "
@@ -1203,9 +1227,14 @@ fu! mucomplete#snippet_or_complete(dir) abort
     endif
 
     call UltiSnips#ExpandSnippetOrJump()
+
     if !g:ulti_expand_or_jump_res
         call feedkeys("\<plug>(MC_".(a:dir > 0 ? "" : "s")."tab_complete)", 'i')
     endif
+
+    let s:completedone = 0
+    let g:mc_manual    = 0
+
     return ''
 endfu
 
