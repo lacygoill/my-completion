@@ -150,7 +150,16 @@
 
 " Default completion chain
 
-let g:mc_chain = get(g:, 'mc_chain', ['file', 'keyp', 'abbr', 'c-p' , 'digr', 'line', 'dict', 'ulti'])
+let g:mc_chain = get(g:, 'mc_chain', [
+                                     \ 'file',
+                                     \ 'keyp',
+                                     \ 'abbr',
+                                     \ 'c-p' ,
+                                     \ 'digr',
+                                     \ 'line',
+                                     \ 'dict',
+                                     \ 'ulti',
+                                     \ ])
 
 " Internal state
 let s:methods = get(b:, 'mc_chain', g:mc_chain)
