@@ -2,7 +2,7 @@ imap <silent> <expr> <c-j>             pumvisible() ? mucomplete#cycle(1) : "\<p
 ino  <silent>        <plug>(MC_c-j)    <c-j>
 
 imap <silent> <expr> <c-k>             pumvisible() ? mucomplete#cycle(-1) : "\<plug>(MC_c-k)"
-ino  <silent> <expr> <plug>(MC_c-k)    repeat("\<Del>", strlen(getline('.')) - col('.') + 1)
+ino  <silent>        <plug>(MC_c-k)    <c-k>
 
 imap <silent> <expr> <plug>(MC_next_method)   mucomplete#verify_completion()
 imap <silent> <expr> <plug>(MC_Auto)          mucomplete#complete(1)
