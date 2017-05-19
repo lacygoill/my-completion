@@ -1,7 +1,7 @@
-imap <silent> <expr> <c-j>             pumvisible() ? mucomplete#cycle(1) : "\<plug>(MC_c-j)"
+imap <silent> <expr> <c-j>             pumvisible() ? mucomplete#cycle(1) : '<plug>(MC_c-j)'
 ino  <silent>        <plug>(MC_c-j)    <c-j>
 
-imap <silent> <expr> <c-k>             pumvisible() ? mucomplete#cycle(-1) : "\<plug>(MC_c-k)"
+imap <silent> <expr> <c-k>             pumvisible() ? mucomplete#cycle(-1) : '<plug>(MC_c-k)'
 ino  <silent>        <plug>(MC_c-k)    <c-k>
 
 imap <silent> <expr> <plug>(MC_next_method)   mucomplete#verify_completion()
