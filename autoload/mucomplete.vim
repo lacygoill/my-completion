@@ -1235,10 +1235,20 @@ fu! mucomplete#snippet_or_complete(dir) abort
         return a:dir > 0 ? "\<c-n>" : "\<c-p>"
     endif
 
-    call UltiSnips#ExpandSnippetOrJump()
+    call UltiSnips#ExpandSnippet()
 
-    if !g:ulti_expand_or_jump_res
-        call feedkeys("\<plug>(MC_".(a:dir > 0 ? "" : "s")."tab_complete)", 'i')
+    if !g:ulti_expand_res
+        if a:dir > 0
+            call UltiSnips#JumpForwards()
+            if !g:ulti_jump_forwards_res
+                call feedkeys("\<plug>(MC_tab_complete)", 'i')
+            endif
+        else
+            call UltiSnips#JumpBackwards()
+            if !g:ulti_jump_forwards_res
+                call feedkeys("\<plug>(MC_stab_complete)", 'i')
+            endif
+        endif
     endif
 
     let s:completedone = 0
