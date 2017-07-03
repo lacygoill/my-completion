@@ -318,23 +318,23 @@ endif
 "}}}
 
 let s:compl_mappings = {
-                       \ 'abbr' : "\<c-r>=mucomplete#abbr#complete()\<cr>",
+                       \ 'abbr' : "\<c-r>=mucomplete#abbr#complete()\<plug>(ms_cr)",
                        \ 'c-n'  : s:exit_ctrl_x."\<c-n>",
                        \ 'c-p'  : s:exit_ctrl_x."\<c-p>",
                        \ 'cmd'  : "\<c-x>\<c-v>",
                        \ 'defs' : "\<c-x>\<c-d>",
                        \ 'dict' : "\<c-x>\<c-k>",
                        \ 'digr' : "\<plug>(DigraphComplete)",
-                       \ 'file' : "\<c-r>=mucomplete#file#complete()\<cr>",
+                       \ 'file' : "\<c-r>=mucomplete#file#complete()\<plug>(ms_cr)",
                        \ 'incl' : "\<c-x>\<c-i>",
                        \ 'keyn' : "\<c-x>\<c-n>",
                        \ 'keyp' : "\<c-x>\<c-p>",
                        \ 'line' : s:exit_ctrl_x."\<c-x>\<c-l>",
                        \ 'omni' : "\<c-x>\<c-o>",
-                       \ 'spel' : "\<c-r>=mucomplete#spel#complete()\<cr>",
+                       \ 'spel' : "\<c-r>=mucomplete#spel#complete()\<plug>(ms_cr)",
                        \ 'tags' : "\<c-x>\<c-]>",
                        \ 'thes' : "\<c-x>\<c-t>",
-                       \ 'ulti' : "\<c-r>=mucomplete#ultisnips#complete()\<cr>",
+                       \ 'ulti' : "\<c-r>=mucomplete#ultisnips#complete()\<plug>(ms_cr)",
                        \ 'unic' : "\<plug>(UnicodeComplete)",
                        \ 'user' : "\<c-x>\<c-u>",
                        \ }
