@@ -1159,7 +1159,7 @@ fu! s:next_method() abort
         " "}}}
 
         return s:compl_mappings[s:methods[s:i]] .
-                    \ "\<c-r>\<c-r>=pumvisible()?mucomplete#menu_is_up():''\<cr>\<plug>(MC_next_method)"
+                    \ "\<c-r>\<c-r>=pumvisible()?mucomplete#menu_is_up():''\<plug>(ms_cr)\<plug>(MC_next_method)"
 
     endif
 
