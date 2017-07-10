@@ -7,11 +7,11 @@
 " I have the following error:
 "
 "         Error detected while processing function
-"         mucomplete#cycle[2]..<SNR>66_next_method:
+"         mycompletion#cycle[2]..<SNR>66_next_method:
 "         line    1:
 "         E121: Undefined variable: s:N
 "         Error detected while processing function
-"         mucomplete#cycle[2]..<SNR>66_next_method:
+"         mycompletion#cycle[2]..<SNR>66_next_method:
 "         line    1:
 "         E15: Invalid expression: (s:cycle ? (s:i + s:dir + s:N) % s:N : s:i + s:dir)
 "
@@ -41,13 +41,13 @@
 " when the user never invoked a methode in the chain.
 "
 " How do we know whether they invoked a method?
-" If they did, the `mucomplete#complete()` function was invoked at least once.
+" If they did, the `mycompletion#complete()` function was invoked at least once.
 " It it was, it must have created the variable `s:N`.
-" Besides, `s:N` is only created inside `mucomplete#complete()`, nowhere else.
+" Besides, `s:N` is only created inside `mycompletion#complete()`, nowhere else.
 " It means there's an equivalence between the existence of this variable and the
 " user having invoked a method at least once.
 "
-" So, to fix this bug, inside `mucomplete#cycle()` we could test the existence
+" So, to fix this bug, inside `mycompletion#cycle()` we could test the existence
 " of `s:N` before invoking `s:next_method()`.
 "
 "}}}
@@ -92,7 +92,7 @@
 "
 " I keep this section, but it's not a good idea because it could cause
 " autocompletion to hit Tab indefinitely.
-" See `mucomplete#enable_auto()` for more info.
+" See `mycompletion#enable_auto()` for more info.
 "
 " Lifepillar gave the value 1 to `s:completedone`.
 " I think `!empty(v:completed_item)` would be better, because it would allow
@@ -101,7 +101,7 @@
 " a counter-example).
 "
 " For more info, see the comment where we set `s:completedone` inside
-" `mucomplete#enable_auto()`.
+" `mycompletion#enable_auto()`.
 "
 " Incidentally, this new definition also fixes a bug which occurs when `s:i`
 " ends with the value `s:N`, and `s:completedone`'s value is 1.
@@ -318,23 +318,23 @@ endif
 "}}}
 
 let s:compl_mappings = {
-                       \ 'abbr' : "\<c-r>=mucomplete#abbr#complete()\<cr>",
+                       \ 'abbr' : "\<c-r>=mycompletion#abbr#complete()\<cr>",
                        \ 'c-n'  : s:exit_ctrl_x."\<c-n>",
                        \ 'c-p'  : s:exit_ctrl_x."\<c-p>",
                        \ 'cmd'  : "\<c-x>\<c-v>",
                        \ 'defs' : "\<c-x>\<c-d>",
                        \ 'dict' : "\<c-x>\<c-k>",
                        \ 'digr' : "\<plug>(DigraphComplete)",
-                       \ 'file' : "\<c-r>=mucomplete#file#complete()\<cr>",
+                       \ 'file' : "\<c-r>=mycompletion#file#complete()\<cr>",
                        \ 'incl' : "\<c-x>\<c-i>",
                        \ 'keyn' : "\<c-x>\<c-n>",
                        \ 'keyp' : "\<c-x>\<c-p>",
                        \ 'line' : s:exit_ctrl_x."\<c-x>\<c-l>",
                        \ 'omni' : "\<c-x>\<c-o>",
-                       \ 'spel' : "\<c-r>=mucomplete#spel#complete()\<cr>",
+                       \ 'spel' : "\<c-r>=mycompletion#spel#complete()\<cr>",
                        \ 'tags' : "\<c-x>\<c-]>",
                        \ 'thes' : "\<c-x>\<c-t>",
-                       \ 'ulti' : "\<c-r>=mucomplete#ultisnips#complete()\<cr>",
+                       \ 'ulti' : "\<c-r>=mycompletion#ultisnips#complete()\<cr>",
                        \ 'unic' : "\<plug>(UnicodeComplete)",
                        \ 'user' : "\<c-x>\<c-u>",
                        \ }
@@ -483,7 +483,7 @@ endfu
 "
 " This function is only called when autocompletion is enabled.
 " Technically, it tries an autocompletion by typing `<plug>(MC_Auto)`
-" which calls `mucomplete#complete(1)`. Similar to hitting Tab.
+" which calls `mycompletion#complete(1)`. Similar to hitting Tab.
 "
 " "}}}
 
@@ -559,8 +559,8 @@ fu! s:act_on_textchanged() abort
     "     a value, AND the completion was initiated manually by the user.
     "
     "     Why do we reset it here?
-    "     Inside mucomplete#tab_complete(), it's set to 1.
-    "     Inside mucomplete#enable_auto(), it's set to 0.
+    "     Inside mycompletion#tab_complete(), it's set to 1.
+    "     Inside mycompletion#enable_auto(), it's set to 0.
     "
     "     Now think about this. Autocompletion is enabled, and we've inserted
     "     some text which hasn't been autocompleted, because the text before
@@ -579,7 +579,7 @@ fu! s:act_on_textchanged() abort
             let g:mc_manual = 0
         endif
 
-        " Why do we call mucomplete#file#complete()? "{{{
+        " Why do we call mycompletion#file#complete()? "{{{
         "
         " Usually, when a completion has been done, we don't want
         " autocompletion to be invoked again right afterwards.
@@ -605,7 +605,7 @@ fu! s:act_on_textchanged() abort
         ""}}}
 
         if get(s:methods, s:i, '') ==# 'file' && matchstr(getline('.'), '.\%'.col('.').'c') =~# '\v\f'
-            sil call mucomplete#file#complete()
+            sil call mycompletion#file#complete()
         endif
 
     " Purpose of g:mc_auto_pattern: "{{{
@@ -676,7 +676,7 @@ endfu
 "
 "}}}
 
-fu! mucomplete#complete(dir) abort
+fu! mycompletion#complete(dir) abort
     let s:word    = matchstr(getline('.')[:col('.')-2], '\S\+$')
     if empty(s:word)
         return (a:dir > 0 ? "\<plug>(MC_Tab)" : "\<plug>(MC_C-d)")
@@ -704,7 +704,7 @@ endfu
 "
 "}}}
 
-fu! mucomplete#cycle(dir) abort
+fu! mycompletion#cycle(dir) abort
     let s:cycling   = 1
     let g:mc_manual = 1
     let s:dir       = a:dir
@@ -716,7 +716,7 @@ endfu
 "}}}
 " disable_auto "{{{
 
-fu! mucomplete#disable_auto() abort
+fu! mycompletion#disable_auto() abort
     if exists('#MC_Auto')
         autocmd! MC_Auto
         augroup! MC_Auto
@@ -727,7 +727,7 @@ endfu
 "}}}
 " enable_auto "{{{
 
-fu! mucomplete#enable_auto() abort
+fu! mycompletion#enable_auto() abort
     let s:completedone = 0
     let g:mc_manual    = 0
 
@@ -881,14 +881,14 @@ endfu
 " in a menu.
 "
 " `s:pumvisible` is used as a flag to know whether the menu is open.
-" This flag allows `mucomplete#verify_completion()` to choose between acting
+" This flag allows `mycompletion#verify_completion()` to choose between acting
 " on the menu if there's one, or trying another method.
 "
 " It's reset to 0 at the beginning of `s:act_on_pumvisible()`.
 "
 "}}}
 
-fu! mucomplete#menu_is_up() abort
+fu! mycompletion#menu_is_up() abort
     let s:pumvisible = 1
     return ''
 endfu
@@ -900,9 +900,9 @@ endfu
 "
 " s:next_method() is called by:
 "
-"     - mucomplete#verify_completion()    after a failed completion
-"     - mucomplete#complete()             1st attempt to complete (auto / manual)
-"     - mucomplete#cycle()                when we cycle
+"     - mycompletion#verify_completion()    after a failed completion
+"     - mycompletion#complete()             1st attempt to complete (auto / manual)
+"     - mycompletion#cycle()                when we cycle
 "
 "}}}
 " Purpose: "{{{
@@ -1139,9 +1139,9 @@ fu! s:next_method() abort
         " 1 - Type the keys to invoke the chosen method. "{{{
         "
         " 2 - Store the state of the menu in `s:pumvisible` through
-        "     `mucomplete#menu_is_up()`.
+        "     `mycompletion#menu_is_up()`.
         "
-        " 3 - call `mucomplete#verify_completion()` through `<plug>(MC_next_method)`
+        " 3 - call `mycompletion#verify_completion()` through `<plug>(MC_next_method)`
         "
         ""}}}
         " FIXME: "{{{
@@ -1159,7 +1159,7 @@ fu! s:next_method() abort
         " "}}}
 
         return s:compl_mappings[s:methods[s:i]] .
-                    \ "\<c-r>\<c-r>=pumvisible()?mucomplete#menu_is_up():''\<cr>\<plug>(MC_next_method)"
+                    \ "\<c-r>\<c-r>=pumvisible()?mycompletion#menu_is_up():''\<cr>\<plug>(MC_next_method)"
 
     endif
 
@@ -1230,7 +1230,7 @@ endfu
 "}}}
 " snippet_or_complete "{{{
 
-fu! mucomplete#snippet_or_complete(dir) abort
+fu! mycompletion#snippet_or_complete(dir) abort
     if pumvisible()
         return a:dir > 0 ? "\<c-n>" : "\<c-p>"
     endif
@@ -1292,20 +1292,20 @@ endfu
 "
 ""}}}
 
-fu! mucomplete#tab_complete(dir) abort
+fu! mycompletion#tab_complete(dir) abort
         let g:mc_manual = 1
-        return mucomplete#complete(a:dir)
+        return mycompletion#complete(a:dir)
 endfu
 
 "}}}
 " toggle_auto "{{{
 
-fu! mucomplete#toggle_auto() abort
+fu! mycompletion#toggle_auto() abort
     if exists('#MC_Auto')
-        call mucomplete#disable_auto()
+        call mycompletion#disable_auto()
         echom '[MC] Auto off'
     else
-        call mucomplete#enable_auto()
+        call mycompletion#enable_auto()
         echom '[MC] Auto on'
     endif
 endfu
@@ -1324,7 +1324,7 @@ endfu
 "
 "}}}
 
-fu! mucomplete#verify_completion() abort
+fu! mycompletion#verify_completion() abort
     return s:pumvisible
                 \ ? s:act_on_pumvisible()
                 \ : s:next_method()

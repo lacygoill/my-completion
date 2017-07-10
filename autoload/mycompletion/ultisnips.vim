@@ -1,4 +1,4 @@
-fu! mucomplete#ultisnips#complete() abort
+fu! mycompletion#ultisnips#complete() abort
 
     " UltiSnips#SnippetsInCurrentScope() is a public function provided by the"{{{
     " UltiSnips plugin.
