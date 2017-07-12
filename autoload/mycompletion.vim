@@ -367,10 +367,11 @@ let g:mc_auto_pattern = '\k\k$'
 
 let s:yes_you_can   = { _ -> 1 }
 let g:mc_conditions = {
-                      \ 'c-p'  : { t -> g:mc_manual },
+                      \ 'c-p'  : { t -> s:setup_isk_option() && g:mc_manual },
                       \ 'dict' : { t -> s:setup_dict_option() && g:mc_manual },
                       \ 'digr' : { t -> g:mc_manual && get(g:, 'loaded_unicodePlugin', 0) },
                       \ 'file' : { t -> t =~# '\v[/~]\f*$' },
+                      \ 'keyp' : { t -> s:setup_isk_option() },
                       \ 'omni' : { t -> !empty(&l:omnifunc) && &ft !=# 'markdown' },
                       \ 'spel' : { t -> &l:spell    && !empty(&l:spelllang) },
                       \ 'tags' : { t -> g:mc_manual && !empty(tagfiles()) },
@@ -1225,6 +1226,15 @@ fu! s:setup_dict_option() abort
     else
         return 0
     endif
+endfu
+
+"}}}
+" setup_isk_option "{{{
+
+fu! s:setup_isk_option() abort
+    setl isk+=-
+    let timer = timer_start(1, {-> execute('setl isk-=-', '')})
+    return 1
 endfu
 
 "}}}
