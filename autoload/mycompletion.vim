@@ -1232,8 +1232,20 @@ endfu
 " setup_isk_option "{{{
 
 fu! s:setup_isk_option() abort
-    setl isk+=-
-    let timer = timer_start(1, {-> execute('setl isk-=-', '')})
+    " most default ftplugins don't include `-` in 'isk', but it's convenient
+    " to include it temporarily when we complete a word
+    "
+    " so we add it, then remove it later with a timer
+    " however some default ftplugins DO include `-` in 'isk', we shouldn't
+    " remove it for them
+    " How to find which default ftplugins include `-` in 'isk'?
+    "
+    "     :PA (in $VIMRUNTIME/ftplugin/)
+    "     vimgrep /\vsetl%[ocal]\s+isk%[eyword]\+?\=.*-%(\@|\w)@!/ ##
+    if !count(['clojure', 'lisp', 'scheme'], &ft)
+        setl isk+=-
+        let timer = timer_start(1, {-> execute('setl isk-=-', '')})
+    endif
     return 1
 endfu
 
