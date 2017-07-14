@@ -1267,7 +1267,7 @@ fu! mycompletion#snippet_or_complete(dir) abort
             endif
         else
             call UltiSnips#JumpBackwards()
-            if !g:ulti_jump_forwards_res
+            if !g:ulti_jump_backwards_res
                 call feedkeys("\<plug>(MC_stab_complete)", 'i')
             endif
         endif
