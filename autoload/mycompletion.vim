@@ -1,57 +1,4 @@
-" FIXME: "{{{
-"
-" If I hit C-x C-p C-k at the end of this line:
-"
-"     License: This file
-"
-" I have the following error:
-"
-"         Error detected while processing function
-"         mycompletion#cycle[2]..<SNR>66_next_method:
-"         line    1:
-"         E121: Undefined variable: s:N
-"         Error detected while processing function
-"         mycompletion#cycle[2]..<SNR>66_next_method:
-"         line    1:
-"         E15: Invalid expression: (s:cycle ? (s:i + s:dir + s:N) % s:N : s:i + s:dir)
-"
-" Note:
-" C-k is used to cycle backward in the completion chain.
-" By default, it was C-h. I changed the mapping.
-" The bug occurs when you type a key to move backward OR forward in the chain,
-" without having hitting Tab once before;
-" and you have:
-"
-"     let g:mc_cycle_with_trigger = 1
-"
-" … in your vimrc
-"
-" In fact, the bug occurs when the user is cycling without having invoked a method
-" in the chain at least once.
-"
-" Initially, I thought the solution was to initialize `s:N` in `cycle()`,
-" exactly as it was defined in `complete()`.
-" But then, I realized that it wasn't a good idea to let the user call
-" `s:next_method()`, without having entered the chain at least once.
-" If he's never entered the chain, he has no position inside it.
-" So, there's no reference point on which base our relative motion in the chain.
-" IOW, it doesn't make sense to try and support this weird / edge case.
-"
-" Maybe the best solution is to prevent `s:next_method()` to be called
-" when the user never invoked a methode in the chain.
-"
-" How do we know whether they invoked a method?
-" If they did, the `mycompletion#complete()` function was invoked at least once.
-" It it was, it must have created the variable `s:N`.
-" Besides, `s:N` is only created inside `mycompletion#complete()`, nowhere else.
-" It means there's an equivalence between the existence of this variable and the
-" user having invoked a method at least once.
-"
-" So, to fix this bug, inside `mycompletion#cycle()` we could test the existence
-" of `s:N` before invoking `s:next_method()`.
-"
-"}}}
-" FIXME: "{{{
+" FIXME: {{{1
 "
 " In `s:act_on_textchanged()`, shouldn't:
 "
@@ -63,32 +10,8 @@
 "
 " to handle the case where the character before the cursor is multibyte?
 " A multibyte character can be in 'isf'.
-"
-"}}}
-" FIXME: "{{{
-"
-" When the current method is 'dict', `C-k` selects the next entry in the menu
-" instead of cycling backward in the chain like it should.
-" Lifepillar has a similar problem.
-" He uses `C-h` and `C-l` to cyle in the chain, instead of `C-k` and `C-j`.
-" When the current method is 'line', `C-l` selects the previous entry in the
-" menu instead of cycling forward in the chain like it should.
-"
-" I don't know if something can be done. Because even if we remap C-k to
-" something else, Vim still doesn't take our mapping into account.
-"
-"     ino <c-k> pumvisible() ? '<c-p>' : '<c-p>'    ✘
-"     ino <c-k> <nop>                               ✘
-"
-" Even with the 2 previous mappings, C-k still selects the next (!= previous)
-" entry in the menu, after we've hit `C-x C-k`.
-"
-" We could try to find other mappings, but it would be difficult to find ones
-" that make sense, and which aren't overridden by Vim, like when we hit C-k
-" after C-x C-k, or C-l after C-x C-l.
-"
-"}}}
-" FIXME: "{{{
+
+" FIXME: {{{1
 "
 " I keep this section, but it's not a good idea because it could cause
 " autocompletion to hit Tab indefinitely.
@@ -120,9 +43,8 @@
 "     endif
 "
 " But still, one could argue that it's another reason in favor of the new definition.
-"
-""}}}
-" FIXME: "{{{
+
+" FIXME: {{{1
 "
 " Inside `s:act_on_textchanged()`, why does lifepillar write:
 "
@@ -139,14 +61,12 @@
 " … instead of simply:
 "
 "     getline('.')[:col('.')-2]
-"
-"}}}
 
 " To look for all the global variables used by this plugin, search the
 " pattern:
 "         \v^%(\s*".*)@!.*\zsg:[^ ,]
 
-" Variables "{{{
+" Variables {{{1
 
 " Default completion chain
 
@@ -380,8 +300,7 @@ let g:mc_conditions = {
                       \ 'user' : { t -> !empty(&l:completefunc) },
                       \ }
 
-"}}}
-" act_on_pumvisible "{{{
+" act_on_pumvisible {{{1
 
 " Purpose: "{{{
 "
@@ -472,11 +391,9 @@ fu! s:act_on_pumvisible() abort
                 \     ? (stridx(&l:completeopt, 'noinsert') == - 1 ? '' : "\<c-p>\<c-n>")
                 \     : get(s:select_entry, s:methods[s:i], "\<c-n>\<up>")
                 \   )
-
 endfu
 
-"}}}
-" act_on_textchanged "{{{
+" act_on_textchanged {{{1
 
 " Purpose: "{{{
 "
@@ -640,8 +557,7 @@ fu! s:act_on_textchanged() abort
     endif
 endfu
 
-"}}}
-" can_complete "{{{
+" can_complete {{{1
 "
 " Purpose:
 "
@@ -653,8 +569,7 @@ fu! s:can_complete() abort
                 \ s:methods[s:i], s:yes_you_can)(s:word)
 endfu
 
-"}}}
-" complete "{{{
+" complete {{{1
 
 " Why don't we merge this function with `next_method()`? "{{{
 "
@@ -674,11 +589,10 @@ endfu
 "                                       expensive
 "
 "     - "                    manual,    try first to expand a snippet
-"
-"}}}
+" }}}
 
 fu! mycompletion#complete(dir) abort
-    let s:word    = matchstr(getline('.')[:col('.')-2], '\S\+$')
+    let s:word = matchstr(getline('.')[:col('.')-2], '\S\+$')
     if empty(s:word)
         return (a:dir > 0 ? "\<plug>(MC_Tab)" : "\<plug>(MC_C-d)")
     endif
@@ -695,12 +609,11 @@ fu! mycompletion#complete(dir) abort
     return s:next_method()
 endfu
 
-"}}}
-" cycle "{{{
+" cycle {{{1
 
 " Why don't we merge this function with `cycle_or_select()`? "{{{
 "
-" Because of the mappings c-j and c-k which cycle in the chain. They don't want
+" Because of the mappings c-j and c-o which cycle in the chain. They don't want
 " to call `cycle_or_select()`, their purpose is really to call `cycle()`.
 "
 "}}}
@@ -711,11 +624,10 @@ fu! mycompletion#cycle(dir) abort
     let s:dir       = a:dir
     let s:i_history = []
 
-    return "\<c-e>" . s:next_method()
+    return "\<c-e>".s:next_method()
 endfu
 
-"}}}
-" disable_auto "{{{
+" disable_auto {{{1
 
 fu! mycompletion#disable_auto() abort
     if exists('#MC_Auto')
@@ -725,8 +637,7 @@ fu! mycompletion#disable_auto() abort
     let s:auto = 0
 endfu
 
-"}}}
-" enable_auto "{{{
+" enable_auto {{{1
 
 fu! mycompletion#enable_auto() abort
     let s:completedone = 0
@@ -872,8 +783,7 @@ fu! mycompletion#enable_auto() abort
     let s:auto = 1
 endfu
 
-"}}}
-" menu_is_up "{{{
+" menu_is_up {{{1
 
 " Purpose: "{{{
 "
@@ -894,8 +804,7 @@ fu! mycompletion#menu_is_up() abort
     return ''
 endfu
 
-"}}}
-" next_method "{{{
+" next_method {{{1
 
 " Description "{{{
 "
@@ -980,12 +889,12 @@ fu! s:next_method() abort
         " methods can be applied. Besides, `s:methods[s:N]` does not even exist.
         "
         " So, this check is necessary. But it cause an issue.
-        " If we've hit `C-k` to go back in the chain (`s:cycling` is set), and we
+        " If we've hit `C-o` to go back in the chain (`s:cycling` is set), and we
         " reach the beginning of the chain (s:i = 0), we won't be able to get
         " back any further. We won't be able to go back to the end of the
         " chain, because the function won't even try the last / -1 method.
         "
-        " To allow `C-k` to go back to the end of the chain, in the definition
+        " To allow `C-o` to go back to the end of the chain, in the definition
         " of `s:i`, we add `s:N`.
         " When `s:i` is different than -1, it won't make any difference,
         " because of the `% s:N` operation.
@@ -1161,7 +1070,6 @@ fu! s:next_method() abort
 
         return s:compl_mappings[s:methods[s:i]] .
                     \ "\<c-r>\<c-r>=pumvisible()?mycompletion#menu_is_up():''\<cr>\<plug>(MC_next_method)"
-
     endif
 
     " Why do we reset `s:i` here? "{{{
@@ -1216,8 +1124,7 @@ fu! s:next_method() abort
     return ''
 endfu
 
-"}}}
-" setup_dict_option "{{{
+" setup_dict_option {{{1
 
 fu! s:setup_dict_option() abort
     if count([ 'en', 'fr' ], &l:spelllang)
@@ -1228,8 +1135,7 @@ fu! s:setup_dict_option() abort
     endif
 endfu
 
-"}}}
-" setup_isk_option "{{{
+" setup_isk_option {{{1
 
 fu! s:setup_isk_option() abort
     " most default ftplugins don't include `-` in 'isk', but it's convenient
@@ -1249,8 +1155,7 @@ fu! s:setup_isk_option() abort
     return 1
 endfu
 
-"}}}
-" snippet_or_complete "{{{
+" snippet_or_complete {{{1
 
 fu! mycompletion#snippet_or_complete(dir) abort
     if pumvisible()
@@ -1296,8 +1201,7 @@ fu! s:teardown_auto() abort
     endif
 endfu
 
-"}}}
-" tab_complete "{{{
+" tab_complete {{{1
 
 " Why don't we merge this function with `complete()`? "{{{
 "
@@ -1319,8 +1223,7 @@ fu! mycompletion#tab_complete(dir) abort
         return mycompletion#complete(a:dir)
 endfu
 
-"}}}
-" toggle_auto "{{{
+" toggle_auto {{{1
 
 fu! mycompletion#toggle_auto() abort
     if exists('#MC_Auto')
@@ -1332,8 +1235,7 @@ fu! mycompletion#toggle_auto() abort
     endif
 endfu
 
-"}}}
-" verify_completion "{{{
+" verify_completion {{{1
 
 " Purpose: "{{{
 "
@@ -1351,5 +1253,3 @@ fu! mycompletion#verify_completion() abort
                 \ ? s:act_on_pumvisible()
                 \ : s:next_method()
 endfu
-
-"}}}
