@@ -1148,9 +1148,11 @@ fu! s:setup_isk_option() abort
     "
     "     :PA (in $VIMRUNTIME/ftplugin/)
     "     vimgrep /\vsetl%[ocal]\s+isk%[eyword]\+?\=.*-%(\@|\w)@!/ ##
+
+    " we do the same thing for `:` (convenient to complete local variable names)
     if !count(['clojure', 'lisp', 'scheme'], &ft)
-        setl isk+=-
-        let timer = timer_start(1, {-> execute('setl isk-=-', '')})
+        setl isk+=- isk+=:
+        let timer = timer_start(1, {-> execute('setl isk-=- isk-=:', '')})
     endif
     return 1
 endfu
