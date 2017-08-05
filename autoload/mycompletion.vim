@@ -132,9 +132,7 @@ let s:pumvisible = 0
 
 let s:auto    = get(s:, 'auto', 0)
 
-
-
-" We could also use "\<c-x>\<c-z>\<bs>" {{{
+" We could also use "\<c-x>\<c-z>\<bs> {{{
 " In this case update the warning.
 "
 " Currently we have a mapping using C-x C-z, installed by the unicode plugin.
@@ -217,7 +215,7 @@ endif
 "     The second one inserts a newline and suggests L2.
 "
 "}}}
-" Why do we use: "\<plug>(DigraphComplete)" {{{
+" Why do we use: "\<plug>(DigraphComplete) {{{
 "                "\<plug>(UnicodeComplete)"
 "
 " … instead of:
