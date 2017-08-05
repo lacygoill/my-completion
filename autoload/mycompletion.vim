@@ -111,7 +111,7 @@ let s:pumvisible = 0
 " Its value is tested in `verify_completion()`, which is being called at the end
 " of `s:next_method()`.
 
-" Purpose of `s:auto`: "{{{
+" Purpose of `s:auto`: {{{
 "
 " `s:auto` is a flag which, when it's set, means that autocompletion is enabled.
 " Its used by `s:act_on_pumvisible()` to know whether it must insert the first
@@ -121,7 +121,7 @@ let s:pumvisible = 0
 " it. The popup menu with suggestions is enough.
 "
 "}}}
-" Why do we use `get()` ? "{{{
+" Why do we use `get()` ? {{{
 "
 " Consider this:
 " autocompletion is enabled, and we source manually the plugin, it will
@@ -134,7 +134,7 @@ let s:auto    = get(s:, 'auto', 0)
 
 
 
-" We could also use "\<c-x>\<c-z>\<bs>" "{{{
+" We could also use "\<c-x>\<c-z>\<bs>" {{{
 " In this case update the warning.
 "
 " Currently we have a mapping using C-x C-z, installed by the unicode plugin.
@@ -160,7 +160,7 @@ if !empty(mapcheck('<c-g><c-g>', 'i'))
     echohl None
 endif
 
-" Why do we need to prepend `s:exit_ctrl_x` in front of "\<c-x>\<c-l>"? "{{{
+" Why do we need to prepend `s:exit_ctrl_x` in front of "\<c-x>\<c-l>"? {{{
 "
 " Suppose we have the following buffer:
 "
@@ -217,7 +217,7 @@ endif
 "     The second one inserts a newline and suggests L2.
 "
 "}}}
-" Why do we use: "\<plug>(DigraphComplete)" "{{{
+" Why do we use: "\<plug>(DigraphComplete)" {{{
 "                "\<plug>(UnicodeComplete)"
 "
 " … instead of:
@@ -266,7 +266,7 @@ let s:select_entry = { 'c-p' : "\<c-p>\<down>", 'keyp': "\<c-p>\<down>" }
 " Default pattern to decide when automatic completion should be triggered.
 let g:mc_auto_pattern = '\k\k$'
 
-" Conditions to be verified for a given method to be applied."{{{
+" Conditions to be verified for a given method to be applied.{{{
 "
 " Explanation of the regex for the file completion method:
 "
@@ -302,7 +302,7 @@ let g:mc_conditions = {
 
 " act_on_pumvisible {{{1
 
-" Purpose: "{{{
+" Purpose: {{{
 "
 " Automatically insert the first (or last) entry in the menu, but only when
 " autocompletion is disabled.
@@ -317,7 +317,7 @@ let g:mc_conditions = {
 fu! s:act_on_pumvisible() abort
     let s:pumvisible = 0
 
-    " If autocompletion is enabled don't do anything (respect the value of 'cot'). "{{{
+    " If autocompletion is enabled don't do anything (respect the value of 'cot'). {{{
     "
     " Note that if 'cot' doesn't contain 'noinsert' nor 'noselect', Vim will
     " still automatically insert an entry from the menu.
@@ -395,7 +395,7 @@ endfu
 
 " act_on_textchanged {{{1
 
-" Purpose: "{{{
+" Purpose: {{{
 "
 " Try an autocompletion every time the text changes in insert mode.
 "
@@ -413,7 +413,7 @@ fu! s:act_on_textchanged() abort
         return ''
     endif
 
-    " s:completedone "{{{
+    " s:completedone {{{
     "
     " s:completedone is a flag, which is only on when 3 conditions are met:
     "
@@ -455,7 +455,7 @@ fu! s:act_on_textchanged() abort
 
         if matchstr(getline('.'), '.\%'.col('.').'c') =~# '\s' || col('.') == 1
 
-    " If the text changed AND a completion was done, we reset: "{{{
+    " If the text changed AND a completion was done, we reset: {{{
     "
     "     - s:completedone
     "
@@ -497,7 +497,7 @@ fu! s:act_on_textchanged() abort
             let g:mc_manual = 0
         endif
 
-        " Why do we call mycompletion#file#complete()? "{{{
+        " Why do we call mycompletion#file#complete()? {{{
         "
         " Usually, when a completion has been done, we don't want
         " autocompletion to be invoked again right afterwards.
@@ -509,7 +509,7 @@ fu! s:act_on_textchanged() abort
         " next component, in case there's one.
         " We just make sure that the character before the cursor is in 'isf'.
 "}}}
-        " Why do we use `get()`? "{{{
+        " Why do we use `get()`? {{{
         "
         " Without it, sometimes, we have an error such as:
         "
@@ -526,7 +526,7 @@ fu! s:act_on_textchanged() abort
             sil call mycompletion#file#complete()
         endif
 
-    " Purpose of g:mc_auto_pattern: "{{{
+    " Purpose of g:mc_auto_pattern: {{{
     "
     " strpart(…) matches the characters from the beginning of the line up
     " to the cursor.
@@ -571,7 +571,7 @@ endfu
 
 " complete {{{1
 
-" Why don't we merge this function with `next_method()`? "{{{
+" Why don't we merge this function with `next_method()`? {{{
 "
 " Because, among other things, the latter would reset `s:i` each time it would
 " be called, so the index of the method to try would be stuck on the same value.
@@ -611,7 +611,7 @@ endfu
 
 " cycle {{{1
 
-" Why don't we merge this function with `cycle_or_select()`? "{{{
+" Why don't we merge this function with `cycle_or_select()`? {{{
 "
 " Because of the mappings c-j and c-o which cycle in the chain. They don't want
 " to call `cycle_or_select()`, their purpose is really to call `cycle()`.
@@ -652,7 +652,7 @@ fu! mycompletion#enable_auto() abort
         " So, are the `noautocmd` commands really necessary?
         " Or is it just a precaution?
 
-        " When are `CompleteDone` and `TextChangedI` triggered? "{{{
+        " When are `CompleteDone` and `TextChangedI` triggered? {{{
         "
         " `CompleteDone` is triggered after each method tried, regardless whether
         " it succeeds or fails.
@@ -732,7 +732,7 @@ fu! mycompletion#enable_auto() abort
 
         autocmd TextChangedI * noautocmd call s:act_on_textchanged()
 
-        " Why don't we define `s:completedone` as `!empty(v:completed_item)`? "{{{
+        " Why don't we define `s:completedone` as `!empty(v:completed_item)`? {{{
         " Because it could make autocompletion hit Tab indefinitely.
         " Here's how to reproduce this bug:
         "
@@ -785,7 +785,7 @@ endfu
 
 " menu_is_up {{{1
 
-" Purpose: "{{{
+" Purpose: {{{
 "
 " just store 1 in `s:pumvisible`, at the very end of `s:next_method()`,
 " when a method has been invoked, and it succeeded to find completions displayed
@@ -806,7 +806,7 @@ endfu
 
 " next_method {{{1
 
-" Description "{{{
+" Description {{{
 "
 " s:next_method() is called by:
 "
@@ -815,7 +815,7 @@ endfu
 "     - mycompletion#cycle()                when we cycle
 "
 "}}}
-" Purpose: "{{{
+" Purpose: {{{
 "
 " The function is going to [in|de]crement the index of the next method to try.
 " It does it one time.
@@ -830,7 +830,7 @@ endfu
 fu! s:next_method() abort
     if s:cycling
 
-        " Explanation of the formula: "{{{
+        " Explanation of the formula: {{{
         "
         " Suppose we have the list:
         "
@@ -878,7 +878,7 @@ fu! s:next_method() abort
         " … where N is the length of the list we're indexing.
 "
 "}}}
-        " Why do we add `s:N` ? "{{{
+        " Why do we add `s:N` ? {{{
         "
         " At the end of this function, before hitting the completion mappings,
         " we will make sure that `s:i` is different than `-1` and `s:N`.
@@ -906,7 +906,7 @@ fu! s:next_method() abort
 
         let s:i = (s:i + s:dir + s:N) % s:N
 
-        " Why is there no risk to be stuck in a loop? "{{{
+        " Why is there no risk to be stuck in a loop? {{{
         "
         " We could be afraid to be stuck in a loop, and to prevent that, add the
         " condition that `s:i` is different than `-1` and `s:N`.
@@ -933,7 +933,7 @@ fu! s:next_method() abort
 
     else
 
-        " We will get out of the loop as soon as: "{{{
+        " We will get out of the loop as soon as: {{{
         "
         "     the next idx is beyond the chain
         " OR
@@ -950,7 +950,7 @@ fu! s:next_method() abort
 
         let s:i += s:dir
 
-        " Why the first 2 conditions? "{{{
+        " Why the first 2 conditions? {{{
         "
         " In the previous case (`if s:cycling`), the only condition to stay in
         " the loop was:
@@ -974,7 +974,7 @@ fu! s:next_method() abort
         endwhile
     endif
 
-    " After the while loop: "{{{
+    " After the while loop: {{{
     "
     "     if (s:i+1) % (s:N+1) != 0
     "
@@ -997,7 +997,7 @@ fu! s:next_method() abort
     "       2 → 4 → 2 → 4 → …
     "
     ""}}}
-    " FIXME: "{{{
+    " FIXME: {{{
     "
     " Lifepillar writes:
     "
@@ -1019,7 +1019,7 @@ fu! s:next_method() abort
     "     x != a    &&  x != b    ⇔    ???
     "
     "     "}}}
-    " Why the 2 first conditions? "{{{
+    " Why the 2 first conditions? {{{
     "
     " If we're cycling, `s:i` can't be `-1` nor `s:N`.
     " However, if we are NOT cycling (Tab, S-Tab), then if all the
@@ -1046,7 +1046,7 @@ fu! s:next_method() abort
             let s:i_history += [s:i]
         endif
 
-        " 1 - Type the keys to invoke the chosen method. "{{{
+        " 1 - Type the keys to invoke the chosen method. {{{
         "
         " 2 - Store the state of the menu in `s:pumvisible` through
         "     `mycompletion#menu_is_up()`.
@@ -1054,7 +1054,7 @@ fu! s:next_method() abort
         " 3 - call `mycompletion#verify_completion()` through `<plug>(MC_next_method)`
         "
         ""}}}
-        " FIXME: "{{{
+        " FIXME: {{{
         "
         " Why does lifepillar use C-r twice.
         " Usually it's used to insert the contents of a register literally.
@@ -1072,7 +1072,7 @@ fu! s:next_method() abort
                     \ "\<c-r>\<c-r>=pumvisible()?mycompletion#menu_is_up():''\<cr>\<plug>(MC_next_method)"
     endif
 
-    " Why do we reset `s:i` here? "{{{
+    " Why do we reset `s:i` here? {{{
     "
     " Consider some unique text, let's say 'jtx', and suppose autocompletion is
     " enabled.
@@ -1205,7 +1205,7 @@ endfu
 
 " tab_complete {{{1
 
-" Why don't we merge this function with `complete()`? "{{{
+" Why don't we merge this function with `complete()`? {{{
 "
 " If we did that, every time `complete()` would be called, `g:mc_manual` would
 " be set to 1. It would be wrong, when `complete()` would be called by the
@@ -1239,7 +1239,7 @@ endfu
 
 " verify_completion {{{1
 
-" Purpose: "{{{
+" Purpose: {{{
 "
 " It's invoked by `<plug>(MC_next_method)`, which itself is typed at
 " the very end of `s:next_method()`.

@@ -1,6 +1,6 @@
 fu! mycompletion#ultisnips#complete() abort
 
-    " UltiSnips#SnippetsInCurrentScope() is a public function provided by the"{{{
+    " UltiSnips#SnippetsInCurrentScope() is a public function provided by the{{{
     " UltiSnips plugin.
 
     " By default, it returns a Vim dictionary with the snippets whose trigger
@@ -37,7 +37,7 @@ fu! mycompletion#ultisnips#complete() abort
 
     let contain_word = 'stridx(v:val, word_to_complete)>=0'
 
-    " keys(g:current_ulti_dict_info)    →    all valid triggers in the buffer"{{{
+    " keys(g:current_ulti_dict_info)    →    all valid triggers in the buffer{{{
     "
     " filter(keys(…), contain_word)     →    all triggers containing the word
     "                                        before the cursor

@@ -17,7 +17,7 @@ fu! mycompletion#file#complete() abort
 
     let cur_path = matchstr(strpart(getline('.'), 0, col('.') - 1), '\v\f%(\f|\s)*$')
 
-    " Why a while loop? "{{{
+    " Why a while loop? {{{
     " Consider this:
     "
     "     Some text a dir/
@@ -71,7 +71,7 @@ fu! mycompletion#file#complete() abort
 
     while !empty(cur_path)
 
-        " What's the meaning of the 3 numbers arguments passed to `glob()`?"{{{
+        " What's the meaning of the 3 numbers arguments passed to `glob()`?{{{
         "
         "     0    we want 'suffixes' and 'wildignore' to apply during the
         "          expansion of `~`
