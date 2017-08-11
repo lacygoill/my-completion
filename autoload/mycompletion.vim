@@ -1125,7 +1125,14 @@ endfu
 " setup_dict_option {{{1
 
 fu! s:setup_dict_option() abort
-    if count([ 'en', 'fr' ], &l:spelllang)
+    "                                         ┌─ there should be at least 2 characters in front of the cursor
+    "                                         │  otherwise, `C-x C-k` could try to complete a text like:
+    "                                         │      #!
+    "                                         │
+    "                                         │  … which would take a long time, because it's not a word
+    "                                         │  so, all the words of the dictionary could follow/match
+    "                                         │
+    if count([ 'en', 'fr' ], &l:spelllang) && strchars(matchstr(getline('.'), '\k\+\%'.col('.').'c'), 1) >= 2
         let &l:dictionary = &l:spelllang ==# 'en' ? '/usr/share/dict/words' : '/usr/share/dict/french'
         return 1
     else
