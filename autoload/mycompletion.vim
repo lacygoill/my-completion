@@ -404,9 +404,6 @@ endfu
 " "}}}
 
 fu! s:act_on_textchanged() abort
-
-    " If the popup menu is already visible, no need to autocomplete anything.
-
     if pumvisible()
         return ''
     endif
@@ -638,17 +635,12 @@ endfu
 " enable_auto {{{1
 
 fu! mycompletion#enable_auto() abort
+    let s:auto         = 1
     let s:completedone = 0
     let g:mc_manual    = 0
 
     augroup MC_Auto
         autocmd!
-
-        " FIXME:
-        "
-        " By default autocmds do not nest, unless you use the `nested` argument.
-        " So, are the `noautocmd` commands really necessary?
-        " Or is it just a precaution?
 
         " When are `CompleteDone` and `TextChangedI` triggered? {{{
         "
@@ -728,7 +720,7 @@ fu! mycompletion#enable_auto() abort
         "
         ""}}}
 
-        autocmd TextChangedI * noautocmd call s:act_on_textchanged()
+        autocmd TextChangedI  * call s:act_on_textchanged()
 
         " Why don't we define `s:completedone` as `!empty(v:completed_item)`? {{{
         " Because it could make autocompletion hit Tab indefinitely.
@@ -776,9 +768,8 @@ fu! mycompletion#enable_auto() abort
         " autocompletion.
 "}}}
 
-        autocmd CompleteDone * noautocmd let s:completedone = 1
+        autocmd CompleteDone * let s:completedone = 1
     augroup END
-    let s:auto = 1
 endfu
 
 " menu_is_up {{{1
@@ -1157,7 +1148,7 @@ fu! s:setup_isk_option() abort
     " we do the same thing for `:` (convenient to complete local variable names)
     if !count(['clojure', 'lisp', 'scheme'], &ft)
         setl isk+=- isk+=:
-        let timer = timer_start(1, {-> execute('setl isk-=- isk-=:', '')})
+        let timer = timer_start(0, {-> execute('setl isk-=- isk-=:', '')})
     endif
     return 1
 endfu
