@@ -384,11 +384,12 @@ fu! s:act_on_pumvisible() abort
 "}}}
 
     return s:auto || get(s:methods, s:i, '') ==# 'spel'
-                \ ? ''
-                \ : (stridx(&l:completeopt, 'noselect') == -1
-                \     ? (stridx(&l:completeopt, 'noinsert') == - 1 ? '' : "\<c-p>\<c-n>")
-                \     : get(s:select_entry, s:methods[s:i], "\<c-n>\<up>")
-                \   )
+        \?     ''
+        \: stridx(&l:completeopt, 'noselect') == -1
+        \?     stridx(&l:completeopt, 'noinsert') == - 1
+        \?         ''
+        \:         "\<c-p>\<c-n>"
+        \:     get(s:select_entry, s:methods[s:i], "\<c-n>\<up>")
 endfu
 
 " act_on_textchanged {{{1
@@ -1248,6 +1249,6 @@ endfu
 
 fu! mycompletion#verify_completion() abort
     return s:pumvisible
-                \ ? s:act_on_pumvisible()
-                \ : s:next_method()
+        \?     s:act_on_pumvisible()
+        \:     s:next_method()
 endfu

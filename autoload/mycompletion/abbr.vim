@@ -1,9 +1,9 @@
 let s:table  = execute('iab')
 let s:lines  = reverse(split(s:table, "\n"))
 let s:abbrev = map(s:lines, '{
-                             \ "lhs" : matchstr(v:val, "\\vi\\s+\\zs\\w+"),
-                             \ "rhs" : matchstr(v:val, "\\v\\*\\s+\\zs.*"),
-                             \ }')
+                           \   "lhs" : matchstr(v:val, "\\vi\\s+\\zs\\w+"),
+                           \   "rhs" : matchstr(v:val, "\\v\\*\\s+\\zs.*"),
+                           \ }')
 
 fu! s:abbrev_rhs(rhs) abort
     if stridx(a:rhs, '&spl ==#') == -1
@@ -45,15 +45,17 @@ fu! mycompletion#abbr#complete() abort
     "     otherwise, let it be
     "             s:abbrev_rhs(v:val.rhs)
 
-    let matching_abbrev  = map(filter(copy(s:abbrev),
-                                    \ 'stridx(v:val.lhs, word_to_complete) == 0'),
-                             \ '{ "word" : v:val.lhs,
-                             \    "menu" : match(s:abbrev_rhs(v:val.rhs), "expand_") != -1
-                             \               ? matchstr(s:abbrev_rhs(v:val.rhs), ".*,''\\zs.*\\ze'')")
-                             \               : s:abbrev_rhs(v:val.rhs),
-                             \ }')
+    let matching_abbrev  = map(
+                        \      filter(copy(s:abbrev), 'stridx(v:val.lhs, word_to_complete) == 0'),
+                        \      '{
+                        \         "word" : v:val.lhs,
+                        \         "menu" : match(s:abbrev_rhs(v:val.rhs), "expand_") != -1
+                        \?                     matchstr(s:abbrev_rhs(v:val.rhs), ".*,''\\zs.*\\ze'')")
+                        \:                     s:abbrev_rhs(v:val.rhs)
+                        \       }'
+                        \     )
 
-    let from_where       = col('.') - len(word_to_complete)
+    let from_where = col('.') - len(word_to_complete)
 
     if !empty(matching_abbrev)
         call complete(from_where, matching_abbrev)
