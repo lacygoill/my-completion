@@ -144,9 +144,12 @@ fu! mycompletion#file#complete() abort
 
             " If the expansion failed, try a shorter path by removing the text
             " from the beginning of the path up to the first sequence of
-            " whitespace (whitespace excluded).
+            " whitespace (whitespace excluded), or up to the first equal sign.
 
-            let cur_path = matchstr(cur_path, '\s\zs\f.*$', 1)
+            let cur_path = matchstr(cur_path, '[ \t=]\zs\f.*$', 1)
+            "                                      │
+            "                                      └─ try to also complete a path
+            "                                         after an equal sign
         endif
     endwhile
 
