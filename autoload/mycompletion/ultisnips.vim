@@ -1,3 +1,8 @@
+if exists('g:autoloaded_mycompletion_ultisnips')
+    finish
+endif
+let g:autoloaded_mycompletion_ultisnips = 1
+
 fu! mycompletion#ultisnips#complete() abort
 
     " UltiSnips#SnippetsInCurrentScope() is a public function provided by the{{{

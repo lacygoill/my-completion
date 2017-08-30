@@ -68,6 +68,11 @@
 
 " Variables {{{1
 
+if exists('g:auto_loaded_mycompletion')
+    finish
+endif
+let g:auto_loaded_mycompletion = 1
+
 " Default completion chain
 
 let g:mc_chain = get(g:, 'mc_chain', [

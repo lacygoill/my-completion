@@ -1,3 +1,10 @@
+" guard {{{1
+
+if exists('g:loaded_mycompletion')
+    finish
+endif
+let g:loaded_mycompletion = 1
+
 " completion mappings {{{1
 
 " Expand snippet or complete, when hitting Tab or S-Tab
