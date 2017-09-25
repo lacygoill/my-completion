@@ -241,23 +241,23 @@ endif
 "}}}
 
 let s:compl_mappings = {
-                       \ 'abbr' : "\<c-r>=mycompletion#abbr#complete()\<cr>",
+                       \ 'abbr' : "\<c-r>\<c-r>=mycompletion#abbr#complete()\<cr>",
                        \ 'c-n'  : s:exit_ctrl_x."\<c-n>",
                        \ 'c-p'  : s:exit_ctrl_x."\<c-p>",
                        \ 'cmd'  : "\<c-x>\<c-v>",
                        \ 'defs' : "\<c-x>\<c-d>",
                        \ 'dict' : "\<c-x>\<c-k>",
                        \ 'digr' : "\<plug>(DigraphComplete)",
-                       \ 'file' : "\<c-r>=mycompletion#file#complete()\<cr>",
+                       \ 'file' : "\<c-r>\<c-r>=mycompletion#file#complete()\<cr>",
                        \ 'incl' : "\<c-x>\<c-i>",
                        \ 'keyn' : "\<c-x>\<c-n>",
                        \ 'keyp' : "\<c-x>\<c-p>",
                        \ 'line' : s:exit_ctrl_x."\<c-x>\<c-l>",
                        \ 'omni' : "\<c-x>\<c-o>",
-                       \ 'spel' : "\<c-r>=mycompletion#spel#complete()\<cr>",
+                       \ 'spel' : "\<c-r>\<c-r>=mycompletion#spel#complete()\<cr>",
                        \ 'tags' : "\<c-x>\<c-]>",
                        \ 'thes' : "\<c-x>\<c-t>",
-                       \ 'ulti' : "\<c-r>=mycompletion#ultisnips#complete()\<cr>",
+                       \ 'ulti' : "\<c-r>\<c-r>=mycompletion#ultisnips#complete()\<cr>",
                        \ 'unic' : "\<plug>(UnicodeComplete)",
                        \ 'user' : "\<c-x>\<c-u>",
                        \ }
@@ -1049,9 +1049,8 @@ fu! s:next_method() abort
         " 3 - call `mycompletion#verify_completion()` through `<plug>(MC_next_method)`
         "
         ""}}}
-        " FIXME: {{{
+        " Why use C-r twice?{{{
         "
-        " Why does lifepillar use C-r twice.
         " Usually it's used to insert the contents of a register literally.
         " To prevent the interpretation of special characters like backspace:
         "
@@ -1059,10 +1058,10 @@ fu! s:next_method() abort
         "     xy^Hz                →    xz
         "
         " Here we insert the expression register, which will store an empty
-        " string. There's nothing to interpret. So why 2 C-r? Why not just one.
-        "
-        " "}}}
-
+        " string. There's nothing to interpret. So, we don't need it two C-r .
+        " But it's a precaution (more future-proof). No matter what we insert
+        " with this plugin, there should never by any interpretation.
+"}}}
         return s:compl_mappings[s:methods[s:i]] .
                     \ "\<c-r>\<c-r>=pumvisible()?mycompletion#menu_is_up():''\<cr>\<plug>(MC_next_method)"
     endif
