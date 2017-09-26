@@ -625,7 +625,7 @@ fu! mycompletion#cycle(dir) abort
     let s:dir       = a:dir
     let s:i_history = []
 
-    return "\<c-e>".s:next_method()
+    return "\<plug>(MC_C-e)".s:next_method()
 endfu
 
 " disable_auto {{{1

@@ -16,9 +16,14 @@ imap <silent> <expr> <plug>(MC_stab_complete) mycompletion#tab_complete(-1)
 snor <silent>        <Tab>                    <esc>:call UltiSnips#JumpForwards()<cr>
 snor <silent>        <S-Tab>                  <esc>:call UltiSnips#JumpBackwards()<cr>
 
+" The next mappings are necessary to prevent custom mappings from interfering.
+
 " Typed/returned by mycompletion#complete()
 ino <silent>         <plug>(MC_Tab)           <Tab>
 ino <silent>         <plug>(MC_C-d)           <c-d>
+
+" Typed/returned by mycompletion#cycle()
+ino <silent>         <plug>(MC_C-e)           <c-e>
 
 " cycling mappings {{{1
 
