@@ -982,7 +982,7 @@ fu! s:next_method() abort
     "
     " What's the meaning of:
     "
-    "     && !count(s:i_history, s:i)
+    "     && index(s:i_history, s:i) == -1
     "
     " … ? We want to make sure that the method to be tried hasn't already been
     " tried since the last time the user was cycling.
@@ -1031,7 +1031,7 @@ fu! s:next_method() abort
     " `s:i` is different than `-1` and `s:N`.
 "}}}
 
-    if s:i != -1 && s:i != s:N && !count(s:i_history, s:i)
+    if s:i != -1 && s:i != s:N && index(s:i_history, s:i) == -1
 
         " If we're cycling, we store the index of the method to be tried, in a
         " list. We use it to compare its items with the index of the next method
@@ -1121,14 +1121,14 @@ endfu
 " setup_dict_option {{{1
 
 fu! s:setup_dict_option() abort
-    "                                         ┌─ there should be at least 2 characters in front of the cursor
-    "                                         │  otherwise, `C-x C-k` could try to complete a text like:
-    "                                         │      #!
-    "                                         │
-    "                                         │  … which would take a long time, because it's not a word
-    "                                         │  so, all the words of the dictionary could follow/match
-    "                                         │
-    if count([ 'en', 'fr' ], &l:spelllang) && strchars(matchstr(getline('.'), '\k\+\%'.col('.').'c'), 1) >= 2
+    "                                               ┌─ there should be at least 2 characters in front of the cursor
+    "                                               │  otherwise, `C-x C-k` could try to complete a text like:
+    "                                               │      #!
+    "                                               │
+    "                                               │  … which would take a long time, because it's not a word
+    "                                               │  so, all the words of the dictionary could follow/match
+    "                                               │
+    if index([ 'en', 'fr' ], &l:spelllang) != -1 && strchars(matchstr(getline('.'), '\k\+\%'.col('.').'c'), 1) >= 2
         let &l:dictionary = &l:spelllang ==# 'en' ? '/usr/share/dict/words' : '/usr/share/dict/french'
         return 1
     else
@@ -1151,7 +1151,7 @@ fu! s:setup_isk_option() abort
     "     vimgrep /\vsetl%[ocal]\s+isk%[eyword]\+?\=.*-%(\@|\w)@!/ ##
 
     " we do the same thing for `:` (convenient to complete local variable names)
-    if !count(['clojure', 'lisp', 'scheme'], &ft)
+    if index(['clojure', 'lisp', 'scheme'], &ft) == -1
         setl isk+=- isk+=:
         let timer = timer_start(0, {-> execute('setl isk-=- isk-=:', '')})
     endif
