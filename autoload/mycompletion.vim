@@ -1253,6 +1253,6 @@ endfu
 
 fu! mycompletion#verify_completion() abort
     return s:pumvisible
-        \?     s:act_on_pumvisible()
-        \:     s:next_method()
+    \?         s:act_on_pumvisible()
+    \:         s:next_method()
 endfu
