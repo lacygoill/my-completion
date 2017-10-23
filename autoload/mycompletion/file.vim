@@ -140,9 +140,10 @@ fu! mycompletion#file#complete() abort
             " `/home/user`, which is `user`, we want the whole path `/home/user`.
 
             call complete(from_where, map(entries,'
-                                                \ (cur_path !=# "~" ? fnamemodify(v:val, ":t") : v:val).
-                                                \ (isdirectory(v:val) ? "/" : "")
-                                                \'))
+            \                                       (cur_path !=# "~" ? fnamemodify(v:val, ":t") : v:val)
+            \                                      .(isdirectory(v:val) ? "/" : "")
+            \                                     '
+            \                            ))
 
             return ''
         else

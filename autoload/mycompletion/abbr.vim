@@ -50,15 +50,15 @@ fu! mycompletion#abbr#complete() abort
     "     otherwise, let it be
     "             s:abbrev_rhs(v:val.rhs)
 
-    let matching_abbrev  = map(
+    let matching_abbrev = map(
                         \      filter(copy(s:abbrev), 'stridx(v:val.lhs, word_to_complete) == 0'),
                         \      '{
                         \         "word" : v:val.lhs,
                         \         "menu" : match(s:abbrev_rhs(v:val.rhs), "expand_") != -1
-                        \?                     matchstr(s:abbrev_rhs(v:val.rhs), ".*,''\\zs.*\\ze'')")
-                        \:                     s:abbrev_rhs(v:val.rhs)
+                        \                  ?    matchstr(s:abbrev_rhs(v:val.rhs), ".*,''\\zs.*\\ze'')")
+                        \                  :    s:abbrev_rhs(v:val.rhs)
                         \       }'
-                        \     )
+                        \    )
 
     let from_where = col('.') - len(word_to_complete)
 
