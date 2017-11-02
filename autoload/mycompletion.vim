@@ -242,8 +242,8 @@ endif
 
 let s:compl_mappings = {
                        \ 'abbr' : "\<c-r>\<c-r>=mycompletion#abbr#complete()\<cr>",
-                       \ 'c-n'  : s:exit_ctrl_x."\<c-n>",
-                       \ 'c-p'  : s:exit_ctrl_x."\<c-p>",
+                       \ 'c-n'  : s:exit_ctrl_x."\<plug>(MC_C-n)",
+                       \ 'c-p'  : s:exit_ctrl_x."\<plug>(MC_C-p)",
                        \ 'cmd'  : "\<c-x>\<c-v>",
                        \ 'defs' : "\<c-x>\<c-d>",
                        \ 'dict' : "\<c-x>\<c-k>",

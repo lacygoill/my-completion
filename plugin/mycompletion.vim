@@ -24,6 +24,13 @@ ino <silent>         <plug>(MC_C-d)           <c-d>
 
 " Typed/returned by mycompletion#cycle()
 ino <silent>         <plug>(MC_C-e)           <c-e>
+ino <silent>         <plug>(MC_C-n)           <c-n>
+ino <silent>         <plug>(MC_C-p)           <c-p>
+" We don't want recursiveness for those keys when we're in regular insert mode.
+" In C-x submode, and while popup menu is open, custom mappings should not interfere:
+"
+"         • C-p        ✘ custom C-p mapping can interfere
+"         • C-x C-p    ✔ custom C-p mapping should NOT interfere
 
 " cycling mappings {{{1
 
