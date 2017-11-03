@@ -1133,21 +1133,21 @@ endfu
 " setup_isk_option {{{1
 
 fu! s:setup_isk_option() abort
-    " most default ftplugins don't include `-` in 'isk', but it's convenient
-    " to include it temporarily when we complete a word
+    " Most default ftplugins don't include `-`  in 'isk', but it's convenient to
+    " include it temporarily when we complete a word.
     "
-    " so we add it, then remove it later with a timer
-    " however some default ftplugins DO include `-` in 'isk', we shouldn't
-    " remove it for them
+    " So we add  temporarily add it.
+    " Same thing for `:` (convenient to complete local variable names).
+    " However  some default  ftplugins DO  include  `-` in  'isk', we  shouldn't
+    " remove it for them.
+    "
     " How to find which default ftplugins include `-` in 'isk'?
     "
-    "     :PA (in $VIMRUNTIME/ftplugin/)
-    "     vimgrep /\vsetl%[ocal]\s+isk%[eyword]\+?\=.*-%(\@|\w)@!/ ##
-
-    " we do the same thing for `:` (convenient to complete local variable names)
+    "     vimgrep /\vsetl%[ocal]\s+isk%[eyword]\+?\=.*-%(\@|\w)@!/ $VIMRUNTIME/**/*.vim
     if index(['clojure', 'lisp', 'scheme'], &ft) == -1
+        let isk_save = &l:isk
         setl isk+=- isk+=:
-        let timer = timer_start(0, {-> execute('setl isk-=- isk-=:', '')})
+        call timer_start(0, { -> execute('let &l:isk = '.string(isk_save)) })
     endif
     return 1
 endfu
