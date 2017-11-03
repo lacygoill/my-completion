@@ -135,7 +135,7 @@ let s:pumvisible = 0
 "
 "}}}
 
-let s:auto    = get(s:, 'auto', 0)
+let s:auto = get(s:, 'auto', 0)
 
 " We could also use "\<c-x>\<c-z>\<bs> {{{
 " In this case update the warning.
@@ -149,7 +149,7 @@ let s:auto    = get(s:, 'auto', 0)
 " for a plugin are defined after the vimrc is sourced.
 ""}}}
 
-let s:exit_ctrl_x    = "\<c-g>\<c-g>"
+let s:exit_ctrl_x = "\<c-g>\<c-g>"
 
 if !empty(mapcheck('<c-g><c-g>', 'i'))
     echohl WarningMsg
@@ -241,26 +241,26 @@ endif
 "}}}
 
 let s:compl_mappings = {
-                       \ 'abbr' : "\<plug>(MC_c-r)=mycompletion#abbr#complete()\<cr>",
-                       \ 'c-n'  : s:exit_ctrl_x."\<plug>(MC_c-n)",
-                       \ 'c-p'  : s:exit_ctrl_x."\<plug>(MC_c-p)",
-                       \ 'cmd'  : "\<c-x>\<c-v>",
-                       \ 'defs' : "\<c-x>\<c-d>",
-                       \ 'dict' : "\<c-x>\<c-k>",
-                       \ 'digr' : "\<plug>(DigraphComplete)",
-                       \ 'file' : "\<plug>(MC_c-r)=mycompletion#file#complete()\<cr>",
-                       \ 'incl' : "\<c-x>\<c-i>",
-                       \ 'keyn' : "\<c-x>\<c-n>",
-                       \ 'keyp' : "\<c-x>\<c-p>",
-                       \ 'line' : s:exit_ctrl_x."\<c-x>\<c-l>",
-                       \ 'omni' : "\<c-x>\<c-o>",
-                       \ 'spel' : "\<plug>(MC_c-r)=mycompletion#spel#complete()\<cr>",
-                       \ 'tags' : "\<c-x>\<c-]>",
-                       \ 'thes' : "\<c-x>\<c-t>",
-                       \ 'ulti' : "\<plug>(MC_c-r)=mycompletion#ultisnips#complete()\<cr>",
-                       \ 'unic' : "\<plug>(UnicodeComplete)",
-                       \ 'user' : "\<c-x>\<c-u>",
-                       \ }
+\                        'abbr' : "\<plug>(MC_c-r)=mycompletion#abbr#complete()\<cr>",
+\                        'c-n'  : s:exit_ctrl_x."\<plug>(MC_c-n)",
+\                        'c-p'  : s:exit_ctrl_x."\<plug>(MC_c-p)",
+\                        'cmd'  : "\<c-x>\<c-v>",
+\                        'defs' : "\<c-x>\<c-d>",
+\                        'dict' : "\<c-x>\<c-k>",
+\                        'digr' : "\<plug>(DigraphComplete)",
+\                        'file' : "\<plug>(MC_c-r)=mycompletion#file#complete()\<cr>",
+\                        'incl' : "\<c-x>\<c-i>",
+\                        'keyn' : "\<c-x>\<c-n>",
+\                        'keyp' : "\<c-x>\<c-p>",
+\                        'line' : s:exit_ctrl_x."\<c-x>\<c-l>",
+\                        'omni' : "\<c-x>\<c-o>",
+\                        'spel' : "\<plug>(MC_c-r)=mycompletion#spel#complete()\<cr>",
+\                        'tags' : "\<c-x>\<c-]>",
+\                        'thes' : "\<c-x>\<c-t>",
+\                        'ulti' : "\<plug>(MC_c-r)=mycompletion#ultisnips#complete()\<cr>",
+\                        'unic' : "\<plug>(UnicodeComplete)",
+\                        'user' : "\<c-x>\<c-u>",
+\                        }
 
 unlet s:exit_ctrl_x
 
@@ -1137,7 +1137,6 @@ fu! s:setup_isk_option() abort
     " include it temporarily when we complete a word.
     "
     " So we add  temporarily add it.
-    " Same thing for `:` (convenient to complete local variable names).
     " However  some default  ftplugins DO  include  `-` in  'isk', we  shouldn't
     " remove it for them.
     "
@@ -1146,7 +1145,7 @@ fu! s:setup_isk_option() abort
     "     vimgrep /\vsetl%[ocal]\s+isk%[eyword]\+?\=.*-%(\@|\w)@!/ $VIMRUNTIME/**/*.vim
     if index(['clojure', 'lisp', 'scheme'], &ft) == -1
         let isk_save = &l:isk
-        setl isk+=- isk+=:
+        setl isk+=-
         call timer_start(0, { -> execute('let &l:isk = '.string(isk_save)) })
     endif
     return 1
