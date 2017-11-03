@@ -389,12 +389,13 @@ fu! s:act_on_pumvisible() abort
 "}}}
 
     " For some  reason, we really need  to use non-recursive mappings  for C-n /
-    " C-p,  even if  the  popup menu  is visible,  which  should prevent  custom
-    " mappings from interfering when we cycle.
+    " C-p, even if the popup menu  is visible.  The latter should prevent custom
+    " mappings from interfering but it doesn't always. Sometimes, when we cycle,
+    " custom mappings may interfere.
     return s:auto || get(s:methods, s:i, '') ==# 'spel'
     \?         ''
     \:     stridx(&l:completeopt, 'noselect') == -1
-    \?     stridx(&l:completeopt, 'noinsert') == - 1
+    \?     stridx(&l:completeopt, 'noinsert') == -1
     \?         ''
     \:         "\<plug>(MC_c-p)\<plug>(MC_c-n)"
     \:         get(s:select_entry, s:methods[s:i], "\<plug>(MC_c-n)\<plug>(MC_up)")
