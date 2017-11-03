@@ -241,30 +241,30 @@ endif
 "}}}
 
 let s:compl_mappings = {
-                       \ 'abbr' : "\<c-r>\<c-r>=mycompletion#abbr#complete()\<cr>",
-                       \ 'c-n'  : s:exit_ctrl_x."\<plug>(MC_C-n)",
-                       \ 'c-p'  : s:exit_ctrl_x."\<plug>(MC_C-p)",
+                       \ 'abbr' : "\<plug>(MC_c-r)=mycompletion#abbr#complete()\<cr>",
+                       \ 'c-n'  : s:exit_ctrl_x."\<plug>(MC_c-n)",
+                       \ 'c-p'  : s:exit_ctrl_x."\<plug>(MC_c-p)",
                        \ 'cmd'  : "\<c-x>\<c-v>",
                        \ 'defs' : "\<c-x>\<c-d>",
                        \ 'dict' : "\<c-x>\<c-k>",
                        \ 'digr' : "\<plug>(DigraphComplete)",
-                       \ 'file' : "\<c-r>\<c-r>=mycompletion#file#complete()\<cr>",
+                       \ 'file' : "\<plug>(MC_c-r)=mycompletion#file#complete()\<cr>",
                        \ 'incl' : "\<c-x>\<c-i>",
                        \ 'keyn' : "\<c-x>\<c-n>",
                        \ 'keyp' : "\<c-x>\<c-p>",
                        \ 'line' : s:exit_ctrl_x."\<c-x>\<c-l>",
                        \ 'omni' : "\<c-x>\<c-o>",
-                       \ 'spel' : "\<c-r>\<c-r>=mycompletion#spel#complete()\<cr>",
+                       \ 'spel' : "\<plug>(MC_c-r)=mycompletion#spel#complete()\<cr>",
                        \ 'tags' : "\<c-x>\<c-]>",
                        \ 'thes' : "\<c-x>\<c-t>",
-                       \ 'ulti' : "\<c-r>\<c-r>=mycompletion#ultisnips#complete()\<cr>",
+                       \ 'ulti' : "\<plug>(MC_c-r)=mycompletion#ultisnips#complete()\<cr>",
                        \ 'unic' : "\<plug>(UnicodeComplete)",
                        \ 'user' : "\<c-x>\<c-u>",
                        \ }
 
 unlet s:exit_ctrl_x
 
-let s:select_entry = { 'c-p' : "\<c-p>\<down>", 'keyp': "\<c-p>\<down>" }
+let s:select_entry = { 'c-p' : "\<plug>(MC_c-p)\<plug>(MC_down)", 'keyp': "\<plug>(MC_c-p)\<plug>(MC_down)" }
 
 " Default pattern to decide when automatic completion should be triggered.
 let g:mc_auto_pattern = '\k\k$'
@@ -388,13 +388,16 @@ fu! s:act_on_pumvisible() abort
     "
 "}}}
 
+    " For some  reason, we really need  to use non-recursive mappings  for C-n /
+    " C-p,  even if  the  popup menu  is visible,  which  should prevent  custom
+    " mappings from interfering when we cycle.
     return s:auto || get(s:methods, s:i, '') ==# 'spel'
     \?         ''
     \:     stridx(&l:completeopt, 'noselect') == -1
     \?     stridx(&l:completeopt, 'noinsert') == - 1
     \?         ''
-    \:         "\<c-p>\<c-n>"
-    \:         get(s:select_entry, s:methods[s:i], "\<c-n>\<up>")
+    \:         "\<plug>(MC_c-p)\<plug>(MC_c-n)"
+    \:         get(s:select_entry, s:methods[s:i], "\<plug>(MC_c-n)\<plug>(MC_up)")
 endfu
 
 " act_on_textchanged {{{1
@@ -595,7 +598,7 @@ endfu
 fu! mycompletion#complete(dir) abort
     let s:word = matchstr(getline('.')[:col('.')-2], '\S\+$')
     if s:word !~ '\k'
-        return (a:dir > 0 ? "\<plug>(MC_Tab)" : "\<plug>(MC_C-d)")
+        return (a:dir > 0 ? "\<plug>(MC_tab)" : "\<plug>(MC_c-d)")
     endif
 
     let s:cycling = 0
@@ -625,7 +628,7 @@ fu! mycompletion#cycle(dir) abort
     let s:dir       = a:dir
     let s:i_history = []
 
-    return "\<plug>(MC_C-e)".s:next_method()
+    return "\<plug>(MC_c-e)".s:next_method()
 endfu
 
 " disable_auto {{{1
@@ -1049,21 +1052,8 @@ fu! s:next_method() abort
         " 3 - call `mycompletion#verify_completion()` through `<plug>(MC_next_method)`
         "
         ""}}}
-        " Why use C-r twice?{{{
-        "
-        " Usually it's used to insert the contents of a register literally.
-        " To prevent the interpretation of special characters like backspace:
-        "
-        "     register contents         insertion
-        "     xy^Hz                →    xz
-        "
-        " Here we insert the expression register, which will store an empty
-        " string. There's nothing to interpret. So, we don't need it two C-r .
-        " But it's a precaution (more future-proof). No matter what we insert
-        " with this plugin, there should never by any interpretation.
-"}}}
-        return s:compl_mappings[s:methods[s:i]] .
-                    \ "\<c-r>\<c-r>=pumvisible()?mycompletion#menu_is_up():''\<cr>\<plug>(MC_next_method)"
+        return s:compl_mappings[s:methods[s:i]]
+        \    . "\<plug>(MC_c-r)=pumvisible()?mycompletion#menu_is_up():''\<cr>\<plug>(MC_next_method)"
     endif
 
     " Why do we reset `s:i` here? {{{

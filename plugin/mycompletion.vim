@@ -19,30 +19,33 @@ snor <silent>        <S-Tab>                  <esc>:call UltiSnips#JumpBackwards
 " The next mappings are necessary to prevent custom mappings from interfering.
 
 " Typed/returned by mycompletion#complete()
-ino <silent>         <plug>(MC_Tab)           <Tab>
-ino <silent>         <plug>(MC_C-d)           <c-d>
+ino <silent>         <plug>(MC_tab)           <Tab>
+ino <silent>         <plug>(MC_c-d)           <c-d>
 
 " Typed/returned by mycompletion#cycle()
-ino <silent>         <plug>(MC_C-e)           <c-e>
-ino <silent>         <plug>(MC_C-n)           <c-n>
-ino <silent>         <plug>(MC_C-p)           <c-p>
+ino <silent>         <plug>(MC_c-e)           <c-e>
+ino <silent>         <plug>(MC_c-n)           <c-n>
+ino <silent>         <plug>(MC_c-p)           <c-p>
+ino <silent>         <plug>(MC_c-r)           <c-r>
+ino <silent>         <plug>(MC_down)          <down>
+ino <silent>         <plug>(MC_up)            <up>
+
 " We don't want recursiveness for those keys when we're in regular insert mode.
-" In C-x submode, and while popup menu is open, custom mappings should not interfere:
-"
-"         • C-p        ✘ custom C-p mapping can interfere
-"         • C-x C-p    ✔ custom C-p mapping should NOT interfere
+" In C-x submode, custom mappings should not interfere.
 
 " cycling mappings {{{1
 
-imap <silent> <expr> <c-j>                    pumvisible() ? mycompletion#cycle(1) : '<plug>(MC_c-j)'
-ino  <silent>        <plug>(MC_c-j)           <c-j>
+"                     ┌─ if we override `c-j` in our vimrc, warn us
+"                     │
+imap <silent> <expr> <unique> <c-j>             pumvisible() ? mycompletion#cycle(1) : '<plug>(MC_c-j)'
+ino  <silent>                 <plug>(MC_c-j)    <c-j>
 
 " To cycle back, we can't use `c-k` because it would be shadowed by `c-k c-k`
 " (vimrc) which deletes from cursor till end of line.
 " It's hard to find a key for this mapping (can't use `c-h`, `c-l`, `c-k`, …).
 " We'll try `c-o` with the mnemonics: Old (cycle back).
-imap <silent> <expr> <c-o>                    pumvisible() ? mycompletion#cycle(-1) : '<plug>(MC_c-o)'
-ino  <silent>        <plug>(MC_c-o)           <c-o>
+imap <silent> <expr> <unique> <c-o>             pumvisible() ? mycompletion#cycle(-1) : '<plug>(MC_c-o)'
+ino  <silent>                 <plug>(MC_c-o)    <c-o>
 
 imap <silent> <expr> <plug>(MC_next_method)   mycompletion#verify_completion()
 imap <silent> <expr> <plug>(MC_Auto)          mycompletion#complete(1)
