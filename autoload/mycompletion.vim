@@ -391,6 +391,10 @@ fu! s:act_on_pumvisible() abort
     " For some  reason, we really need  to use non-recursive mappings  for C-n /
     " C-p, even if the popup menu  is visible.  The latter should prevent custom
     " mappings from interfering but it doesn't always.
+    " Reproduce:
+    "             let g:mc_chain = [ 'c-p' ]
+    "             ino <c-p> foobar
+    "             setl cot=menu,noinsert
     return s:auto || get(s:methods, s:i, '') ==# 'spel'
     \?         ''
     \:     stridx(&l:completeopt, 'noselect') == -1
