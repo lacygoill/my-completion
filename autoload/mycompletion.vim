@@ -643,6 +643,10 @@ fu! mycompletion#disable_auto() abort
         augroup! MC_Auto
     endif
     let s:auto = 0
+    if exists('s:cot_save')
+        let &cot = s:cot_save
+        unlet! s:cot_save
+    endif
 endfu
 
 " enable_auto {{{1
@@ -651,6 +655,11 @@ fu! mycompletion#enable_auto() abort
     let s:auto         = 1
     let s:completedone = 0
     let g:mc_manual    = 0
+    let s:cot_save     = &cot
+
+    " automatically   inserted   text   is  particularly   annoying   while   in
+    " auto-completion mode
+    set cot+=noinsert
 
     augroup MC_Auto
         autocmd!
