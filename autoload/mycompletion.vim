@@ -601,7 +601,7 @@ endfu
 
 fu! mycompletion#complete(dir) abort
     let s:word = matchstr(getline('.')[:col('.')-2], '\S\+$')
-    if s:word !~ '\k'
+    if s:word !~ '\k' || col('.') <= 1
         return (a:dir > 0 ? "\<plug>(MC_tab)" : "\<plug>(MC_c-d)")
     endif
 
