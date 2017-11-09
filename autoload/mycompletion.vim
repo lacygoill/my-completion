@@ -441,7 +441,6 @@ fu! s:act_on_textchanged() abort
     " If I just autocompleted something, I'm probably done. I don't need Vim to
     " try another autocompletion, which may suggest me candidates that I already saw
     " in the popup menu last time.
-
 "}}}
 
     if s:completedone
