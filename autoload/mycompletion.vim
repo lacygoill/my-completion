@@ -653,6 +653,7 @@ fu! mycompletion#disable_auto() abort
         let &cot = s:cot_save
         unlet! s:cot_save
     endif
+    echo '[auto completion] OFF'
 endfu
 
 " enable_auto {{{1
@@ -798,6 +799,7 @@ fu! mycompletion#enable_auto() abort
 
         autocmd CompleteDone * let s:completedone = 1
     augroup END
+    echo '[auto completion] ON'
 endfu
 
 " menu_is_up {{{1
