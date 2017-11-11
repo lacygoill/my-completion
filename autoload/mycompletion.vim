@@ -1241,10 +1241,8 @@ endfu
 fu! mycompletion#toggle_auto() abort
     if exists('#MC_Auto')
         call mycompletion#disable_auto()
-        echom '[MC] Auto off'
     else
         call mycompletion#enable_auto()
-        echom '[MC] Auto on'
     endif
 endfu
 
