@@ -91,7 +91,7 @@ fu! mycompletion#file#complete() abort
         " Why:
         "     cur_path !=# '~' ? '*' : ''
         "
-        " If `cur_path` is different than `~`, for example if it's:
+        " If `cur_path` is different from `~`, for example if it's:
         "
         "     /home/user/Do
         "

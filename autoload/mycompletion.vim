@@ -330,7 +330,7 @@ fu! s:act_on_pumvisible() abort
     " If the method is 'spel', don't do anything either.
     "
     " Why?
-    " Fixing a spelling error is a bit different than simply completing text.
+    " Fixing a spelling error is a bit different from simply completing text.
     " It's much more error prone.
     " We don't want to force the insertion of the first spelling suggestion.
     " We want `Tab` to respect the value of 'cot'.
@@ -900,7 +900,7 @@ fu! s:next_method() abort
         " Why do we add `s:N` ? {{{
         "
         " At the end of this function, before hitting the completion mappings,
-        " we will make sure that `s:i` is different than `-1` and `s:N`.
+        " we will make sure that `s:i` is different from `-1` and `s:N`.
         "
         " Because, if we aren't cycling, and the value of `s:i` is `-1`
         " or `s:N`, it means we've tested all the methods in the chain.
@@ -915,7 +915,7 @@ fu! s:next_method() abort
         "
         " To allow `C-o` to go back to the end of the chain, in the definition
         " of `s:i`, we add `s:N`.
-        " When `s:i` is different than -1, it won't make any difference,
+        " When `s:i` is different from -1, it won't make any difference,
         " because of the `% s:N` operation.
         " But when the value of `s:i` is -1, adding `s:N` will convert the
         " negative index into a positive one, which matches the same method in
@@ -928,7 +928,7 @@ fu! s:next_method() abort
         " Why is there no risk to be stuck in a loop? {{{
         "
         " We could be afraid to be stuck in a loop, and to prevent that, add the
-        " condition that `s:i` is different than `-1` and `s:N`.
+        " condition that `s:i` is different from `-1` and `s:N`.
         "
         " But it's unnecessary. We can't be stuck in a loop.
         " Indeed, if we're cycling, it means that the popup menu is currently
@@ -1052,7 +1052,7 @@ fu! s:next_method() abort
     " a `s:methods[-1]`).
     "
     " Therefore, before hitting the completion mappings, we make sure that
-    " `s:i` is different than `-1` and `s:N`.
+    " `s:i` is different from `-1` and `s:N`.
 "}}}
 
     if s:i != -1 && s:i != s:N && index(s:i_history, s:i) == -1
