@@ -62,8 +62,7 @@ nno <silent>         ]om                      :<c-u>call mycompletion#disable_au
 nno <silent>         com                      :<c-u>call mycompletion#toggle_auto()<cr>
 
 " Options {{{1
-
-" 'complete'
+" complete {{{2
 "
 " where should Vim look when using C-n/C-p
 set complete=.,w,b
@@ -72,8 +71,8 @@ set complete=.,w,b
 "            │ └─ other windows
 "            └─ current buffer
 
-
-" 'cot'  +menuone
+" completeopt {{{2
+" menuone {{{3
 "
 " We add 'menuone' for 2 reasons:
 "
@@ -105,8 +104,7 @@ set cot+=menuone
 "     • +noinsert +menuone    ✔
 "     • -noinsert +menuone    ✔
 
-
-" 'cot'  -noinsert
+" noinsert {{{3
 "
 " We remove 'noinsert' for 3 reasons:
 "
@@ -125,16 +123,14 @@ set cot+=menuone
 "       in auto mode, but still …
 set cot-=noinsert
 
-
-" 'cot'  -noselect
+" noselect {{{3
 "
 " Do NOT  add 'noselect', because we  use a completion system  which would break
 " the undo sequence when 'noselect' is in  'cot'.  It means that some text would
 " be lost when we use the dot command to repeat a completion.
 set cot-=noselect
 
-
-" 'cot'  -preview
+" preview {{{3
 "
 " When we  hit `C-x C-g` by  accident, the unicode.vim plugin  opens the preview
 " window (digraph completion), and we have to close it manually.  It's annoying.
@@ -146,8 +142,7 @@ set cot-=noselect
 "         au CompleteDone * if pumvisible() == 0 | pclose | endif
 set cot-=preview
 
-
-" 'infercase'
+" infercase {{{2
 "
 " Add some intelligence regarding the case of a text which is completed.
 "
