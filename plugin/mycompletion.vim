@@ -63,7 +63,17 @@ nno <silent>         com                      :<c-u>call mycompletion#toggle_aut
 
 " Options {{{1
 
-" 'menuone'
+" 'complete'
+"
+" where should Vim look when using C-n/C-p
+set complete=.,w,b
+"            │ │ │
+"            │ │ └─ buffers in buffer list
+"            │ └─ other windows
+"            └─ current buffer
+
+
+" 'cot'  +menuone
 "
 " We add 'menuone' for 2 reasons:
 "
@@ -96,7 +106,7 @@ set cot+=menuone
 "     • -noinsert +menuone    ✔
 
 
-" 'noinsert'
+" 'cot'  -noinsert
 "
 " We remove 'noinsert' for 3 reasons:
 "
@@ -116,7 +126,16 @@ set cot+=menuone
 set cot-=noinsert
 
 
-" 'preview'
+" 'cot'  -noselect
+"
+" Do NOT  add 'noselect', because we  use a completion system  which would break
+" the undo sequence when 'noselect' is in  'cot'.  It means that some text would
+" be lost when we use the dot command to repeat a completion.
+set cot-=noselect
+
+
+" 'cot'  -preview
+"
 " When we  hit `C-x C-g` by  accident, the unicode.vim plugin  opens the preview
 " window (digraph completion), and we have to close it manually.  It's annoying.
 "
@@ -128,21 +147,8 @@ set cot-=noinsert
 set cot-=preview
 
 
-" 'noselect'
-" Do NOT  add 'noselect', because we  use a completion system  which would break
-" the undo sequence when 'noselect' is in  'cot'.  It means that some text would
-" be lost when we use the dot command to repeat a completion.
-set cot-=noselect
-
-
-" where should Vim look when using C-n/C-p
-set complete=.,w,b
-"            │ │ │
-"            │ │ └─ buffers in buffer list
-"            │ └─ other windows
-"            └─ current buffer
-
-
+" 'infercase'
+"
 " Add some intelligence regarding the case of a text which is completed.
 "
 " For example, suppose we have the word 'WeirdCaseWord' in a buffer.
