@@ -68,10 +68,10 @@
 
 " Variables {{{1
 
-if exists('g:auto_loaded_mycompletion')
+if exists('g:autoloaded_mycompletion')
     finish
 endif
-let g:auto_loaded_mycompletion = 1
+let g:autoloaded_mycompletion = 1
 
 " Default completion chain
 
