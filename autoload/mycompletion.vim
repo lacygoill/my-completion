@@ -123,7 +123,7 @@ let s:pumvisible = 0
 " entry in the menu. Indeed, when autocompletion is enabled, we don't want to
 " automatically insert anything. Bad idea.
 " It would constantly insert undesired text, and the user would have to undo
-" it. The popup menu with suggestions is enough.
+" it. The popup menu with candidates is enough.
 "
 "}}}
 " Why do we use `get()` ? {{{
