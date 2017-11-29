@@ -1,5 +1,3 @@
-" guard {{{1
-
 if exists('g:loaded_mycompletion')
     finish
 endif
