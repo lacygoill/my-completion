@@ -40,7 +40,7 @@ fu! mycompletion#abbr#complete() abort
     " To do this, we'll follow this algorithm:
     "
     "     does the rhs of the abbreviation contains the string `expand_` ?
-    "             match(s:abbrev_rhs(v.rhs), 'expand_') != -1
+    "             stridx(s:abbrev_rhs(v.rhs), 'expand_') != -1
     "
     "     if so, extract the expansion
     "             matchstr(s:abbrev_rhs(v.rhs), '.*,''\zs.*\ze'')')
@@ -55,7 +55,7 @@ fu! mycompletion#abbr#complete() abort
                         \      filter(copy(s:abbrev), { k,v -> stridx(v.lhs, word_to_complete) == 0 }),
                         \      { k,v -> {
                         \         'word' : v.lhs,
-                        \         'menu' : match(s:abbrev_rhs(v.rhs), 'expand_') != -1
+                        \         'menu' : stridx(s:abbrev_rhs(v.rhs), 'expand_') != -1
                         \                  ?    matchstr(s:abbrev_rhs(v.rhs), '.*,''\zs.*\ze'')')
                         \                  :    s:abbrev_rhs(v.rhs)
                         \       } }
