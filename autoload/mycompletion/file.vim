@@ -128,21 +128,21 @@ fu! mycompletion#file#complete() abort
 
             " Why:
             "
-            "    cur_path !=# "~" ? fnamemodify(v:val, ":t") : v:val
+            "     cur_path !=# '~' ? fnamemodify(v, ':t') : v
             "
             " Because, if `cur_path` is `~`, then `entries` is:
             "
             "     ['/home/user']
             "
-            " and `v:val` will take the (single) value `'/home/user'`.
+            " and `v` will take the (single) value `'/home/user'`.
             " Usually, we want to complete only the last component of a path.
             " But here, we don't want to complete only the last component of
             " `/home/user`, which is `user`, we want the whole path `/home/user`.
 
-            call complete(from_where, map(entries,'
-            \                                       (cur_path !=# "~" ? fnamemodify(v:val, ":t") : v:val)
-            \                                      .(isdirectory(v:val) ? "/" : "")
-            \                                     '
+            call complete(from_where, map(entries,{ k,v ->
+            \                                               (cur_path !=# '~' ? fnamemodify(v, ':t') : v)
+            \                                              .(isdirectory(v) ? '/' : '')
+            \                                     }
             \                            ))
 
             return ''

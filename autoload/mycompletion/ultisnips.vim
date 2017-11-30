@@ -40,7 +40,7 @@ fu! mycompletion#ultisnips#complete() abort
     " their name. But if we wanted to look for only those containing it at the
     " beginning, we would simply have to replace `>=0` with `==0`.
 
-    let contain_word = 'stridx(v:val, word_to_complete)>=0'
+    let l:Contain_word = { k,v -> stridx(v, word_to_complete) >= 0 }
 
     " keys(g:current_ulti_dict_info)    →    all valid triggers in the buffer{{{
     "
@@ -57,11 +57,11 @@ fu! mycompletion#ultisnips#complete() abort
     " The dictionaries can only contain special items.
     " They are all optional, except 'word' which is mandatory:
     "
-    "         - word     the text that will be inserted (MANDATORY)
-    "         - abbr     abbr; short form of the word to be displayed in the menu
-    "         - menu     extra text for the popup menu, displayed after "word"/"abbr"
-    "         - info     more info for the preview window
-    "         - kind     single letter indicating the type of completion
+    "         • word     the text that will be inserted (MANDATORY)
+    "         • abbr     abbr; short form of the word to be displayed in the menu
+    "         • menu     extra text for the popup menu, displayed after "word"/"abbr"
+    "         • info     more info for the preview window
+    "         • kind     single letter indicating the type of completion
     "
     "                            v	variable
     "                            f	function or method
@@ -69,14 +69,14 @@ fu! mycompletion#ultisnips#complete() abort
     "                            t	typedef
     "                            d	#define or macro
     "
-    "         - icase    flag; when non-zero, case is to be ignored when
+    "         • icase    flag; when non-zero, case is to be ignored when
     "                          comparing items to be equal; w
     "
-    "         - dup      flag; when non-zero the item will be added even when
+    "         • dup      flag; when non-zero the item will be added even when
     "                    another one with the same word is already present in
     "                    the list
     "
-    "         - empty    flag; when non-zero this item will be added even when
+    "         • empty    flag; when non-zero this item will be added even when
     "                    it is an empty string
 
     " map(filter(…),…)                  →    convert the triggers into
@@ -86,9 +86,9 @@ fu! mycompletion#ultisnips#complete() abort
     " The output of `map(…)` is a valid list to pass to `complete()`, because
     " its dictionaries contain only valid keys:
     "
-    "         - word
-    "         - menu
-    "         - dup
+    "         • word
+    "         • menu
+    "         • dup
     "
     " Why do we add the flag `dup` to each dictionary?
     " Because, we could have 2 snippets with the same trigger but different
@@ -98,12 +98,13 @@ fu! mycompletion#ultisnips#complete() abort
     " IOW, `dup` = duplicate detector.
     ""}}}
 
-    let candidates = map(filter(keys(g:current_ulti_dict_info), contain_word),
-                   \  "{
-                   \      'word': v:val,
-                   \      'menu': '[snip] '. g:current_ulti_dict_info[v:val]['description'],
-                   \      'dup' : 1,
-                   \   }")
+    let candidates = map(filter(keys(g:current_ulti_dict_info), l:Contain_word),
+    \                    { k,v -> {
+    \                               'word': v,
+    \                               'menu': '[snip] '.g:current_ulti_dict_info[v]['description'],
+    \                               'dup' : 1,
+    \                             }
+    \                    })
 
     let from_where = col('.') - len(word_to_complete)
     if !empty(candidates)
