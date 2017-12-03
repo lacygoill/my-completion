@@ -5,7 +5,7 @@ let g:autoloaded_mycompletion_abbr = 1
 
 let s:table  = execute('iab')
 let s:lines  = reverse(split(s:table, '\n'))
-let s:abbrev = map(s:lines, { k,v -> {
+let s:abbrev = map(s:lines, { i,v -> {
 \                                      'lhs' : matchstr(v, '\vi\s+\zs\w+'),
 \                                      'rhs' : matchstr(v, '\v\*\s+\zs.*'),
 \                                    }

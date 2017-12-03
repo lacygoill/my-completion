@@ -139,7 +139,7 @@ fu! mycompletion#file#complete() abort
             " But here, we don't want to complete only the last component of
             " `/home/user`, which is `user`, we want the whole path `/home/user`.
 
-            call complete(from_where, map(entries,{ k,v ->
+            call complete(from_where, map(entries,{ i,v ->
             \                                               (cur_path !=# '~' ? fnamemodify(v, ':t') : v)
             \                                              .(isdirectory(v) ? '/' : '')
             \                                     }

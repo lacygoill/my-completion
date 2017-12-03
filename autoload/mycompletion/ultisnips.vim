@@ -40,7 +40,7 @@ fu! mycompletion#ultisnips#complete() abort
     " their name. But if we wanted to look for only those containing it at the
     " beginning, we would simply have to replace `>=0` with `==0`.
 
-    let l:Contain_word = { k,v -> stridx(v, word_to_complete) >= 0 }
+    let l:Contain_word = { i,v -> stridx(v, word_to_complete) >= 0 }
 
     " keys(g:current_ulti_dict_info)    →    all valid triggers in the buffer{{{
     "
@@ -99,7 +99,7 @@ fu! mycompletion#ultisnips#complete() abort
     ""}}}
 
     let candidates = map(filter(keys(g:current_ulti_dict_info), l:Contain_word),
-    \                    { k,v -> {
+    \                    { i,v -> {
     \                               'word': v,
     \                               'menu': '[snip] '.g:current_ulti_dict_info[v]['description'],
     \                               'dup' : 1,
