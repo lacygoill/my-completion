@@ -40,10 +40,10 @@ ino <silent>         <plug>(MC_up)            <up>
 
 " cycling {{{2
 
-"                     ┌─ if we override `c-j` in our vimrc, warn us
+"                     ┌─ if we override `cr` in our vimrc, warn us
 "                     │
-imap <silent> <expr> <unique> <c-j>             pumvisible() ? mycompletion#cycle(1) : '<plug>(MC_c-j)'
-ino  <silent>                 <plug>(MC_c-j)    <c-j>
+imap <silent> <expr> <unique> <cr>            pumvisible() ? mycompletion#cycle(1) : '<plug>(MC_cr)'
+ino  <silent>                 <plug>(MC_cr)   <cr>
 
 " To cycle back, we can't use `c-k` because it would be shadowed by `c-k c-k`
 " (vimrc) which deletes from cursor till end of line.
