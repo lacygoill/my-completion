@@ -13,13 +13,13 @@ com! -bar McAutoToggle  call mycompletion#toggle_auto()
 " completion {{{2
 
 " Expand snippet or complete, when hitting Tab or S-Tab
-ino  <silent>        <Tab>                    <c-r>=mycompletion#snippet_or_complete(1)<cr>
-ino  <silent>        <S-Tab>                  <c-r>=mycompletion#snippet_or_complete(-1)<cr>
-imap <silent> <expr> <plug>(MC_tab_complete)  mycompletion#tab_complete(1)
-imap <silent> <expr> <plug>(MC_stab_complete) mycompletion#tab_complete(-1)
+ino  <silent><unique>  <Tab>                     <c-r>=mycompletion#snippet_or_complete(1)<cr>
+ino  <silent><unique>  <S-Tab>                   <c-r>=mycompletion#snippet_or_complete(-1)<cr>
+imap <expr><silent>    <plug>(MC_tab_complete)   mycompletion#tab_complete(1)
+imap <expr><silent>    <plug>(MC_stab_complete)  mycompletion#tab_complete(-1)
 
-snor <silent>        <Tab>                    <esc>:call UltiSnips#JumpForwards()<cr>
-snor <silent>        <S-Tab>                  <esc>:call UltiSnips#JumpBackwards()<cr>
+snor <silent><unique>  <Tab>                     <esc>:call UltiSnips#JumpForwards()<cr>
+snor <silent><unique>  <S-Tab>                   <esc>:call UltiSnips#JumpBackwards()<cr>
 
 " The next mappings are necessary to prevent custom mappings from interfering.
 
@@ -40,24 +40,22 @@ ino <silent>         <plug>(MC_up)            <up>
 
 " cycling {{{2
 
-"                     ┌─ if we override `cr` in our vimrc, warn us
-"                     │
-imap <silent> <expr> <unique> <cr>            pumvisible() ? mycompletion#cycle(1) : '<plug>(MC_cr)'
-ino  <silent>                 <plug>(MC_cr)   <cr>
+imap <expr><silent><unique>  <cr>           pumvisible() ? mycompletion#cycle(1) : '<plug>(MC_cr)'
+ino        <silent>          <plug>(MC_cr)  <cr>
 
 " To cycle back, we can't use `c-k` because it would be shadowed by `c-k c-k`
 " (vimrc) which deletes from cursor till end of line.
 " It's hard to find a key for this mapping (can't use `c-h`, `c-l`, `c-k`, …).
 " We'll try `c-o` with the mnemonics: Old (cycle back).
-imap <silent> <expr> <unique> <c-o>             pumvisible() ? mycompletion#cycle(-1) : '<plug>(MC_c-o)'
-ino  <silent>                 <plug>(MC_c-o)    <c-o>
+imap <expr><silent><unique>  <c-o>           pumvisible() ? mycompletion#cycle(-1) : '<plug>(MC_c-o)'
+ino        <silent>          <plug>(MC_c-o)  <c-o>
 
-imap <silent> <expr> <plug>(MC_next_method)   mycompletion#verify_completion()
-imap <silent> <expr> <plug>(MC_Auto)          mycompletion#complete(1)
+imap <expr><silent>  <plug>(MC_next_method)  mycompletion#verify_completion()
+imap <expr><silent>  <plug>(MC_Auto)         mycompletion#complete(1)
 
-nno <silent>         [om                      :<c-u>call mycompletion#enable_auto()<cr>
-nno <silent>         ]om                      :<c-u>call mycompletion#disable_auto()<cr>
-nno <silent>         com                      :<c-u>call mycompletion#toggle_auto()<cr>
+nno <silent><unique>  [om                    :<c-u>call mycompletion#enable_auto()<cr>
+nno <silent><unique>  ]om                    :<c-u>call mycompletion#disable_auto()<cr>
+nno <silent><unique>  com                    :<c-u>call mycompletion#toggle_auto()<cr>
 
 " Options {{{1
 " complete {{{2
