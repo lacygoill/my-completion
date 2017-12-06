@@ -599,7 +599,7 @@ endfu
 " }}}
 
 fu! mycompletion#complete(dir) abort
-    let s:word = matchstr(getline('.')[:col('.')-2], '\S\+$')
+    let s:word = matchstr(getline('.')[:col('.')-2], '\k\+$')
 
     "                                ┌ if the cursor is right at the beginning of a line:
     "                                │
