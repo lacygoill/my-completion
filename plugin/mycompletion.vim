@@ -40,7 +40,7 @@ ino  <silent>  <plug>(MC_up)    <up>
 
 " cycling {{{2
 
-imap  <expr><silent><unique>  <cr>           pumvisible() ? mycompletion#cycle(1) : '<plug>(MC_cr)'
+imap  <expr><silent><unique>  <c-j>          pumvisible() ? mycompletion#cycle(1) : '<plug>(MC_cr)'
 ino         <silent>          <plug>(MC_cr)  <cr>
 
 " To cycle back, we can't use `c-k` because it would be shadowed by `c-k c-k`
