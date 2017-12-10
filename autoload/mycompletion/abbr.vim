@@ -1,8 +1,3 @@
-if exists('g:autoloaded_mycompletion_abbr')
-    finish
-endif
-let g:autoloaded_mycompletion_abbr = 1
-
 let s:table  = execute('iab')
 let s:lines  = reverse(split(s:table, '\n'))
 let s:abbrev = map(s:lines, { i,v -> {

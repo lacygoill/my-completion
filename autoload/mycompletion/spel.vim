@@ -1,8 +1,3 @@
-if exists('g:autoloaded_mycompletion_spel')
-    finish
-endif
-let g:autoloaded_mycompletion_spel = 1
-
 fu! mycompletion#spel#complete() abort
 
     let word_to_complete = matchstr(getline('.'), '\k\+\%'.col('.').'c')

@@ -1,8 +1,3 @@
-if exists('g:autoloaded_mycompletion_file')
-    finish
-endif
-let g:autoloaded_mycompletion_file = 1
-
 fu! mycompletion#file#complete() abort
 
     "    strpart(…)     returns the text from the beginning of the line up to
