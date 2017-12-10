@@ -47,8 +47,8 @@ fu! mycompletion#abbr#complete() abort
     "             s:abbrev_rhs(v.rhs)
 
     let matching_abbrev = map(
-                        \      filter(copy(s:abbrev), { k,v -> stridx(v.lhs, word_to_complete) == 0 }),
-                        \      { k,v -> {
+                        \      filter(copy(s:abbrev), { i,v -> stridx(v.lhs, word_to_complete) == 0 }),
+                        \      { i,v -> {
                         \         'word' : v.lhs,
                         \         'menu' : stridx(s:abbrev_rhs(v.rhs), 'expand_') != -1
                         \                  ?    matchstr(s:abbrev_rhs(v.rhs), '.*,''\zs.*\ze'')')
