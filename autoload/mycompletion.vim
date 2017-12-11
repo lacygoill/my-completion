@@ -594,7 +594,10 @@ endfu
 " }}}
 
 fu! mycompletion#complete(dir) abort
-    let s:word = matchstr(getline('.')[:col('.')-2], '\k\+$')
+    "                                                  ┌ don't use `\k`, it would exclude `/`
+    "                                                  │ and we need to include slash for file completion
+    "                                                  │
+    let s:word = matchstr(getline('.')[:col('.')-2], '\S\+$')
 
     "                                ┌ if the cursor is right at the beginning of a line:
     "                                │
