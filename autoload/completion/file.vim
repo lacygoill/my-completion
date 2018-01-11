@@ -1,4 +1,4 @@
-fu! mycompletion#file#complete() abort
+fu! completion#file#complete() abort
 
     "    strpart(…)     returns the text from the beginning of the line up to
     "                   the cursor

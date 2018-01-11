@@ -1,5 +1,4 @@
-fu! mycompletion#spel#complete() abort
-
+fu! completion#spel#complete() abort
     let word_to_complete = matchstr(getline('.'), '\k\+\%'.col('.').'c')
     let badword          = spellbadword(word_to_complete)
     let candidates       = !empty(badword[1])

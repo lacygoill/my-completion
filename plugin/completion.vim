@@ -1,33 +1,33 @@
-if exists('g:loaded_mycompletion')
+if exists('g:loaded_completion')
     finish
 endif
-let g:loaded_mycompletion = 1
+let g:loaded_completion = 1
 
 " Commands {{{1
 
-com! -bar McAutoEnable  call mycompletion#enable_auto()
-com! -bar McAutoDisable call mycompletion#disable_auto()
-com! -bar McAutoToggle  call mycompletion#toggle_auto()
+com! -bar McAutoEnable  call completion#enable_auto()
+com! -bar McAutoDisable call completion#disable_auto()
+com! -bar McAutoToggle  call completion#toggle_auto()
 
 " Mappings {{{1
 " completion {{{2
 
 " Expand snippet or complete, when hitting Tab or S-Tab
-ino   <silent><unique>  <tab>                     <c-r>=mycompletion#snippet_or_complete(1)<cr>
-ino   <silent><unique>  <s-tab>                   <c-r>=mycompletion#snippet_or_complete(-1)<cr>
-imap  <expr><silent>    <plug>(MC_tab_complete)   mycompletion#tab_complete(1)
-imap  <expr><silent>    <plug>(MC_stab_complete)  mycompletion#tab_complete(-1)
+ino   <silent><unique>  <tab>                     <c-r>=completion#snippet_or_complete(1)<cr>
+ino   <silent><unique>  <s-tab>                   <c-r>=completion#snippet_or_complete(-1)<cr>
+imap  <expr><silent>    <plug>(MC_tab_complete)   completion#tab_complete(1)
+imap  <expr><silent>    <plug>(MC_stab_complete)  completion#tab_complete(-1)
 
 snor  <silent><unique>  <tab>                     <esc>:call UltiSnips#JumpForwards()<cr>
 snor  <silent><unique>  <s-tab>                   <esc>:call UltiSnips#JumpBackwards()<cr>
 
 " The next mappings are necessary to prevent custom mappings from interfering.
 
-" Typed/returned by mycompletion#complete()
+" Typed/returned by completion#complete()
 ino  <silent>  <plug>(MC_tab)  <tab>
 ino  <silent>  <plug>(MC_c-d)  <c-d>
 
-" Typed/returned by mycompletion#cycle()
+" Typed/returned by completion#cycle()
 ino  <silent>  <plug>(MC_c-e)   <c-e>
 ino  <silent>  <plug>(MC_c-n)   <c-n>
 ino  <silent>  <plug>(MC_c-p)   <c-p>
@@ -40,22 +40,22 @@ ino  <silent>  <plug>(MC_up)    <up>
 
 " cycling {{{2
 
-imap  <expr><silent><unique>  <c-j>          pumvisible() ? mycompletion#cycle(1) : '<plug>(MC_cr)'
+imap  <expr><silent><unique>  <c-j>          pumvisible() ? completion#cycle(1) : '<plug>(MC_cr)'
 ino         <silent>          <plug>(MC_cr)  <cr>
 
 " To cycle back, we can't use `c-k` because it would be shadowed by `c-k c-k`
 " (vimrc) which deletes from cursor till end of line.
 " It's hard to find a key for this mapping (can't use `c-h`, `c-l`, `c-k`, …).
 " We'll try `c-o` with the mnemonics: Old (cycle back).
-imap  <expr><silent><unique>  <c-o>           pumvisible() ? mycompletion#cycle(-1) : '<plug>(MC_c-o)'
+imap  <expr><silent><unique>  <c-o>           pumvisible() ? completion#cycle(-1) : '<plug>(MC_c-o)'
 ino         <silent>          <plug>(MC_c-o)  <c-o>
 
-imap  <expr><silent>  <plug>(MC_next_method)  mycompletion#verify_completion()
-imap  <expr><silent>  <plug>(MC_Auto)         mycompletion#complete(1)
+imap  <expr><silent>  <plug>(MC_next_method)  completion#verify_completion()
+imap  <expr><silent>  <plug>(MC_Auto)         completion#complete(1)
 
-nno  <silent><unique>  [om                    :<c-u>call mycompletion#enable_auto()<cr>
-nno  <silent><unique>  ]om                    :<c-u>call mycompletion#disable_auto()<cr>
-nno  <silent><unique>  com                    :<c-u>call mycompletion#toggle_auto()<cr>
+nno  <silent><unique>  [om                    :<c-u>call completion#enable_auto()<cr>
+nno  <silent><unique>  ]om                    :<c-u>call completion#disable_auto()<cr>
+nno  <silent><unique>  com                    :<c-u>call completion#toggle_auto()<cr>
 
 " Options {{{1
 " complete {{{2

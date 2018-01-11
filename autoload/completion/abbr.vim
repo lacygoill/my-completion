@@ -1,3 +1,8 @@
+if exists('g:loaded_completion_abbr')
+    finish
+endif
+let g:loaded_completion_abbr = 1
+
 let s:table  = execute('iab')
 let s:lines  = reverse(split(s:table, '\n'))
 let s:abbrev = map(s:lines, { i,v -> {
@@ -18,7 +23,7 @@ fu! s:abbrev_rhs(rhs) abort
     endif
 endfu
 
-fu! mycompletion#abbr#complete() abort
+fu! completion#abbr#complete() abort
     let word_to_complete = matchstr(strpart(getline('.'), 0, col('.') - 1), '\S\+$')
 
     " NOTE:
