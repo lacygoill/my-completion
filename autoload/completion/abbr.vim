@@ -1,7 +1,7 @@
-if exists('g:loaded_completion_abbr')
+if exists('g:autoloaded_completion#abbr')
     finish
 endif
-let g:loaded_completion_abbr = 1
+let g:autoloaded_completion#abbr = 1
 
 let s:table  = execute('iab')
 let s:lines  = reverse(split(s:table, '\n'))
