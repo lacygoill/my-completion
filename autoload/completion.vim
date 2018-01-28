@@ -1200,20 +1200,20 @@ fu! completion#snippet_or_complete(dir) abort
     return ''
 endfu
 
-augroup autocompletion_during_snippet_expansion
+augroup custom_mapping_during_snippet_expansion
     au!
-    au User UltiSnipsEnterFirstSnippet call s:setup_auto()
-    au User UltiSnipsExitLastSnippet   call s:teardown_auto()
+    au User UltiSnipsEnterFirstSnippet call s:setup_mapping()
+    au User UltiSnipsExitLastSnippet   call s:teardown_mapping()
 augroup END
 
-fu! s:setup_auto() abort
-    let s:is_in_auto_mode = s:auto
-    McAutoEnable
+fu! s:setup_mapping() abort
+    let s:map_save = lg#map#save('i', 0, '<c-g><tab>')
+    imap  <c-g><tab>  <plug>(MC_tab_complete)
 endfu
 
-fu! s:teardown_auto() abort
-    if !s:is_in_auto_mode
-        McAutoDisable
+fu! s:teardown_mapping() abort
+    if get(s:, 'map_save', {}) != {}
+        call lg#map#restore(s:map_save)
     endif
 endfu
 
