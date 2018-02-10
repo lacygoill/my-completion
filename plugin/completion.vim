@@ -46,7 +46,7 @@ ino         <silent>          <plug>(MC_cr)  <cr>
 " To cycle back, we can't use `c-k` because it would be shadowed by `c-k c-k`
 " (vimrc) which deletes from cursor till end of line.
 " It's hard to find a key for this mapping (can't use `c-h`, `c-l`, `c-k`, …).
-" We'll try `c-o` with the mnemonics: Old (cycle back).
+" We'll try `c-o` with the mnemonic: Old (cycle back).
 imap  <expr><silent><unique>  <c-o>           pumvisible() ? completion#cycle(-1) : '<plug>(MC_c-o)'
 ino         <silent>          <plug>(MC_c-o)  <c-o>
 
