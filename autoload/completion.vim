@@ -395,7 +395,7 @@ fu! s:act_on_pumvisible() abort
     "             let g:mc_chain = [ 'c-p' ]
     "             ino <c-p> foobar
     "             setl cot=menu,noinsert
-    return s:auto || get(s:methods, s:i, '') ==# 'spel'
+    return s:auto || get(s:methods, s:i, '') is# 'spel'
     \?         ''
     \:     stridx(&l:completeopt, 'noselect') == -1
     \?     stridx(&l:completeopt, 'noinsert') == -1
@@ -525,11 +525,11 @@ fu! s:act_on_textchanged() abort
         "     E684: list index out of range: 0
         "     Error detected while processing function <SNR>67_act_on_textchanged:
         "     line   81:
-        "     E15: Invalid expression: s:methods[s:i] ==# 'file' && matchstr(getline('.'), '.\%'.col('.').'c') =~# '\v\f'
+        "     E15: Invalid expression: s:methods[s:i] is# 'file' && matchstr(getline('.'), '.\%'.col('.').'c') =~# '\v\f'
         "
         ""}}}
 
-        if get(s:methods, s:i, '') ==# 'file' && matchstr(getline('.'), '.\%'.col('.').'c') =~# '\v\f'
+        if get(s:methods, s:i, '') is# 'file' && matchstr(getline('.'), '.\%'.col('.').'c') =~# '\v\f'
             sil call completion#file#complete()
         endif
 
@@ -1143,7 +1143,7 @@ fu! s:setup_dict_option() abort
     "                                              │  so, all the words of the dictionary could follow/match
     "                                              │
     if index([ 'en', 'fr' ], &l:spelllang) >= 0 && strchars(matchstr(getline('.'), '\k\+\%'.col('.').'c'), 1) >= 2
-        let &l:dictionary = &l:spelllang ==# 'en' ? '/usr/share/dict/words' : '/usr/share/dict/french'
+        let &l:dictionary = &l:spelllang is# 'en' ? '/usr/share/dict/words' : '/usr/share/dict/french'
         return 1
     else
         return 0

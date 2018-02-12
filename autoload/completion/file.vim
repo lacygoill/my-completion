@@ -65,7 +65,7 @@ fu! completion#file#complete() abort
     "              expansion will also fail, and at the end of the last
     "              iteration, `cur_path` will be empty, because:
     "
-    "                  matchstr('dir', '\s\zs\f.*$', 1) == ''
+    "                  matchstr('dir', '\s\zs\f.*$', 1) is# ''
     "
     " "}}}
 

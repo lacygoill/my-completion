@@ -15,10 +15,10 @@ fu! s:abbrev_rhs(rhs) abort
     if stridx(a:rhs, '&spl ==#') == -1
         return a:rhs
 
-    elseif &l:spl ==# 'fr'
+    elseif &l:spl is# 'fr'
         return matchstr(a:rhs, "\\vfr.{-}'\\zs.{-}\\ze'")
 
-    elseif &l:spl ==# 'en'
+    elseif &l:spl is# 'en'
         return matchstr(a:rhs, ":\\s\\+'\\zs.*\\ze'")
     endif
 endfu
