@@ -43,7 +43,7 @@ let g:autoloaded_completion = 1
 " We don't really need this new definition to fix this bug, because we have
 " a more reliable way to do it, at the end of `s:next_method()`.
 "
-"     if s:i == s:N
+"     if s:i ==# s:N
 "         let s:i = 0
 "     endif
 "
