@@ -397,8 +397,8 @@ fu! s:act_on_pumvisible() abort
     "             setl cot=menu,noinsert
     return s:auto || get(s:methods, s:i, '') is# 'spel'
     \?         ''
-    \:     stridx(&l:completeopt, 'noselect') == -1
-    \?     stridx(&l:completeopt, 'noinsert') == -1
+    \:     stridx(&l:completeopt, 'noselect') ==# -1
+    \?     stridx(&l:completeopt, 'noinsert') ==# -1
     \?         ''
     \:         "\<plug>(MC_c-p)\<plug>(MC_c-n)"
     \:         get(s:select_entry, s:methods[s:i], "\<plug>(MC_c-n)\<plug>(MC_up)")
@@ -458,9 +458,9 @@ fu! s:act_on_textchanged() abort
     "
     " … or we are at the beginning of a new line.
     "
-    "     col('.') == 1
+    "     col('.') ==# 1
 
-        if matchstr(getline('.'), '.\%'.col('.').'c') =~# '\s' || col('.') == 1
+        if matchstr(getline('.'), '.\%'.col('.').'c') =~# '\s' || col('.') ==# 1
 
     " If the text changed AND a completion was done, we reset: {{{
     "
@@ -1009,7 +1009,7 @@ fu! s:next_method() abort
     "
     " What's the meaning of:
     "
-    "     && index(s:i_history, s:i) == -1
+    "     && index(s:i_history, s:i) ==# -1
     "
     " … ? We want to make sure that the method to be tried hasn't already been
     " tried since the last time the user was cycling.
@@ -1058,7 +1058,7 @@ fu! s:next_method() abort
     " `s:i` is different from `-1` and `s:N`.
 "}}}
 
-    if s:i != -1 && s:i != s:N && index(s:i_history, s:i) == -1
+    if s:i != -1 && s:i != s:N && index(s:i_history, s:i) ==# -1
 
         " If we're cycling, we store the index of the method to be tried, in a
         " list. We use it to compare its items with the index of the next method
@@ -1163,7 +1163,7 @@ fu! s:setup_isk_option() abort
     " How to find which default ftplugins include `-` in 'isk'?
     "
     "     vimgrep /\vsetl%[ocal]\s+isk%[eyword]\+?\=.*-%(\@|\w)@!/ $VIMRUNTIME/**/*.vim
-    if index(['clojure', 'lisp', 'scheme'], &ft) == -1
+    if index(['clojure', 'lisp', 'scheme'], &ft) ==# -1
         let isk_save = &l:isk
         setl isk+=-
         call timer_start(0, { -> execute('let &l:isk = '.string(isk_save)) })
