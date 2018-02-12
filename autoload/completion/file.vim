@@ -84,7 +84,7 @@ fu! completion#file#complete() abort
         "
         "
         " Why:
-        "     cur_path !=# '~' ? '*' : ''
+        "     cur_path isnot# '~' ? '*' : ''
         "
         " If `cur_path` is different from `~`, for example if it's:
         "
@@ -100,7 +100,7 @@ fu! completion#file#complete() abort
         " filesystem whose name begins with `~`. We need to expand `~` itself,
         " into `/home/user`."}}}
 
-        let entries = glob(cur_path . (cur_path !=# '~' ? '*' : ''), 0, 1, 1)
+        let entries = glob(cur_path . (cur_path isnot# '~' ? '*' : ''), 0, 1, 1)
 
         if !empty(entries)
 
@@ -123,7 +123,7 @@ fu! completion#file#complete() abort
 
             " Why:
             "
-            "     cur_path !=# '~' ? fnamemodify(v, ':t') : v
+            "     cur_path isnot# '~' ? fnamemodify(v, ':t') : v
             "
             " Because, if `cur_path` is `~`, then `entries` is:
             "
@@ -135,7 +135,7 @@ fu! completion#file#complete() abort
             " `/home/user`, which is `user`, we want the whole path `/home/user`.
 
             call complete(from_where, map(entries,{ i,v ->
-            \                                               (cur_path !=# '~' ? fnamemodify(v, ':t') : v)
+            \                                               (cur_path isnot# '~' ? fnamemodify(v, ':t') : v)
             \                                              .(isdirectory(v) ? '/' : '')
             \                                     }
             \                            ))

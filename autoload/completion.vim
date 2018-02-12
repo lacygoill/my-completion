@@ -295,7 +295,7 @@ let g:mc_conditions = {
                       \ 'digr' : { t -> g:mc_manual && get(g:, 'loaded_unicodePlugin', 0) },
                       \ 'file' : { t -> t =~# '\v[/~]\f*$' },
                       \ 'keyp' : { t -> s:setup_isk_option() },
-                      \ 'omni' : { t -> !empty(&l:omnifunc) && &ft !=# 'markdown' },
+                      \ 'omni' : { t -> !empty(&l:omnifunc) && &ft isnot# 'markdown' },
                       \ 'spel' : { t -> &l:spell    && !empty(&l:spelllang) },
                       \ 'tags' : { t -> g:mc_manual && !empty(tagfiles()) },
                       \ 'ulti' : { t -> get(g:, 'did_plugin_ultisnips', 0) },
