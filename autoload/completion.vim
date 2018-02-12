@@ -963,8 +963,8 @@ fu! s:next_method() abort
 
         " Condition to stay in the loop:
         "
-        "     (s:i+1) % (s:N+1) != 0    the next idx is not beyond the chain
-        "                                 IOW there IS a NEXT method
+        "     (s:i+1) % (s:N+1) !=# 0    the next idx is not beyond the chain
+        "                                  IOW there IS a NEXT method
         "
         "     && !s:can_complete()        AND the method of the CURRENT one can't be applied
         "
@@ -981,7 +981,7 @@ fu! s:next_method() abort
         "
         " This time, we have to add:
         "
-        "     s:i != -1 && s:i != s:N
+        "     s:i !=# -1 && s:i !=# s:N
         "
         " Indeed, we aren't cycling. We've just hit Tab/S-Tab.
         " So, we don't know whether there's a method which can be applied.
@@ -991,14 +991,14 @@ fu! s:next_method() abort
         " because at that point, we would have tried all the methods.
 "}}}
 
-        while s:i != -1 && s:i != s:N && !s:can_complete()
+        while s:i !=# -1 && s:i !=# s:N && !s:can_complete()
             let s:i += s:dir
         endwhile
     endif
 
     " After the while loop: {{{
     "
-    "     if (s:i+1) % (s:N+1) != 0
+    "     if (s:i+1) % (s:N+1) !=# 0
     "
     " … is equivalent to:
     "
@@ -1023,11 +1023,11 @@ fu! s:next_method() abort
     "
     " Lifepillar writes:
     "
-    "     (s:i+1) % (s:N+1) != 0
+    "     (s:i+1) % (s:N+1) !=# 0
     "
     " I prefer:
     "
-    "     s:i != -1 && s:i != s:N
+    "     s:i !=# -1 && s:i !=# s:N
     "
     " It it really equivalent?
     "
@@ -1037,8 +1037,8 @@ fu! s:next_method() abort
     "
     " IOW:
     "
-    "     x != - 1  &&  x != b    ⇔    (x + 1) % (b + 1) != 0
-    "     x != a    &&  x != b    ⇔    ???
+    "     x !=# - 1  &&  x !=# b    ⇔    (x + 1) % (b + 1) !=# 0
+    "     x !=# a    &&  x !=# b    ⇔    ???
     "
     "     "}}}
     " Why the 2 first conditions? {{{
@@ -1058,7 +1058,7 @@ fu! s:next_method() abort
     " `s:i` is different from `-1` and `s:N`.
 "}}}
 
-    if s:i != -1 && s:i != s:N && index(s:i_history, s:i) ==# -1
+    if s:i !=# -1 && s:i !=# s:N && index(s:i_history, s:i) ==# -1
 
         " If we're cycling, we store the index of the method to be tried, in a
         " list. We use it to compare its items with the index of the next method
@@ -1212,7 +1212,7 @@ fu! s:setup_mapping() abort
 endfu
 
 fu! s:teardown_mapping() abort
-    if get(s:, 'map_save', {}) != {}
+    if get(s:, 'map_save', {}) !=# {}
         call lg#map#restore(s:map_save)
     endif
 endfu
