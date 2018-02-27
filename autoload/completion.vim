@@ -149,7 +149,7 @@ let s:auto = get(s:, 'auto', 0)
 " for a plugin are defined after the vimrc is sourced.
 ""}}}
 
-let s:exit_ctrl_x = "\<c-g>\<c-g>"
+let s:EXIT_CTRL_X = "\<c-g>\<c-g>"
 
 if !empty(mapcheck('<c-g><c-g>', 'i'))
     echohl WarningMsg
@@ -163,7 +163,7 @@ if !empty(mapcheck('<c-g><c-g>', 'i'))
     echohl None
 endif
 
-" Why do we need to prepend `s:exit_ctrl_x` in front of "\<c-x>\<c-l>"? {{{
+" Why do we need to prepend `s:EXIT_CTRL_X` in front of "\<c-x>\<c-l>"? {{{
 "
 " Suppose we have the following buffer:
 "
@@ -242,8 +242,8 @@ endif
 
 let s:compl_mappings = {
 \                        'abbr' : "\<plug>(MC_c-r)=completion#abbr#complete()\<cr>",
-\                        'c-n'  : s:exit_ctrl_x."\<plug>(MC_c-n)",
-\                        'c-p'  : s:exit_ctrl_x."\<plug>(MC_c-p)",
+\                        'c-n'  : s:EXIT_CTRL_X."\<plug>(MC_c-n)",
+\                        'c-p'  : s:EXIT_CTRL_X."\<plug>(MC_c-p)",
 \                        'cmd'  : "\<c-x>\<c-v>",
 \                        'defs' : "\<c-x>\<c-d>",
 \                        'dict' : "\<c-x>\<c-k>",
@@ -252,7 +252,7 @@ let s:compl_mappings = {
 \                        'incl' : "\<c-x>\<c-i>",
 \                        'keyn' : "\<c-x>\<c-n>",
 \                        'keyp' : "\<c-x>\<c-p>",
-\                        'line' : s:exit_ctrl_x."\<c-x>\<c-l>",
+\                        'line' : s:EXIT_CTRL_X."\<c-x>\<c-l>",
 \                        'omni' : "\<c-x>\<c-o>",
 \                        'spel' : "\<plug>(MC_c-r)=completion#spel#complete()\<cr>",
 \                        'tags' : "\<c-x>\<c-]>",
@@ -262,7 +262,7 @@ let s:compl_mappings = {
 \                        'user' : "\<c-x>\<c-u>",
 \                        }
 
-unlet s:exit_ctrl_x
+unlet s:EXIT_CTRL_X
 
 let s:select_entry = { 'c-p' : "\<plug>(MC_c-p)\<plug>(MC_down)", 'keyp': "\<plug>(MC_c-p)\<plug>(MC_down)" }
 
