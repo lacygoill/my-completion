@@ -76,15 +76,14 @@ let g:autoloaded_completion = 1
 " Default completion chain
 
 let s:mc_chain = get(s:, 'mc_chain', [
-                                     \ 'file',
-                                     \ 'keyp',
-                                     \ 'abbr',
-                                     \ 'c-p' ,
-                                     \ 'digr',
-                                     \ 'line',
-                                     \ 'dict',
-                                     \ 'ulti',
-                                     \ ])
+\                                      'file',
+\                                      'keyp',
+\                                      'abbr',
+\                                      'dict',
+\                                      'ulti',
+\                                      'line',
+\                                      'c-p',
+\                                    ])
 
 " Internal state
 let s:methods = get(b:, 'mc_chain', s:mc_chain)
