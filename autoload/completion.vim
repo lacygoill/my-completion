@@ -240,7 +240,7 @@ endif
 "
 "}}}
 
-let s:compl_mappings = {
+let s:COMPL_MAPPINGS = {
 \                        'abbr' : "\<plug>(MC_c-r)=completion#abbr#complete()\<cr>",
 \                        'c-n'  : s:EXIT_CTRL_X."\<plug>(MC_c-n)",
 \                        'c-p'  : s:EXIT_CTRL_X."\<plug>(MC_c-p)",
@@ -264,10 +264,12 @@ let s:compl_mappings = {
 
 unlet s:EXIT_CTRL_X
 
-let s:select_entry = { 'c-p' : "\<plug>(MC_c-p)\<plug>(MC_down)", 'keyp': "\<plug>(MC_c-p)\<plug>(MC_down)" }
+let s:SELECT_ENTRY = { 'c-p' : "\<plug>(MC_c-p)\<plug>(MC_down)", 'keyp': "\<plug>(MC_c-p)\<plug>(MC_down)" }
 
 " Default pattern to decide when automatic completion should be triggered.
-let g:mc_auto_pattern = '\k\k$'
+" I don't uppercase the name, because we can also use `b:mc_auto_pattern`
+" whose value may vary from one buffer to the other.
+let s:mc_auto_pattern = '\k\k$'
 
 " Conditions to be verified for a given method to be applied.{{{
 "
@@ -288,8 +290,8 @@ let g:mc_auto_pattern = '\k\k$'
 "
 "}}}
 
-let s:yes_you_can   = { _ -> 1 }
-let g:mc_conditions = {
+let s:YES_YOU_CAN   = { _ -> 1 }
+let s:mc_conditions = {
                       \ 'c-p'  : { t -> s:setup_isk_option() && g:mc_manual },
                       \ 'dict' : { t -> s:setup_dict_option() && g:mc_manual },
                       \ 'digr' : { t -> g:mc_manual && get(g:, 'loaded_unicodePlugin', 0) },
@@ -401,7 +403,7 @@ fu! s:act_on_pumvisible() abort
     \?     stridx(&l:completeopt, 'noinsert') ==# -1
     \?         ''
     \:         "\<plug>(MC_c-p)\<plug>(MC_c-n)"
-    \:         get(s:select_entry, s:methods[s:i], "\<plug>(MC_c-n)\<plug>(MC_up)")
+    \:         get(s:SELECT_ENTRY, s:methods[s:i], "\<plug>(MC_c-n)\<plug>(MC_up)")
 endfu
 
 " act_on_textchanged {{{1
@@ -478,7 +480,7 @@ fu! s:act_on_textchanged() abort
     "
     "     For example, we could disable the 'thes' method:
     "
-    "         let g:mc_conditions.thes =  { t -> g:mc_manual && !empty(&l:thesaurus) }
+    "         let s:mc_conditions.thes =  { t -> g:mc_manual && !empty(&l:thesaurus) }
     "
     "     Now, the `thes` method can only be tried when 'thesaurus' has
     "     a value, AND the completion was initiated manually by the user.
@@ -489,7 +491,7 @@ fu! s:act_on_textchanged() abort
     "
     "     Now think about this. Autocompletion is enabled, and we've inserted
     "     some text which hasn't been autocompleted, because the text before
-    "     the cursor didn't match `g:mc_auto_pattern`.
+    "     the cursor didn't match `s:mc_auto_pattern`.
     "     We still want a completion, so we hit Tab.
     "     It sets `g:mc_manual` to 1. We complete our text, then go on typing.
     "
@@ -533,12 +535,12 @@ fu! s:act_on_textchanged() abort
             sil call completion#file#complete()
         endif
 
-    " Purpose of g:mc_auto_pattern: {{{
+    " Purpose of s:mc_auto_pattern: {{{
     "
     " strpart(…) matches the characters from the beginning of the line up
     " to the cursor.
     "
-    " We compare them to `{g:|b:}mc_auto_pattern`, which is a pattern
+    " We compare them to `{s:|b:}mc_auto_pattern`, which is a pattern
     " such as: `\k\k$`.
     "
     " This pattern conditions autocompletion.
@@ -558,7 +560,7 @@ fu! s:act_on_textchanged() abort
 "}}}
 
     elseif getline('.')[:col('.')-2] =~#
-                \  { exists('b:mc_auto_pattern') ? 'b:' : 'g:' }mc_auto_pattern
+                \  { exists('b:mc_auto_pattern') ? 'b:' : 's:' }mc_auto_pattern
 
         sil call feedkeys("\<plug>(MC_Auto)", 'i')
     endif
@@ -572,8 +574,8 @@ endfu
 " If it's not, `s:next_method()` will try the next one.
 
 fu! s:can_complete() abort
-    return get({ exists('b:mc_conditions') ? 'b:' : 'g:' }mc_conditions,
-                \ s:methods[s:i], s:yes_you_can)(s:word)
+    return get({ exists('b:mc_conditions') ? 'b:' : 's:' }mc_conditions,
+                \ s:methods[s:i], s:YES_YOU_CAN)(s:word)
 endfu
 
 " complete {{{1
@@ -1076,7 +1078,7 @@ fu! s:next_method() abort
         " 3 - call `completion#verify_completion()` through `<plug>(MC_next_method)`
         "
         ""}}}
-        return s:compl_mappings[s:methods[s:i]]
+        return s:COMPL_MAPPINGS[s:methods[s:i]]
         \    . "\<plug>(MC_c-r)=pumvisible()?completion#menu_is_up():''\<cr>\<plug>(MC_next_method)"
     endif
 
@@ -1098,7 +1100,7 @@ fu! s:next_method() abort
     " When I insert the 1st character `j`, `TextChangedI` is triggered and
     " `s:act_on_textchanged()` is called. The function does nothing if:
     "
-    "     g:mc_auto_pattern = \k\k$
+    "     s:mc_auto_pattern = \k\k$
     "
     " Then I insert `t`. `TextChangedI` is triggered a second time, the function
     " is called again, and this time it does something, because `jt` match the
