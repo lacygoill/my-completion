@@ -75,7 +75,7 @@ let g:autoloaded_completion = 1
 
 " Default completion chain
 
-let g:mc_chain = get(g:, 'mc_chain', [
+let s:mc_chain = get(s:, 'mc_chain', [
                                      \ 'file',
                                      \ 'keyp',
                                      \ 'abbr',
@@ -87,7 +87,7 @@ let g:mc_chain = get(g:, 'mc_chain', [
                                      \ ])
 
 " Internal state
-let s:methods = get(b:, 'mc_chain', g:mc_chain)
+let s:methods = get(b:, 'mc_chain', s:mc_chain)
 let s:N       = len(s:methods)
 let s:word    = ''
 
@@ -292,16 +292,16 @@ let s:mc_auto_pattern = '\k\k$'
 
 let s:YES_YOU_CAN   = { _ -> 1 }
 let s:mc_conditions = {
-                      \ 'c-p'  : { t -> s:setup_isk_option() && g:mc_manual },
-                      \ 'dict' : { t -> s:setup_dict_option() && g:mc_manual },
-                      \ 'digr' : { t -> g:mc_manual && get(g:, 'loaded_unicodePlugin', 0) },
+                      \ 'c-p'  : { t -> s:setup_isk_option() && s:mc_manual },
+                      \ 'dict' : { t -> s:setup_dict_option() && s:mc_manual },
+                      \ 'digr' : { t -> s:mc_manual && get(g:, 'loaded_unicodePlugin', 0) },
                       \ 'file' : { t -> t =~# '\v[/~]\f*$' },
                       \ 'keyp' : { t -> s:setup_isk_option() },
                       \ 'omni' : { t -> !empty(&l:omnifunc) && &ft isnot# 'markdown' },
                       \ 'spel' : { t -> &l:spell    && !empty(&l:spelllang) },
-                      \ 'tags' : { t -> g:mc_manual && !empty(tagfiles()) },
+                      \ 'tags' : { t -> s:mc_manual && !empty(tagfiles()) },
                       \ 'ulti' : { t -> get(g:, 'did_plugin_ultisnips', 0) },
-                      \ 'unic' : { t -> g:mc_manual && get(g:, 'loaded_unicodePlugin', 0) },
+                      \ 'unic' : { t -> s:mc_manual && get(g:, 'loaded_unicodePlugin', 0) },
                       \ 'user' : { t -> !empty(&l:completefunc) },
                       \ }
 
@@ -394,7 +394,7 @@ fu! s:act_on_pumvisible() abort
     " C-p, even if the popup menu  is visible.  The latter should prevent custom
     " mappings from interfering but it doesn't always.
     " Reproduce:
-    "             let g:mc_chain = [ 'c-p' ]
+    "             let s:mc_chain = [ 'c-p' ]
     "             ino <c-p> foobar
     "             setl cot=menu,noinsert
     return s:auto || get(s:methods, s:i, '') is# 'spel'
@@ -471,7 +471,7 @@ fu! s:act_on_textchanged() abort
     "     When this flag is on, the function doesn't invoke an autocompletion.
     "     So it needs to be off for the next time the function will be called.
     "
-    "     - g:mc_manual
+    "     - s:mc_manual
     "
     "     When this variable /flag is on, it means the completion was initiated
     "     manually.
@@ -480,7 +480,7 @@ fu! s:act_on_textchanged() abort
     "
     "     For example, we could disable the 'thes' method:
     "
-    "         let s:mc_conditions.thes =  { t -> g:mc_manual && !empty(&l:thesaurus) }
+    "         let s:mc_conditions.thes =  { t -> s:mc_manual && !empty(&l:thesaurus) }
     "
     "     Now, the `thes` method can only be tried when 'thesaurus' has
     "     a value, AND the completion was initiated manually by the user.
@@ -493,9 +493,9 @@ fu! s:act_on_textchanged() abort
     "     some text which hasn't been autocompleted, because the text before
     "     the cursor didn't match `s:mc_auto_pattern`.
     "     We still want a completion, so we hit Tab.
-    "     It sets `g:mc_manual` to 1. We complete our text, then go on typing.
+    "     It sets `s:mc_manual` to 1. We complete our text, then go on typing.
     "
-    "     Now, `g:mc_manual` will remain with the value 1, while
+    "     Now, `s:mc_manual` will remain with the value 1, while
     "     autocompletion is still active. It means autocompletion will try all
     "     the methods in the chain, even those that we wanted to disable.
     "     To prevent that, we reset it here.
@@ -503,7 +503,7 @@ fu! s:act_on_textchanged() abort
     "     "}}}
 
             let s:completedone = 0
-            let g:mc_manual = 0
+            let s:mc_manual = 0
         endif
 
         " Why do we call completion#file#complete()? {{{
@@ -622,7 +622,7 @@ fu! completion#complete(dir) abort
     let s:i_history = []
     let s:i         = s:dir > 0 ? -1 : s:N
 
-    let s:methods = get(b:, 'mc_chain', g:mc_chain)
+    let s:methods = get(b:, 'mc_chain', s:mc_chain)
     let s:N       = len(s:methods)
 
     return s:next_method()
@@ -639,7 +639,7 @@ endfu
 
 fu! completion#cycle(dir) abort
     let s:cycling   = 1
-    let g:mc_manual = 1
+    let s:mc_manual = 1
     let s:dir       = a:dir
     let s:i_history = []
 
@@ -666,7 +666,7 @@ endfu
 fu! completion#enable_auto() abort
     let s:auto         = 1
     let s:completedone = 0
-    let g:mc_manual    = 0
+    let s:mc_manual    = 0
     let s:cot_save     = &cot
 
     " automatically   inserted   text   is  particularly   annoying   while   in
@@ -760,7 +760,7 @@ fu! completion#enable_auto() abort
         " Because it could make autocompletion hit Tab indefinitely.
         " Here's how to reproduce this bug:
         "
-        "     1. let g:mc_chain = [ 'keyn', 'cmd' ]
+        "     1. let s:mc_chain = [ 'keyn', 'cmd' ]
         "
         "     2. open a buffer and write `test`
         "
@@ -1197,7 +1197,7 @@ fu! completion#snippet_or_complete(dir) abort
     endif
 
     let s:completedone = 0
-    let g:mc_manual    = 0
+    let s:mc_manual    = 0
 
     return ''
 endfu
@@ -1223,7 +1223,7 @@ endfu
 
 " Why don't we merge this function with `complete()`? {{{
 "
-" If we did that, every time `complete()` would be called, `g:mc_manual` would
+" If we did that, every time `complete()` would be called, `s:mc_manual` would
 " be set to 1. It would be wrong, when `complete()` would be called by the
 " autocompletion (`<Plug>(MC_Auto)`).
 "
@@ -1237,8 +1237,8 @@ endfu
 ""}}}
 
 fu! completion#tab_complete(dir) abort
-        let g:mc_manual = 1
-        return completion#complete(a:dir)
+    let s:mc_manual = 1
+    return completion#complete(a:dir)
 endfu
 
 " toggle_auto {{{1
