@@ -1201,23 +1201,6 @@ fu! completion#snippet_or_complete(dir) abort
     return ''
 endfu
 
-augroup custom_mapping_during_snippet_expansion
-    au!
-    au User UltiSnipsEnterFirstSnippet call s:setup_mapping()
-    au User UltiSnipsExitLastSnippet   call s:teardown_mapping()
-augroup END
-
-fu! s:setup_mapping() abort
-    let s:map_save = lg#map#save('i', 0, '<c-g><tab>')
-    imap  <c-g><tab>  <plug>(MC_tab_complete)
-endfu
-
-fu! s:teardown_mapping() abort
-    if get(s:, 'map_save', {}) !=# {}
-        call lg#map#restore(s:map_save)
-    endif
-endfu
-
 " tab_complete {{{1
 
 " Why don't we merge this function with `complete()`? {{{

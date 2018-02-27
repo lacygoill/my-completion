@@ -12,13 +12,16 @@ com! -bar McAutoToggle  call completion#toggle_auto()
 " Mappings {{{1
 " completion {{{2
 
-" Expand snippet or complete, when hitting Tab or S-Tab
-ino   <silent><unique>  <tab>                     <c-r>=completion#snippet_or_complete(1)<cr>
+" Expand snippet or complete, when hitting Tab, or S-Tab
+ino   <silent><unique>    <tab>                   <c-r>=completion#snippet_or_complete(1)<cr>
 ino   <silent><unique>  <s-tab>                   <c-r>=completion#snippet_or_complete(-1)<cr>
 imap  <expr><silent>    <plug>(MC_tab_complete)   completion#tab_complete(1)
 imap  <expr><silent>    <plug>(MC_stab_complete)  completion#tab_complete(-1)
 
-snor  <silent><unique>  <tab>                     <esc>:call UltiSnips#JumpForwards()<cr>
+" Same thing for C-g Tab; useful when we're expanding a snippet
+imap  <expr><silent><unique>  <c-g><tab>          completion#tab_complete(1)
+
+snor  <silent><unique>    <tab>                   <esc>:call UltiSnips#JumpForwards()<cr>
 snor  <silent><unique>  <s-tab>                   <esc>:call UltiSnips#JumpBackwards()<cr>
 
 " The next mappings are necessary to prevent custom mappings from interfering.
