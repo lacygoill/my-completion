@@ -3,9 +3,9 @@ if exists('g:autoloaded_completion#abbr')
 endif
 let g:autoloaded_completion#abbr = 1
 
-let s:table  = execute('iab')
-let s:lines  = reverse(split(s:table, '\n'))
-let s:abbrev = map(s:lines, { i,v -> {
+let s:TABLE  = execute('iab')
+let s:LINES  = reverse(split(s:TABLE, '\n'))
+let s:ABBREV = map(s:LINES, { i,v -> {
 \                                      'lhs' : matchstr(v, '\vi\s+\zs\w+'),
 \                                      'rhs' : matchstr(v, '\v\*\s+\zs.*'),
 \                                    }
@@ -52,7 +52,7 @@ fu! completion#abbr#complete() abort
     "             s:abbrev_rhs(v.rhs)
 
     let matching_abbrev = map(
-                        \      filter(copy(s:abbrev), { i,v -> stridx(v.lhs, word_to_complete) ==# 0 }),
+                        \      filter(copy(s:ABBREV), { i,v -> stridx(v.lhs, word_to_complete) ==# 0 }),
                         \      { i,v -> {
                         \         'word' : v.lhs,
                         \         'menu' : stridx(s:abbrev_rhs(v.rhs), 'expand_') !=# -1
