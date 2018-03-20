@@ -138,7 +138,7 @@ set cot-=noselect
 " unicode.vim  plugin issue  with an  autocmd  which closes  the preview  window
 " automatically each time we complete a text:
 "
-"         au CompleteDone * if pumvisible() ==# 0 | pclose | endif
+"         au CompleteDone * if pumvisible() == 0 | pclose | endif
 set cot-=preview
 
 " infercase {{{2
