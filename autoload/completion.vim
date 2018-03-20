@@ -43,7 +43,7 @@ let g:autoloaded_completion = 1
 " We don't really need this new definition to fix this bug, because we have
 " a more reliable way to do it, at the end of `s:next_method()`.
 "
-"     if s:i == s:N
+"     if s:i ==# s:N
 "         let s:i = 0
 "     endif
 "
@@ -398,8 +398,8 @@ fu! s:act_on_pumvisible() abort
     "             setl cot=menu,noinsert
     return s:auto || get(s:methods, s:i, '') is# 'spel'
     \?         ''
-    \:     stridx(&l:completeopt, 'noselect') == -1
-    \?     stridx(&l:completeopt, 'noinsert') == -1
+    \:     stridx(&l:completeopt, 'noselect') ==# -1
+    \?     stridx(&l:completeopt, 'noinsert') ==# -1
     \?         ''
     \:         "\<plug>(MC_c-p)\<plug>(MC_c-n)"
     \:         get(s:SELECT_ENTRY, s:methods[s:i], "\<plug>(MC_c-n)\<plug>(MC_up)")
@@ -459,9 +459,9 @@ fu! s:act_on_textchanged() abort
     "
     " … or we are at the beginning of a new line.
     "
-    "     col('.') == 1
+    "     col('.') ==# 1
 
-        if matchstr(getline('.'), '.\%'.col('.').'c') =~# '\s' || col('.') == 1
+        if matchstr(getline('.'), '.\%'.col('.').'c') =~# '\s' || col('.') ==# 1
 
     " If the text changed AND a completion was done, we reset: {{{
     "
@@ -964,8 +964,8 @@ fu! s:next_method() abort
 
         " Condition to stay in the loop:
         "
-        "     (s:i+1) % (s:N+1) != 0    the next idx is not beyond the chain
-        "                               IOW there IS a NEXT method
+        "     (s:i+1) % (s:N+1) !=# 0    the next idx is not beyond the chain
+        "                                IOW there IS a NEXT method
         "
         "     && !s:can_complete()        AND the method of the CURRENT one can't be applied
         "
@@ -982,7 +982,7 @@ fu! s:next_method() abort
         "
         " This time, we have to add:
         "
-        "     s:i != -1 && s:i != s:N
+        "     s:i !=# -1 && s:i !=# s:N
         "
         " Indeed, we aren't cycling. We've just hit Tab/S-Tab.
         " So, we don't know whether there's a method which can be applied.
@@ -992,8 +992,8 @@ fu! s:next_method() abort
         " because at that point, we would have tried all the methods.
 "}}}
 
-        while s:i != -1
-        \&&   s:i != s:N
+        while s:i !=# -1
+        \&&   s:i !=# s:N
         \&&   !s:can_complete()
             let s:i += s:dir
         endwhile
@@ -1001,7 +1001,7 @@ fu! s:next_method() abort
 
     " After the while loop: {{{
     "
-    "     if (s:i+1) % (s:N+1) != 0
+    "     if (s:i+1) % (s:N+1) !=# 0
     "
     " … is equivalent to:
     "
@@ -1012,7 +1012,7 @@ fu! s:next_method() abort
     "
     " What's the meaning of:
     "
-    "     && index(s:i_history, s:i) == -1
+    "     && index(s:i_history, s:i) ==# -1
     "
     " … ? We want to make sure that the method to be tried hasn't already been
     " tried since the last time the user was cycling.
@@ -1026,11 +1026,11 @@ fu! s:next_method() abort
     "
     " Lifepillar writes:
     "
-    "     (s:i+1) % (s:N+1) != 0
+    "     (s:i+1) % (s:N+1) !=# 0
     "
     " I prefer:
     "
-    "     s:i != -1 && s:i != s:N
+    "     s:i !=# -1 && s:i !=# s:N
     "
     " It it really equivalent?
     "
@@ -1040,8 +1040,8 @@ fu! s:next_method() abort
     "
     " IOW:
     "
-    "     x != - 1  &&  x != b    ⇔    (x + 1) % (b + 1) != 0
-    "     x != a    &&  x != b    ⇔    ???
+    "     x !=# -1   &&  x !=# b    ⇔    (x + 1) % (b + 1) !=# 0
+    "     x !=# a    &&  x !=# b    ⇔    ???
     "
     "     "}}}
     " Why the 2 first conditions? {{{
@@ -1061,7 +1061,7 @@ fu! s:next_method() abort
     " `s:i` is different from `-1` and `s:N`.
 "}}}
 
-    if s:i != -1 && s:i != s:N && index(s:i_history, s:i) == -1
+    if s:i !=# -1 && s:i !=# s:N && index(s:i_history, s:i) ==# -1
 
         " If we're cycling, we store the index of the method to be tried, in a
         " list. We use it to compare its items with the index of the next method
@@ -1128,7 +1128,7 @@ fu! s:next_method() abort
     " mapping was hit and when `s:i = s:N`.
 "}}}
 
-    if s:i == s:N
+    if s:i ==# s:N
         let s:i = 0
     endif
 
@@ -1166,7 +1166,7 @@ fu! s:setup_isk_option() abort
     " How to find which default ftplugins include `-` in 'isk'?
     "
     "     vimgrep /\vsetl%[ocal]\s+isk%[eyword]\+?\=.*-%(\@|\w)@!/ $VIMRUNTIME/**/*.vim
-    if index(['clojure', 'lisp', 'scheme'], &ft) == -1
+    if index(['clojure', 'lisp', 'scheme'], &ft) ==# -1
         let isk_save = &l:isk
         setl isk+=-
         call timer_start(0, { -> execute('let &l:isk = '.string(isk_save)) })
