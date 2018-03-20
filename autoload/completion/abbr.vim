@@ -12,7 +12,7 @@ let s:ABBREV = map(s:LINES, { i,v -> {
 \                           })
 
 fu! s:abbrev_rhs(rhs) abort
-    if stridx(a:rhs, '&spl ==#') ==# -1
+    if stridx(a:rhs, '&spl is#') == -1
         return a:rhs
 
     elseif &l:spl is# 'fr'
@@ -52,10 +52,10 @@ fu! completion#abbr#complete() abort
     "             s:abbrev_rhs(v.rhs)
 
     let matching_abbrev = map(
-                        \      filter(copy(s:ABBREV), { i,v -> stridx(v.lhs, word_to_complete) ==# 0 }),
+                        \      filter(copy(s:ABBREV), { i,v -> stridx(v.lhs, word_to_complete) == 0 }),
                         \      { i,v -> {
                         \         'word' : v.lhs,
-                        \         'menu' : stridx(s:abbrev_rhs(v.rhs), 'expand_') !=# -1
+                        \         'menu' : stridx(s:abbrev_rhs(v.rhs), 'expand_') != -1
                         \                  ?    matchstr(s:abbrev_rhs(v.rhs), '.*,''\zs.*\ze'')')
                         \                  :    s:abbrev_rhs(v.rhs)
                         \       } }
