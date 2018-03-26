@@ -397,12 +397,12 @@ fu! s:act_on_pumvisible() abort
     "             ino <c-p> foobar
     "             setl cot=menu,noinsert
     return s:auto || get(s:methods, s:i, '') is# 'spel'
-    \?         ''
-    \:     stridx(&l:completeopt, 'noselect') ==# -1
-    \?     stridx(&l:completeopt, 'noinsert') ==# -1
-    \?         ''
-    \:         "\<plug>(MC_c-p)\<plug>(MC_c-n)"
-    \:         get(s:SELECT_ENTRY, s:methods[s:i], "\<plug>(MC_c-n)\<plug>(MC_up)")
+       \ ?     ''
+       \ : stridx(&l:completeopt, 'noselect') ==# -1
+       \ ? stridx(&l:completeopt, 'noinsert') ==# -1
+       \ ?     ''
+       \ :     "\<plug>(MC_c-p)\<plug>(MC_c-n)"
+       \ :     get(s:SELECT_ENTRY, s:methods[s:i], "\<plug>(MC_c-n)\<plug>(MC_up)")
 endfu
 
 " act_on_textchanged {{{1
@@ -1250,6 +1250,6 @@ endfu
 
 fu! completion#verify_completion() abort
     return s:pumvisible
-    \?         s:act_on_pumvisible()
-    \:         s:next_method()
+       \ ?     s:act_on_pumvisible()
+       \ :     s:next_method()
 endfu
