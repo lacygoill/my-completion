@@ -75,13 +75,27 @@ let g:autoloaded_completion = 1
 
 " Default completion chain
 
+" Warning: Don't add the 'line' method. {{{
+"
+" It works, but it's annoying to get a whole line when all you want is a word.
+"
+" When that happens, you have to either press `C-q` to cancel the completion, or
+" `C-j` to invoke the next method.
+"
+" But even  after pressing `C-j`,  finding the  right method and  completing the
+" desired word,  sometimes if you  press Tab  again (because you're  expanding a
+" snippet and  you want  to jump to  the next tabstop),  you may  re-invoke this
+" fucking 'line' method.
+"
+" Bottom line:
+" Line completion is  too cumbersome to be automated. Use C-x  C-l when you know
+" you REALLY need it.
+"}}}
 let s:mc_chain = get(s:, 'mc_chain', [
 \                                      'file',
 \                                      'keyp',
 \                                      'abbr',
 \                                      'dict',
-\                                      'ulti',
-\                                      'line',
 \                                      'c-p',
 \                                    ])
 
