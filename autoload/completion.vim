@@ -96,6 +96,7 @@ let s:mc_chain = get(s:, 'mc_chain', [
 \                                      'keyp',
 \                                      'abbr',
 \                                      'dict',
+\                                      'ulti',
 \                                      'c-p',
 \                                    ])
 
