@@ -94,9 +94,9 @@ let g:autoloaded_completion = 1
 let s:mc_chain = get(s:, 'mc_chain', [
 \                                      'file',
 \                                      'keyp',
-\                                      'abbr',
 \                                      'dict',
 \                                      'ulti',
+\                                      'abbr',
 \                                      'c-p',
 \                                    ])
 
