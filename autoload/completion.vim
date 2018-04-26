@@ -268,7 +268,7 @@ let s:COMPL_MAPPINGS = {
 \                        'keyp' : "\<c-x>\<c-p>",
 \                        'line' : s:EXIT_CTRL_X."\<c-x>\<c-l>",
 \                        'omni' : "\<c-x>\<c-o>",
-\                        'spel' : "\<plug>(MC_c-r)=completion#spel#complete()\<cr>",
+\                        'spel' : "\<plug>(MC_c-r)=completion#spel#suggest()\<cr>",
 \                        'tags' : "\<c-x>\<c-]>",
 \                        'thes' : "\<c-x>\<c-t>",
 \                        'ulti' : "\<plug>(MC_c-r)=completion#ultisnips#complete()\<cr>",
@@ -306,14 +306,13 @@ let s:mc_auto_pattern = '\k\k$'
 
 let s:YES_YOU_CAN   = { _ -> 1 }
 let s:mc_conditions = {
-                      \ 'c-p'  : { t -> s:setup_isk_option('c-p') && s:mc_manual },
+                      \ 'c-p'  : { t -> s:mc_manual },
                       \ 'dict' : { t -> s:setup_dict_option() && s:mc_manual },
                       \ 'digr' : { t -> s:mc_manual && get(g:, 'loaded_unicodePlugin', 0) },
                       \ 'file' : { t -> t =~# '\v[/~]\f*$' },
-                      \ 'keyp' : { t -> s:setup_isk_option('keyp') },
                       \ 'omni' : { t -> !empty(&l:omnifunc) && &ft isnot# 'markdown' },
                       \ 'spel' : { t -> &l:spell    && !empty(&l:spelllang) },
-                      \ 'tags' : { t -> s:mc_manual && s:setup_isk_option('tags') && !empty(tagfiles()) },
+                      \ 'tags' : { t -> s:mc_manual && !empty(tagfiles()) },
                       \ 'ulti' : { t -> get(g:, 'did_plugin_ultisnips', 0) },
                       \ 'unic' : { t -> s:mc_manual && get(g:, 'loaded_unicodePlugin', 0) },
                       \ 'user' : { t -> !empty(&l:completefunc) },
@@ -1166,44 +1165,6 @@ fu! s:setup_dict_option() abort
     else
         return 0
     endif
-endfu
-
-" setup_isk_option {{{1
-
-fu! s:setup_isk_option(method) abort
-    " Most default ftplugins don't include `-`  in 'isk', but it's convenient to
-    " include it temporarily when we complete a word.
-    "
-    " So we add  temporarily add it.
-    " However  some default  ftplugins DO  include  `-` in  'isk', we  shouldn't
-    " remove it for them.
-    "
-    " How to find which default ftplugins include `-` in 'isk'?
-    "
-    "     vimgrep /\vsetl%[ocal]\s+isk%[eyword]\+?\=.*-%(\@|\w)@!/ $VIMRUNTIME/**/*.vim
-
-    if !exists('b:isk_save')
-        let b:isk_save = &l:isk
-    endif
-
-    try
-        if index(['clojure', 'lisp', 'scheme'], &ft) ==# -1
-            setl isk+=-
-        endif
-
-    catch
-        call lg#catch_error()
-
-    finally
-        augroup mc_restore_isk
-            au! * <buffer>
-            au CompleteDone <buffer> let &l:isk = get(b:, 'isk_save', &l:isk)
-                                 \ | unlet! b:isk_save
-                                 \ | exe 'au! mc_restore_isk'
-                                 \ | aug! mc_restore_isk
-        augroup END
-        return 1
-    endtry
 endfu
 
 " snippet_or_complete {{{1

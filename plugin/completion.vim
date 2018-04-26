@@ -60,6 +60,89 @@ nno  <silent><unique>  [om                    :<c-u>call completion#enable_auto(
 nno  <silent><unique>  ]om                    :<c-u>call completion#disable_auto()<cr>
 nno  <silent><unique>  com                    :<c-u>call completion#toggle_auto()<cr>
 
+" improved default methods {{{2
+" C-p         &friends {{{3
+
+" What's the purpose of `completion#util#custom_isk()`?{{{
+"
+" Most default ftplugins don't include `-`  in 'isk', but it's convenient to
+" include it temporarily when we complete a word such as `foo-bar-baz`.
+"
+" So we invoke this function to temporarily add it.
+"}}}
+" What's the purpose of `completion#util#hyphen_is_already_in_isk()`?{{{
+"
+" Some default  ftplugins DO include  `-` in 'isk';  we shouldn't remove  it for
+" them.
+"
+" How to find which default ftplugins include `-` in 'isk'?
+"
+"     :noa vim /\vsetl%[ocal]\s+isk%[eyword]\+?\=.*-%(\@|\w)@!/gj $VIMRUNTIME/**/*.vim | cw
+"}}}
+
+ino  <silent>  <c-p>       <c-r>=completion#util#custom_isk(index(completion#util#hyphen_is_already_in_isk(), &ft) ==# -1 ? '-' : '')<cr><c-p>
+ino  <silent>  <c-x><c-n>  <c-r>=completion#util#custom_isk(index(completion#util#hyphen_is_already_in_isk(), &ft) ==# -1 ? '-' : '')<cr><c-x><c-n>
+ino  <silent>  <c-x><c-p>  <c-r>=completion#util#custom_isk(index(completion#util#hyphen_is_already_in_isk(), &ft) ==# -1 ? '-' : '')<cr><c-x><c-p>
+
+" C-x C-]     tag {{{3
+
+ino  <silent>  <c-x><c-]>  <c-r>=completion#util#custom_isk('-'.(&ft is# 'vim' ? ':<' : ''))<cr><c-x><c-]>
+"                                                                │
+"                                                                └ Some Vim tags contain a colon
+"                                                                  or begin with a less-than sign.
+"
+"                                                                  Maybe we should add `:` to 'isk'
+"                                                                  unconditionally:
+"
+"                                                                      '-:'.(&ft is# 'vim' ? '<' : '')
+"
+"                                                                  But it doesn't seem necessary atm.
+
+" C-x C-k     dictionary {{{3
+
+ino  <c-x><c-k>  <c-r>=completion#util#setup_dict()<cr><c-x><c-k>
+
+" C-x C-s     fix Spelling error {{{3
+
+ino  <expr><silent>  <c-x><c-s>  completion#spel#fix()
+
+" C-x C-t     synonym {{{3
+
+" Pb:
+" If a synonym contains several words (e.g. important → of vital importance),
+" the completion function considers each of them as a distinct synonym.
+" Thus, if a synonym contains 3 words, the function populates the popup
+" menu with 3 entries.
+
+" Solution:
+"         http://stackoverflow.com/a/21132116
+"
+" Create a  wrapper around C-x C-t  to temporarily include the  space and hyphen
+" characters in 'isk'. We'll  remove them as soon as the  completion is done (or
+" cancelled).
+" It doesn't seem to affect the completed text, only the synonyms.
+" Even with a space in 'isk', the completion function only tries to complete the
+" last word before the cursor.
+
+ino  <silent>  <c-x><c-t>  <c-r>=completion#util#custom_isk(' -')<cr><c-x><c-t>
+
+" new methods {{{2
+" C-x s       function Signature {{{3
+
+" Usage:
+"
+"         1. call matchadd(
+"         2. press `C-x C-s`
+"         3. call matchadd({group}, {pattern} [, {priority} [, {id} [, {dict}]]])
+
+ino  <expr><silent>  <c-x>s  completion#custom#signature()
+
+" C-z         easy C-x C-p {{{3
+
+" Inspiration:
+" https://www.reddit.com/r/vim/comments/78h4pr/plugins_andor_keybindings_you_couldnt_live_without/dou7z5n/
+ino  <expr><silent>  <c-z>  completion#custom#easy_c_x_c_p()
+
 " Options {{{1
 " complete {{{2
 "
