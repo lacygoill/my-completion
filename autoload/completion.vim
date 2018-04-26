@@ -306,14 +306,14 @@ let s:mc_auto_pattern = '\k\k$'
 
 let s:YES_YOU_CAN   = { _ -> 1 }
 let s:mc_conditions = {
-                      \ 'c-p'  : { t -> s:setup_isk_option() && s:mc_manual },
+                      \ 'c-p'  : { t -> s:setup_isk_option('c-p') && s:mc_manual },
                       \ 'dict' : { t -> s:setup_dict_option() && s:mc_manual },
                       \ 'digr' : { t -> s:mc_manual && get(g:, 'loaded_unicodePlugin', 0) },
                       \ 'file' : { t -> t =~# '\v[/~]\f*$' },
-                      \ 'keyp' : { t -> s:setup_isk_option() },
+                      \ 'keyp' : { t -> s:setup_isk_option('keyp') },
                       \ 'omni' : { t -> !empty(&l:omnifunc) && &ft isnot# 'markdown' },
                       \ 'spel' : { t -> &l:spell    && !empty(&l:spelllang) },
-                      \ 'tags' : { t -> s:mc_manual && !empty(tagfiles()) },
+                      \ 'tags' : { t -> s:mc_manual && s:setup_isk_option('tags') && !empty(tagfiles()) },
                       \ 'ulti' : { t -> get(g:, 'did_plugin_ultisnips', 0) },
                       \ 'unic' : { t -> s:mc_manual && get(g:, 'loaded_unicodePlugin', 0) },
                       \ 'user' : { t -> !empty(&l:completefunc) },
@@ -1170,7 +1170,7 @@ endfu
 
 " setup_isk_option {{{1
 
-fu! s:setup_isk_option() abort
+fu! s:setup_isk_option(method) abort
     " Most default ftplugins don't include `-`  in 'isk', but it's convenient to
     " include it temporarily when we complete a word.
     "
@@ -1181,11 +1181,17 @@ fu! s:setup_isk_option() abort
     " How to find which default ftplugins include `-` in 'isk'?
     "
     "     vimgrep /\vsetl%[ocal]\s+isk%[eyword]\+?\=.*-%(\@|\w)@!/ $VIMRUNTIME/**/*.vim
+    let isk_save = &l:isk
     if index(['clojure', 'lisp', 'scheme'], &ft) ==# -1
-        let isk_save = &l:isk
         setl isk+=-
-        call timer_start(0, { -> execute('let &l:isk = '.string(isk_save)) })
     endif
+
+    " some tags begin with `<` in Vim files
+    if a:method is# 'tags' && &ft is# 'vim'
+        setl isk+=<
+    endif
+
+    call timer_start(0, { -> execute('let &l:isk = '.string(isk_save)) })
     return 1
 endfu
 
