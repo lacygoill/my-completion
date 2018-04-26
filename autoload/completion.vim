@@ -1181,18 +1181,29 @@ fu! s:setup_isk_option(method) abort
     " How to find which default ftplugins include `-` in 'isk'?
     "
     "     vimgrep /\vsetl%[ocal]\s+isk%[eyword]\+?\=.*-%(\@|\w)@!/ $VIMRUNTIME/**/*.vim
-    let isk_save = &l:isk
-    if index(['clojure', 'lisp', 'scheme'], &ft) ==# -1
-        setl isk+=-
+
+    if !exists('b:isk_save')
+        let b:isk_save = &l:isk
     endif
 
-    " some tags begin with `<` in Vim files
-    if a:method is# 'tags' && &ft is# 'vim'
-        setl isk+=<
-    endif
+    try
+        if index(['clojure', 'lisp', 'scheme'], &ft) ==# -1
+            setl isk+=-
+        endif
 
-    call timer_start(0, { -> execute('let &l:isk = '.string(isk_save)) })
-    return 1
+    catch
+        call lg#catch_error()
+
+    finally
+        augroup mc_restore_isk
+            au! * <buffer>
+            au CompleteDone <buffer> let &l:isk = get(b:, 'isk_save', &l:isk)
+                                 \ | unlet! b:isk_save
+                                 \ | exe 'au! mc_restore_isk'
+                                 \ | aug! mc_restore_isk
+        augroup END
+        return 1
+    endtry
 endfu
 
 " snippet_or_complete {{{1
