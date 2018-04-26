@@ -428,7 +428,6 @@ endfu
 " This function is only called when autocompletion is enabled.
 " Technically, it tries an autocompletion by typing `<plug>(MC_Auto)`
 " which calls `completion#complete(1)`. Similar to hitting Tab.
-"
 " "}}}
 
 fu! s:act_on_textchanged() abort
