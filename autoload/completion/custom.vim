@@ -1,6 +1,13 @@
 fu! completion#custom#easy_c_x_c_p() abort "{{{1
     let cot_save = &cot
     set cot-=noinsert
+    " Warning: Keep the timer.{{{
+    "
+    " Do NOT install an autocmd listening to `CompleteDone`.
+    " Because,  for   some  reason,  the   first  time  you  complete   a  word,
+    " `CompleteDone` is not fired.
+    " As a result, 'cot' would not be restored by the autocmd.
+    "}}}
     call timer_start(0, {-> execute('let &cot = '.string(cot_save))})
     return "\<c-x>\<c-p>"
 endfu
