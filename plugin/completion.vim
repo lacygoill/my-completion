@@ -80,31 +80,30 @@ nno  <silent><unique>  com                    :<c-u>call completion#toggle_auto(
 "     :noa vim /\vsetl%[ocal]\s+isk%[eyword]\+?\=.*-%(\@|\w)@!/gj $VIMRUNTIME/**/*.vim | cw
 "}}}
 
-ino  <silent>  <c-p>       <c-r>=completion#util#custom_isk(index(completion#util#hyphen_is_already_in_isk(), &ft) ==# -1 ? '-' : '')<cr><c-p>
-ino  <silent>  <c-x><c-n>  <c-r>=completion#util#custom_isk(index(completion#util#hyphen_is_already_in_isk(), &ft) ==# -1 ? '-' : '')<cr><c-x><c-n>
-ino  <silent>  <c-x><c-p>  <c-r>=completion#util#custom_isk(index(completion#util#hyphen_is_already_in_isk(), &ft) ==# -1 ? '-' : '')<cr><c-x><c-p>
+ino  <silent><unique>  <c-p>       <c-r>=completion#util#custom_isk(index(completion#util#hyphen_is_already_in_isk(), &ft) ==# -1 ? '-' : '')<cr><c-p>
+ino  <silent><unique>  <c-x><c-n>  <c-r>=completion#util#custom_isk(index(completion#util#hyphen_is_already_in_isk(), &ft) ==# -1 ? '-' : '')<cr><c-x><c-n>
+ino  <silent><unique>  <c-x><c-p>  <c-r>=completion#util#custom_isk(index(completion#util#hyphen_is_already_in_isk(), &ft) ==# -1 ? '-' : '')<cr><c-x><c-p>
 
 " C-x C-]     tag {{{3
 
-ino  <silent>  <c-x><c-]>  <c-r>=completion#util#custom_isk('-'.(&ft is# 'vim' ? ':<' : ''))<cr><c-x><c-]>
-"                                                                │
-"                                                                └ Some Vim tags contain a colon
-"                                                                  or begin with a less-than sign.
+ino  <silent><unique>  <c-x><c-]>  <c-r>=completion#util#custom_isk('-'.(&ft is# 'vim' ? ':<' : ''))<cr><c-x><c-]>
+"                                                                        │
+" Some Vim tags contain a colon or begin with a less-than sign.{{{
 "
-"                                                                  Maybe we should add `:` to 'isk'
-"                                                                  unconditionally:
+" Maybe we should add `:` to 'isk' unconditionally:
 "
-"                                                                      '-:'.(&ft is# 'vim' ? '<' : '')
+"     '-:'.(&ft is# 'vim' ? '<' : '')
 "
-"                                                                  But it doesn't seem necessary atm.
+" But it doesn't seem necessary atm.
+"}}}
 
 " C-x C-k     dictionary {{{3
 
-ino  <c-x><c-k>  <c-r>=completion#util#setup_dict()<cr><c-x><c-k>
+ino  <silent><unique>  <c-x><c-k>  <c-r>=completion#util#setup_dict()<cr><c-x><c-k>
 
 " C-x C-s     fix Spelling error {{{3
 
-ino  <expr><silent>  <c-x><c-s>  completion#spel#fix()
+ino  <expr><silent><unique>  <c-x><c-s>  completion#spel#fix()
 
 " C-x C-t     synonym {{{3
 
@@ -124,7 +123,7 @@ ino  <expr><silent>  <c-x><c-s>  completion#spel#fix()
 " Even with a space in 'isk', the completion function only tries to complete the
 " last word before the cursor.
 
-ino  <silent>  <c-x><c-t>  <c-r>=completion#util#custom_isk(' -')<cr><c-x><c-t>
+ino  <silent><unique>  <c-x><c-t>  <c-r>=completion#util#custom_isk(' -')<cr><c-x><c-t>
 
 " new methods {{{2
 " C-x s       function Signature {{{3
@@ -135,13 +134,13 @@ ino  <silent>  <c-x><c-t>  <c-r>=completion#util#custom_isk(' -')<cr><c-x><c-t>
 "         2. press `C-x C-s`
 "         3. call matchadd({group}, {pattern} [, {priority} [, {id} [, {dict}]]])
 
-ino  <expr><silent>  <c-x>s  completion#custom#signature()
+ino  <expr><silent><unique>  <c-x>s  completion#custom#signature()
 
 " C-z         easy C-x C-p {{{3
 
 " Inspiration:
 " https://www.reddit.com/r/vim/comments/78h4pr/plugins_andor_keybindings_you_couldnt_live_without/dou7z5n/
-ino  <expr><silent>  <c-z>  completion#custom#easy_c_x_c_p()
+ino  <expr><silent><unique>  <c-z>  completion#custom#easy_c_x_c_p()
 
 " Options {{{1
 " complete {{{2
