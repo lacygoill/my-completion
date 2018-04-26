@@ -101,9 +101,10 @@ fu! completion#ultisnips#complete() abort
     \                             }
     \                    })
 
-    let from_where = col('.') - len(word_to_complete)
+    let startcol = col('.') - len(word_to_complete)
     if !empty(candidates)
-        call complete(from_where, candidates)
+        call complete(startcol, candidates)
     endif
     return ''
 endfu
+
