@@ -49,6 +49,9 @@ fu! completion#spel#fix() abort "{{{1
         endfor
 
         if found_a_badword
+            if exists('#User#add_to_undolist_i')
+                doautocmd <nomodeline> User add_to_undolist_i
+            endif
             let new_line = substitute(getline('.'), '\<'.badword.'\>', suggestion, 'g')
             call timer_start(0, {-> setline(line('.'), new_line)})
         endif
