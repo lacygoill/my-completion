@@ -1006,8 +1006,8 @@ fu! s:next_method() abort
 "}}}
 
         while s:i !=# -1
-        \&&   s:i !=# s:N
-        \&&   !s:can_complete()
+        \ &&  s:i !=# s:N
+        \ &&  !s:can_complete()
             let s:i += s:dir
         endwhile
     endif

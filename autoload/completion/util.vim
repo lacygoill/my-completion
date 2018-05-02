@@ -8,9 +8,9 @@ fu! completion#util#custom_isk(chars) abort "{{{1
         augroup my_custom_isk
             au! * <buffer>
             au CompleteDone <buffer> let &l:isk = get(b:, 'isk_save', &l:isk)
-                                  \| unlet! b:isk_save
-                                  \| exe 'au! my_custom_isk'
-                                  \| aug! my_custom_isk
+                                 \ | unlet! b:isk_save
+                                 \ | exe 'au! my_custom_isk'
+                                 \ | aug! my_custom_isk
         augroup END
     catch
         return lg#catch_error()
