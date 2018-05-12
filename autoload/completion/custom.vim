@@ -28,7 +28,7 @@ fu! completion#custom#signature() abort "{{{1
     endif
 
     let new_line = substitute(getline('.'), func_name.'\%[()]', signature, '')
-    call timer_start(0, {-> setline(line('.'), new_line)})
+    call timer_start(0, {-> setline('.', new_line)})
     return ''
 endfu
 
