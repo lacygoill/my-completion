@@ -92,13 +92,13 @@ let g:autoloaded_completion = 1
 " you REALLY need it.
 "}}}
 let s:mc_chain = get(s:, 'mc_chain', [
-\                                      'file',
-\                                      'keyp',
-\                                      'dict',
-\                                      'ulti',
-\                                      'abbr',
-\                                      'c-p',
-\                                    ])
+    \ 'file',
+    \ 'keyp',
+    \ 'dict',
+    \ 'ulti',
+    \ 'abbr',
+    \ 'c-p',
+    \ ])
 
 " Internal state
 let s:methods = get(b:, 'mc_chain', s:mc_chain)
