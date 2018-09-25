@@ -56,9 +56,9 @@ ino         <silent>          <plug>(MC_c-o)  <c-o>
 imap  <expr><silent>  <plug>(MC_next_method)  completion#verify_completion()
 imap  <expr><silent>  <plug>(MC_Auto)         completion#complete(1)
 
-nno  <silent><unique>  [om                    :<c-u>call completion#enable_auto()<cr>
-nno  <silent><unique>  ]om                    :<c-u>call completion#disable_auto()<cr>
-nno  <silent><unique>  com                    :<c-u>call completion#toggle_auto()<cr>
+nno  <silent><unique>  [om  :<c-u>call completion#enable_auto()<cr>
+nno  <silent><unique>  ]om  :<c-u>call completion#disable_auto()<cr>
+nno  <silent><unique>  com  :<c-u>call completion#toggle_auto()<cr>
 
 " improved default methods {{{2
 " C-p         &friends {{{3
