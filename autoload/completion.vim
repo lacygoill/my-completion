@@ -407,7 +407,7 @@ fu! s:act_on_pumvisible() abort
     " C-p, even if the popup menu  is visible.  The latter should prevent custom
     " mappings from interfering but it doesn't always.
     " Reproduce:
-    "             let s:mc_chain = [ 'c-p' ]
+    "             let s:mc_chain = ['c-p']
     "             ino <c-p> foobar
     "             setl cot=menu,noinsert
     return s:auto || get(s:methods, s:i, '') is# 'spel'
@@ -772,7 +772,7 @@ fu! completion#enable_auto() abort
         " Because it could make autocompletion hit Tab indefinitely.
         " Here's how to reproduce this bug:
         "
-        "     1. let s:mc_chain = [ 'keyn', 'cmd' ]
+        "     1. let s:mc_chain = ['keyn', 'cmd']
         "
         "     2. open a buffer and write `test`
         "
@@ -1151,14 +1151,14 @@ endfu
 " setup_dict_option {{{1
 
 fu! s:setup_dict_option() abort
-    "                                              ┌─ there should be at least 2 characters in front of the cursor
-    "                                              │  otherwise, `C-x C-k` could try to complete a text like:
-    "                                              │      #!
-    "                                              │
-    "                                              │  … which would take a long time, because it's not a word
-    "                                              │  so, all the words of the dictionary could follow/match
-    "                                              │
-    if index([ 'en', 'fr' ], &l:spelllang) >= 0 && strchars(matchstr(getline('.'), '\k\+\%'.col('.').'c'), 1) >= 2
+    "                                            ┌ there should be at least 2 characters in front of the cursor
+    "                                            │  otherwise, `C-x C-k` could try to complete a text like:
+    "                                            │      #!
+    "                                            │
+    "                                            │ ... which would take a long time, because it's not a word
+    "                                            │ so, all the words of the dictionary could follow/match
+    "                                            │
+    if index(['en', 'fr'], &l:spelllang) >= 0 && strchars(matchstr(getline('.'), '\k\+\%'.col('.').'c'), 1) >= 2
         let &l:dictionary = &l:spelllang is# 'en' ? '/usr/share/dict/words' : '/usr/share/dict/french'
         return 1
     else
