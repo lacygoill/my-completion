@@ -41,7 +41,7 @@ fu! completion#file#complete() abort
     "
     "           1. reset `cur_path`, giving it the value:
     "
-    "                   matchstr(cur_path, '\s\zs\f.*$', 1)
+    "                   matchstr(cur_path, '\s\zs\f.*$')
     "
     "              This new value removes the text from the beginning of the
     "              string up to the first sequence of whitespace (whitespace
@@ -65,7 +65,7 @@ fu! completion#file#complete() abort
     "              expansion will also fail, and at the end of the last
     "              iteration, `cur_path` will be empty, because:
     "
-    "                  matchstr('dir', '\s\zs\f.*$', 1) is# ''
+    "                  matchstr('dir', '\s\zs\f.*$') is# ''
     "
     " "}}}
 
@@ -147,7 +147,7 @@ fu! completion#file#complete() abort
             " from the beginning of the path up to the first sequence of
             " whitespace (whitespace excluded), or up to the first equal sign.
 
-            let cur_path = matchstr(cur_path, '[ \t=]\zs\f.*$', 1)
+            let cur_path = matchstr(cur_path, '[ \t=]\zs\f.*$')
             "                                      │
             "                                      └─ try to also complete a path
             "                                         after an equal sign
