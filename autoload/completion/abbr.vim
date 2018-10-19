@@ -52,14 +52,13 @@ fu! completion#abbr#complete() abort
     "             s:abbrev_rhs(v.rhs)
 
     let matching_abbrev = map(
-                        \      filter(copy(s:ABBREV), { i,v -> stridx(v.lhs, word_to_complete) ==# 0 }),
-                        \      { i,v -> {
-                        \         'word' : v.lhs,
-                        \         'menu' : stridx(s:abbrev_rhs(v.rhs), 'expand_') !=# -1
-                        \                  ?    matchstr(s:abbrev_rhs(v.rhs), '.*,''\zs.*\ze'')')
-                        \                  :    s:abbrev_rhs(v.rhs)
-                        \       } }
-                        \    )
+                        \     filter(copy(s:ABBREV), {i,v -> stridx(v.lhs, word_to_complete) ==# 0}),
+                        \     {i,v -> {
+                        \        'word' : v.lhs,
+                        \        'menu' : stridx(s:abbrev_rhs(v.rhs), 'expand_') !=# -1
+                        \                 ?    matchstr(s:abbrev_rhs(v.rhs), '.*,''\zs.*\ze'')')
+                        \                 :    s:abbrev_rhs(v.rhs)
+                        \ }})
 
     let from_where = col('.') - len(word_to_complete)
 
