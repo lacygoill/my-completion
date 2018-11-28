@@ -15,7 +15,7 @@ fu! completion#custom#easy_c_x_c_p() abort "{{{1
         "}}}
         au TextChangedP * let &cot = string(s:cot_save)
             \ | unlet! s:cot_save
-            \ | au! restore_cot
+            \ | exe 'au! restore_cot'
             \ | aug! restore_cot
     augroup END
     return "\<c-x>\<c-p>"
