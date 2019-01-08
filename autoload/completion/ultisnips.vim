@@ -39,8 +39,7 @@ fu! completion#ultisnips#complete() abort
 
     " keys(g:current_ulti_dict_info)    →    all valid triggers in the buffer{{{
     "
-    " filter(keys(…), contain_word)     →    all triggers containing the word
-    "                                        before the cursor
+    " filter(keys(…), contain_word)     →    all triggers containing the word before the cursor
 
     " `complete()` waits for 2 arguments: {startcol} and {matches}
     " {matches} MUST be a list.
@@ -74,9 +73,9 @@ fu! completion#ultisnips#complete() abort
     "         • empty    flag; when non-zero this item will be added even when
     "                    it is an empty string
 
-    " map(filter(…),…)                  →    convert the triggers into
-    "                                        dictionaries with additional
-    "                                        info (description)
+    " map(filter(…),…)
+    " →
+    " convert the triggers into dictionaries with additional info (description)
     "
     " The output of `map(…)` is a valid list to pass to `complete()`, because
     " its dictionaries contain only valid keys:
