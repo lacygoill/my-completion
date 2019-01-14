@@ -7,10 +7,16 @@ fu! completion#util#custom_isk(chars) abort "{{{1
         endfor
         augroup my_custom_isk
             au! * <buffer>
-            au CompleteDone <buffer> let &l:isk = get(b:, 'isk_save', &l:isk)
-                                 \ | unlet! b:isk_save
-                                 \ | exe 'au! my_custom_isk'
-                                 \ | aug! my_custom_isk
+            " Why `CursorMoved` and `TextChanged`?{{{
+            "
+            " If  you   press  `C-c`   while  the   completion  menu   is  open,
+            " `CompleteDone` is not fired.
+            " But `CursorMoved` and `TextChanged` are fired.
+            "}}}
+            au CursorMoved,TextChanged,CompleteDone <buffer> let &l:isk = get(b:, 'isk_save', &l:isk)
+                \ | unlet! b:isk_save
+                \ | exe 'au! my_custom_isk'
+                \ | aug! my_custom_isk
         augroup END
     catch
         return lg#catch_error()
