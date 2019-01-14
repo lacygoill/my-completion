@@ -13,7 +13,7 @@ fu! completion#custom#easy_c_x_c_p() abort "{{{1
         " I prefer an  event which will be fired for  all completions, including
         " the very first one, and immediately (not after pressing another key).
         "}}}
-        au TextChangedP * let &cot = string(s:cot_save)
+        au CursorMoved,TextChanged,TextChangedP * let &cot = string(s:cot_save)
             \ | unlet! s:cot_save
             \ | exe 'au! restore_cot'
             \ | aug! restore_cot
