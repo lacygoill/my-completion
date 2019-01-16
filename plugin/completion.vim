@@ -134,7 +134,7 @@ ino  <silent><unique>  <c-x><c-t>  <c-r>=completion#util#custom_isk(' -')<cr><c-
 "         2. press `C-x C-s`
 "         3. call matchadd({group}, {pattern} [, {priority} [, {id} [, {dict}]]])
 
-ino  <expr><silent><unique>  <c-x>s  completion#custom#signature()
+noremap!  <expr><unique>  <c-x>s  completion#custom#signature(mode(1))
 
 " C-z         easy C-x C-p {{{3
 
