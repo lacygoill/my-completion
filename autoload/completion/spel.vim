@@ -15,8 +15,8 @@ endfu
 
 fu! completion#spel#fix() abort "{{{1
     " don't break undo sequence:
-    "     • it seems messed up (performs an undo then a redo which gets us in a weird state)
-    "     • not necessary here, Vim already breaks the undo sequence
+    "     - it seems messed up (performs an undo then a redo which gets us in a weird state)
+    "     - not necessary here, Vim already breaks the undo sequence
 
     " Alternative:
     "         let winview = winsaveview()

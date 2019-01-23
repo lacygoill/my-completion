@@ -620,9 +620,9 @@ fu! completion#complete(dir) abort
 
     "                                ┌ if the cursor is right at the beginning of a line:
     "                                │
-    "                                │       • col('.') - 2                 will be negative
-    "                                │       • getline('.')[:col('.')-2]    will give us the whole line
-    "                                │       • matchstr(…)                  will give us the last word on the line
+    "                                │       - col('.') - 2                 will be negative
+    "                                │       - getline('.')[:col('.')-2]    will give us the whole line
+    "                                │       - matchstr(…)                  will give us the last word on the line
     "                    ┌───────────┤
     if s:word !~ '\k' || col('.') <= 1
         return (a:dir > 0 ? "\<plug>(MC_tab)" : "\<plug>(MC_c-d)")

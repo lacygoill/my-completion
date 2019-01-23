@@ -157,10 +157,10 @@ set complete=.,w,b
 "
 " We add 'menuone' for 2 reasons:
 "
-"     • the menu allows us to cancel  a completion if the inserted text is not
+"     - the menu allows us to cancel  a completion if the inserted text is not
 "       the one we wanted
 "
-"     • when  there's   only  1  candidate,  the  menu  will   not  open  and
+"     - when  there's   only  1  candidate,  the  menu  will   not  open  and
 "       vim-completion will  think that the  current method has failed,  then will
 "       immediately try the  next one; because of  this we could end up  with 2 or
 "       more completed texts
@@ -180,25 +180,25 @@ set cot+=menuone
 " Warning:
 " So, make sure that you don't have 'noinsert' without 'menuone' in 'cot':
 "
-"     • +noinsert -menuone    ✘ ALL completion mechanisms broken when there's only 1 candidate
-"     • -noinsert -menuone    ✘ vim-completion broken            "
-"     • +noinsert +menuone    ✔
-"     • -noinsert +menuone    ✔
+"     * +noinsert -menuone    ✘ ALL completion mechanisms broken when there's only 1 candidate
+"     * -noinsert -menuone    ✘ vim-completion broken            "
+"     * +noinsert +menuone    ✔
+"     * -noinsert +menuone    ✔
 
 " noinsert {{{3
 "
 " We remove 'noinsert' for 3 reasons:
 "
-"     • it breaks the repetition of C-x C-p
+"     - it breaks the repetition of C-x C-p
 "
 "       The  first invocation  works, but  the  consecutive ones  don't work  as
 "       expected.  Indeed, we  have to hit enter to insert  a candidate from the
 "       menu.  This CR breaks the chaining of C-x C-p.
 "
-"     • if we remove 'menuone', it  would break all completion mechanisms when
+"     - if we remove 'menuone', it  would break all completion mechanisms when
 "       there's only 1 candidate
 "
-"     • it's annoying while in auto-completion mode
+"     - it's annoying while in auto-completion mode
 "
 "       vim-completion already makes sure that  'noinsert' is not in 'cot' while
 "       in auto mode, but still …
