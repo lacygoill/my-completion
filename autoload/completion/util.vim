@@ -1,5 +1,6 @@
 fu! completion#util#custom_isk(chars) abort "{{{1
-    let b:isk_save = &l:isk
+    let s:isk_save = &l:isk
+    let s:bufnr = bufnr('%')
 
     try
         for char in split(a:chars, '\zs')
@@ -13,9 +14,9 @@ fu! completion#util#custom_isk(chars) abort "{{{1
             " `CompleteDone` is not fired.
             " But `CursorMoved` and `TextChanged` are fired.
             "}}}
-            au CursorMoved,TextChanged,CompleteDone <buffer>
-                \ sil! let &l:isk = get(b:, 'isk_save', &l:isk)
-                \ | unlet! b:isk_save
+            au CursorMoved,TextChanged,CompleteDone *
+                \ sil! call setbufvar(s:bufnr, '&isk', s:isk_save)
+                \ | unlet! s:bufnr s:isk_save
                 \ | exe 'au! my_custom_isk' | aug! my_custom_isk
         augroup END
     catch
