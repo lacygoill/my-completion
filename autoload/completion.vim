@@ -13,8 +13,8 @@ let g:autoloaded_completion = 1
 "
 "     matchstr(getline('.'), '.\%'.col('.').'c') =~# '\v\f'
 "
-" to handle the case where the character before the cursor is multibyte?
-" A multibyte character can be in 'isf'.
+" to handle the case where the character before the cursor is multi-byte?
+" A multi-byte character can be in 'isf'.
 
 " FIXME: {{{1
 "
