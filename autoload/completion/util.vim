@@ -11,9 +11,13 @@ fu! completion#util#custom_isk(chars) abort "{{{1
         " If you press  `C-c` while the completion menu  is open, `CompleteDone`
         " is not fired; but `CursorMoved` and `TextChanged` are fired.
         "}}}
+        unlet! s:one_shot
         au CursorMoved,TextChanged,CompleteDone * ++once
-            \ sil! call setbufvar(s:bufnr, '&isk', s:isk_save)
-            \ | unlet! s:bufnr s:isk_save
+            \ if get(s:, 'one_shot', 1)
+            \ |     let s:one_shot = 0
+            \ |     sil! call setbufvar(s:bufnr, '&isk', s:isk_save)
+            \ |     unlet! s:bufnr s:isk_save
+            \ | endif
     catch
         return lg#catch_error()
     " Do NOT add a finally clause to restore 'isk'.
