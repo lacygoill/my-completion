@@ -11,10 +11,10 @@ fu! completion#util#custom_isk(chars) abort "{{{1
         " If you press  `C-c` while the completion menu  is open, `CompleteDone`
         " is not fired; but `CursorMoved` and `TextChanged` are fired.
         "}}}
-        unlet! s:one_shot
+        unlet! s:did_shoot
         au CursorMoved,TextChanged,CompleteDone * ++once
-            \ if get(s:, 'one_shot', 1)
-            \ |     let s:one_shot = 0
+            \ if !get(s:, 'did_shoot', 0)
+            \ |     let s:did_shoot = 1
             \ |     sil! call setbufvar(s:bufnr, '&isk', s:isk_save)
             \ |     unlet! s:bufnr s:isk_save
             \ | endif
