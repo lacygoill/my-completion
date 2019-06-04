@@ -32,9 +32,9 @@ fu! completion#custom#signature(mode) abort "{{{1
 
     let new_line = substitute(line, func_name.'\%[()]', signature, '')
     if a:mode is# 'i'
-        call timer_start(0, {-> setline('.', new_line)})
+        call setline('.', new_line)
     else
-        return "\<c-e>\<c-u>".new_line
+        return new_line
     endif
     return ''
 endfu
