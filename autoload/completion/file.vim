@@ -4,7 +4,6 @@ fu! completion#file#complete() abort
     " Remove curly brackets around possible environment variables.
     let text_before_cursor = substitute(text_before_cursor, '${\(\w\+\)}', '$\1', 'g')
     let cur_path = matchstr(text_before_cursor, '\f\%(\f\|\s\)*$')
-
     " Why a while loop? {{{
     "
     " Consider this:
@@ -57,9 +56,7 @@ fu! completion#file#complete() abort
     "             matchstr('dir', '\s\zs\f.*$') is# ''
     " "}}}
     while !empty(cur_path)
-
-        " Why:
-        "     cur_path isnot# '~' ? '*' : ''
+        " Why: `cur_path isnot# '~' ? '*' : ''`?{{{
         "
         " If `cur_path` is different from `~`, for example if it's:
         "
@@ -75,11 +72,8 @@ fu! completion#file#complete() abort
         " filesystem whose name  begins with `~`. We need to  expand `~` itself,
         " into `/home/user`."}}}
         let entries = glob(cur_path . (cur_path isnot# '~' ? '*' : ''), 0, 1, 1)
-
         if !empty(entries)
-            " Why:
-            "
-            "     col('.') - len(fnamemodify(cur_path, ':t'))
+            " Why: `col('.') - len(fnamemodify(cur_path, ':t'))`{{{
             "
             " ... instead of:
             "
@@ -91,12 +85,9 @@ fu! completion#file#complete() abort
             " So we need to tell `complete()` that the selected entry in
             " the menu will replace only the last component of the current
             " path.
-
+            "}}}
             let from_where = col('.') - len(fnamemodify(cur_path, ':t'))
-
-            " Why:
-            "
-            "     cur_path isnot# '~' ? fnamemodify(v, ':t') : v
+            " Why: `cur_path isnot# '~' ? fnamemodify(v, ':t') : v`?{{{
             "
             " Because, if `cur_path` is `~`, then `entries` is:
             "
@@ -106,13 +97,12 @@ fu! completion#file#complete() abort
             " Usually, we want to complete only the last component of a path.
             " But here, we don't want to complete only the last component of
             " `/home/user`, which is `user`, we want the whole path `/home/user`.
-
+            "}}}
             call complete(from_where,
                 \ map(entries, {i,v ->
                 \ (cur_path isnot# '~' ? fnamemodify(v, ':t') : v) . (isdirectory(v) ? '/' : '')}))
             return ''
         else
-
             " If the expansion failed, try a shorter path by removing the text
             " from the beginning of the path up to the first sequence of
             " whitespace (whitespace excluded), or up to the first equal sign.
@@ -122,7 +112,6 @@ fu! completion#file#complete() abort
             "                                        after an equal sign
         endif
     endwhile
-
     " If `cur_path` is empty, return nothing.
     return ''
 endfu
