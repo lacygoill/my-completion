@@ -5,10 +5,10 @@ let g:autoloaded_completion#abbr = 1
 
 let s:TABLE  = execute('iab')
 let s:LINES  = reverse(split(s:TABLE, '\n'))
-let s:ABBREV = map(s:LINES, { i,v -> {
-\                                      'lhs' : matchstr(v, '\vi\s+\zs\w+'),
-\                                      'rhs' : matchstr(v, '\v\*\s+\zs.*'),
-\                                    }
+let s:ABBREV = map(s:LINES, {_,v -> {
+\                                     'lhs' : matchstr(v, '\vi\s+\zs\w+'),
+\                                     'rhs' : matchstr(v, '\v\*\s+\zs.*'),
+\                                   }
 \                           })
 
 fu! s:abbrev_rhs(rhs) abort
@@ -52,8 +52,8 @@ fu! completion#abbr#complete() abort
     "             s:abbrev_rhs(v.rhs)
 
     let matching_abbrev = map(
-                        \     filter(copy(s:ABBREV), {i,v -> stridx(v.lhs, word_to_complete) ==# 0}),
-                        \     {i,v -> {
+                        \     filter(copy(s:ABBREV), {_,v -> stridx(v.lhs, word_to_complete) ==# 0}),
+                        \     {_,v -> {
                         \        'word' : v.lhs,
                         \        'menu' : stridx(s:abbrev_rhs(v.rhs), 'expand_') !=# -1
                         \                 ?    matchstr(s:abbrev_rhs(v.rhs), '.*,''\zs.*\ze'')')

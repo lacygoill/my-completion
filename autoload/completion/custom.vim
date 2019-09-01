@@ -23,7 +23,7 @@ fu! completion#custom#signature(mode) abort "{{{1
     endif
 
     let signature = get(filter(readfile($VIMRUNTIME.'/doc/eval.txt'),
-        \ {i,v -> v =~ '^'.func_name.'('}), 0, '')
+        \ {_,v -> v =~ '^'.func_name.'('}), 0, '')
     " needed, for example, for `deepcopy()`
     let signature = matchstr(signature, '.\{-})')
     if empty(signature)

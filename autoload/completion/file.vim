@@ -99,7 +99,7 @@ fu! completion#file#complete() abort
             " `/home/user`, which is `user`, we want the whole path `/home/user`.
             "}}}
             call complete(from_where,
-                \ map(entries, {i,v ->
+                \ map(entries, {_,v ->
                 \ (cur_path isnot# '~' ? fnamemodify(v, ':t') : v) . (isdirectory(v) ? '/' : '')}))
             return ''
         else
