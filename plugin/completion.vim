@@ -226,7 +226,7 @@ set cot-=noinsert
 set cot-=noselect
 
 " preview {{{3
-"
+
 " When we  hit `C-x C-g` by  accident, the unicode.vim plugin  opens the preview
 " window (digraph completion), and we have to close it manually.  It's annoying.
 "
@@ -234,7 +234,8 @@ set cot-=noselect
 " unicode.vim  plugin issue  with an  autocmd  which closes  the preview  window
 " automatically each time we complete a text:
 "
-"         au CompleteDone * if pumvisible() ==# 0 | pclose | endif
+"     au CompleteDone * if pumvisible() ==# 0 | pclose | endif
+
 set cot-=preview
 
 " infercase {{{2

@@ -534,13 +534,12 @@ fu! s:act_on_textchanged() abort
         "
         " Without it, sometimes, we have an error such as:
         "
-        "     Error detected while processing function <SNR>67_act_on_textchanged:
-        "     line   81:
-        "     E684: list index out of range: 0
-        "     Error detected while processing function <SNR>67_act_on_textchanged:
-        "     line   81:
-        "     E15: Invalid expression: s:methods[s:i] is# 'file' && matchstr(getline('.'), '.\%'.col('.').'c') =~# '\v\f'
-        "
+        "     Error detected while processing function <SNR>67_act_on_textchanged:~
+        "     line   81:~
+        "     E684: list index out of range: 0~
+        "     Error detected while processing function <SNR>67_act_on_textchanged:~
+        "     line   81:~
+        "     E15: Invalid expression: s:methods[s:i] is# 'file' && matchstr(getline('.'), '.\%'.col('.').'c') =~# '\v\f'~
         ""}}}
 
         if get(s:methods, s:i, '') is# 'file' && matchstr(getline('.'), '.\%'.col('.').'c') =~# '\v\f'
@@ -618,12 +617,13 @@ fu! completion#complete(dir) abort
     "                                                  │
     let s:word = matchstr(getline('.')[:col('.')-2], '\S\+$')
 
-    "                                ┌ if the cursor is right at the beginning of a line:
-    "                                │
-    "                                │       - col('.') - 2                 will be negative
-    "                                │       - getline('.')[:col('.')-2]    will give us the whole line
-    "                                │       - matchstr(…)                  will give us the last word on the line
-    "                    ┌───────────┤
+    "                    ┌ if the cursor is right at the beginning of a line:
+    "                    │
+    "                    │    - col('.') - 2                 will be negative
+    "                    │    - getline('.')[:col('.')-2]    will give us the whole line
+    "                    │    - matchstr(…)                  will give us the last word on the line
+    "                    │
+    "                    ├───────────┐
     if s:word !~ '\k' || col('.') <= 1
         return (a:dir > 0 ? "\<plug>(MC_tab)" : "\<plug>(MC_c-d)")
     endif
