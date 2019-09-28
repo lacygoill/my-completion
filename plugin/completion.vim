@@ -70,19 +70,9 @@ nno  <silent><unique>  com  :<c-u>call completion#toggle_auto()<cr>
 "
 " So we invoke this function to temporarily add it.
 "}}}
-" What's the purpose of `completion#util#hyphen_is_already_in_isk()`?{{{
-"
-" Some default  ftplugins DO include  `-` in 'isk';  we shouldn't remove  it for
-" them.
-"
-" How to find which default ftplugins include `-` in 'isk'?
-"
-"     :noa vim /\vsetl%[ocal]\s+isk%[eyword]\+?\=.*-%(\@|\w)@!/gj $VIMRUNTIME/**/*.vim | cw
-"}}}
-
-ino  <silent><unique>  <c-p>       <c-r>=completion#util#custom_isk(index(completion#util#hyphen_is_already_in_isk(), &ft) ==# -1 ? '-' : '')<cr><c-p>
-ino  <silent><unique>  <c-x><c-n>  <c-r>=completion#util#custom_isk(index(completion#util#hyphen_is_already_in_isk(), &ft) ==# -1 ? '-' : '')<cr><c-x><c-n>
-ino  <silent><unique>  <c-x><c-p>  <c-r>=completion#util#custom_isk(index(completion#util#hyphen_is_already_in_isk(), &ft) ==# -1 ? '-' : '')<cr><c-x><c-p>
+ino  <silent><unique>  <c-p>       <c-r>=completion#util#custom_isk('-')<cr><c-p>
+ino  <silent><unique>  <c-x><c-n>  <c-r>=completion#util#custom_isk('-')<cr><c-x><c-n>
+ino  <silent><unique>  <c-x><c-p>  <c-r>=completion#util#custom_isk('-')<cr><c-x><c-p>
 
 " C-x C-]     tag {{{3
 
@@ -113,8 +103,7 @@ ino  <expr><silent><unique>  <c-x><c-s>  completion#spel#fix()
 " Thus, if a synonym contains 3 words, the function populates the popup
 " menu with 3 entries.
 
-" Solution:
-"         http://stackoverflow.com/a/21132116
+" Solution: http://stackoverflow.com/a/21132116
 "
 " Create a  wrapper around C-x C-t  to temporarily include the  space and hyphen
 " characters in 'isk'. We'll  remove them as soon as the  completion is done (or
@@ -124,7 +113,7 @@ ino  <expr><silent><unique>  <c-x><c-s>  completion#spel#fix()
 " last word before the cursor.
 
 ino  <silent><unique>  <c-x><c-t>  <c-r>=completion#util#custom_isk(' -')<cr><c-x><c-t>
-
+"}}}2
 " new methods {{{2
 " C-x s       function Signature {{{3
 
@@ -155,29 +144,29 @@ cno          <unique>  <c-x>s  <c-\>ecompletion#custom#signature(mode(1))<cr>
 " Inspiration:
 " https://www.reddit.com/r/vim/comments/78h4pr/plugins_andor_keybindings_you_couldnt_live_without/dou7z5n/
 ino  <expr><silent><unique>  <c-z>  completion#custom#easy_c_x_c_p()
-
+"}}}1
 " Options {{{1
 " complete {{{2
-"
+
 " where should Vim look when using C-n/C-p
 set complete=.,w,b
 "            │ │ │
-"            │ │ └─ buffers in buffer list
-"            │ └─ other windows
-"            └─ current buffer
+"            │ │ └ buffers in buffer list
+"            │ └ other windows
+"            └ current buffer
 
 " completeopt {{{2
 " menuone {{{3
 "
 " We add 'menuone' for 2 reasons:
 "
-"     - the menu allows us to cancel  a completion if the inserted text is not
-"       the one we wanted
+"    - the menu allows us to cancel  a completion if the inserted text is not
+"      the one we wanted
 "
-"     - when  there's   only  1  candidate,  the  menu  will   not  open  and
-"       vim-completion will  think that the  current method has failed,  then will
-"       immediately try the  next one; because of  this we could end up  with 2 or
-"       more completed texts
+"    - when  there's   only  1  candidate,  the  menu  will   not  open  and
+"      vim-completion will  think that the  current method has failed,  then will
+"      immediately try the  next one; because of  this we could end up  with 2 or
+"      more completed texts
 set cot+=menuone
 
 " Issue1:
@@ -203,31 +192,31 @@ set cot+=menuone
 "
 " We remove 'noinsert' for 3 reasons:
 "
-"     - it breaks the repetition of C-x C-p
+"    - it breaks the repetition of C-x C-p
 "
-"       The  first invocation  works, but  the  consecutive ones  don't work  as
-"       expected.  Indeed, we  have to hit enter to insert  a candidate from the
-"       menu.  This CR breaks the chaining of C-x C-p.
+"      The  first invocation  works,  but  the consecutive  ones  don't work  as
+"      expected.  Indeed, we have to press  enter to insert a candidate from the
+"      menu.  This CR breaks the chaining of C-x C-p.
 "
-"     - if we remove 'menuone', it  would break all completion mechanisms when
-"       there's only 1 candidate
+"    - if we remove 'menuone', it  would break all completion mechanisms when
+"      there's only 1 candidate
 "
-"     - it's annoying while in auto-completion mode
+"    - it's annoying while in auto-completion mode
 "
-"       vim-completion already makes sure that  'noinsert' is not in 'cot' while
-"       in auto mode, but still …
+"      vim-completion already makes sure that  'noinsert' is not in 'cot' while
+"      in auto mode, but still...
 set cot-=noinsert
 
 " noselect {{{3
 "
-" Do NOT  add 'noselect', because we  use a completion system  which would break
+" Do *not* add 'noselect', because we  use a completion system which would break
 " the undo sequence when 'noselect' is in  'cot'.  It means that some text would
 " be lost when we use the dot command to repeat a completion.
 set cot-=noselect
 
 " preview {{{3
 
-" When we  hit `C-x C-g` by  accident, the unicode.vim plugin  opens the preview
+" When we press `C-x C-g` by  accident, the unicode.vim plugin opens the preview
 " window (digraph completion), and we have to close it manually.  It's annoying.
 "
 " If one day, we  need to add 'preview' in 'cot' again, we  could get around the
@@ -237,18 +226,21 @@ set cot-=noselect
 "     au CompleteDone * if pumvisible() ==# 0 | pclose | endif
 
 set cot-=preview
-
+"}}}2
 " infercase {{{2
-"
-" Add some intelligence regarding the case of a text which is completed.
+
+" Add some intelligence regarding the case of a text which is completed.{{{
 "
 " For example, suppose we have the word 'WeirdCaseWord' in a buffer.
-" We type:    weirdc    … and press Tab to complete,
-"                         with `noinfercase`, we get `WeirdCaseWord`;
-"                         with `infercase`  , we get `weirdcaseword`.
+" We insert `weirdc` and press Tab to complete:
+"
+"    - with `noinfercase`, we get `WeirdCaseWord`
+"    - with `infercase`  , we get `weirdcaseword`
+"
+" ---
 "
 " Commented because I find it annoying at the moment.
 " Besides,  it's a  buffer-local option,  so it  should be  set from  a filetype
 " plugin.
-"
-"         set infercase
+"}}}
+"     set infercase

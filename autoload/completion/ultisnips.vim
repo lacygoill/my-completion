@@ -1,5 +1,4 @@
 fu! completion#ultisnips#complete() abort
-
     " UltiSnips#SnippetsInCurrentScope() is a public function provided by the{{{
     " UltiSnips plugin.
 
@@ -13,19 +12,16 @@ fu! completion#ultisnips#complete() abort
     " `g:current_ulti_dict_info` where the info will be stored.
     " The contents of the dictionary is as follows:
     "
-    "       - keys      triggers
-    "       - values    dictionaries, each with 2 keys:
+    "    - keys      triggers
+    "    - values    dictionaries, each with 2 keys:
     "
-    "                           - file location where the snippet is defined
-    "                           - optional description included in the snippet
+    "        * file location where the snippet is defined
+    "        * optional description included in the snippet
     "
     " By testing if the output of `UltiSnips#SnippetsInCurrentScope()` is an
     " empty dictionary, we also create the variable `g:current_ulti_dict_info`.
 "}}}
-
-    if empty(UltiSnips#SnippetsInCurrentScope(1))
-        return ''
-    endif
+    if empty(UltiSnips#SnippetsInCurrentScope(1)) | return '' | endif
 
     let word_to_complete = matchstr(strpart(getline('.'), 0, col('.') - 1), '\S\+$')
 
@@ -51,27 +47,27 @@ fu! completion#ultisnips#complete() abort
     " The dictionaries can only contain special items.
     " They are all optional, except 'word' which is mandatory:
     "
-    "         - word     the text that will be inserted (MANDATORY)
-    "         - abbr     abbr; short form of the word to be displayed in the menu
-    "         - menu     extra text for the popup menu, displayed after "word"/"abbr"
-    "         - info     more info for the preview window
-    "         - kind     single letter indicating the type of completion
+    "    - word     the text that will be inserted (MANDATORY)
+    "    - abbr     abbr; short form of the word to be displayed in the menu
+    "    - menu     extra text for the popup menu, displayed after "word"/"abbr"
+    "    - info     more info for the preview window
+    "    - kind     single letter indicating the type of completion
     "
-    "                            v	variable
-    "                            f	function or method
-    "                            m	member of a struct or class
-    "                            t	typedef
-    "                            d	#define or macro
+    "         v	variable
+    "         f	function or method
+    "         m	member of a struct or class
+    "         t	typedef
+    "         d	#define or macro
     "
-    "         - icase    flag; when non-zero, case is to be ignored when
-    "                          comparing items to be equal; w
+    "    - icase    flag; when non-zero, case is to be ignored when
+    "                     comparing items to be equal; w
     "
-    "         - dup      flag; when non-zero the item will be added even when
-    "                    another one with the same word is already present in
-    "                    the list
+    "    - dup      flag; when non-zero the item will be added even when
+    "               another one with the same word is already present in
+    "               the list
     "
-    "         - empty    flag; when non-zero this item will be added even when
-    "                    it is an empty string
+    "    - empty    flag; when non-zero this item will be added even when
+    "               it is an empty string
 
     " map(filter(…),…)
     " →
@@ -80,9 +76,9 @@ fu! completion#ultisnips#complete() abort
     " The output of `map(…)` is a valid list to pass to `complete()`, because
     " its dictionaries contain only valid keys:
     "
-    "         - word
-    "         - menu
-    "         - dup
+    "    - word
+    "    - menu
+    "    - dup
     "
     " Why do we add the flag `dup` to each dictionary?
     " Because, we could have 2 snippets with the same trigger but different

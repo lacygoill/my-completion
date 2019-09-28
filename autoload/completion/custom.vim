@@ -8,8 +8,8 @@ fu! completion#custom#easy_c_x_c_p() abort "{{{1
     " The latter will be fired when the candidate has been accepted.
     " This could happen if we press Enter, or Space, or C-z again.
     "
-    " I prefer an  event which will be fired for  all completions, including
-    " the very first one, and immediately (not after pressing another key).
+    " I prefer an  event which will be fired for  all completions, including the
+    " very first one, and immediately (not after pressing another key).
     "}}}
     au TextChangedP * ++once sil! let &cot = s:cot_save | unlet! s:cot_save
     return "\<c-x>\<c-p>"

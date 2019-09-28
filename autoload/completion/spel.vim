@@ -26,7 +26,7 @@ fu! completion#spel#fix() abort "{{{1
     "     norm! `^
     "     call winrestview(winview)
 
-    let spell_save = &l:spell
+    let [spell_save, winid, bufnr] = [&l:spell, win_getid(), bufnr('%')]
     setl spell
     try
         let before_cursor = matchstr(getline('.'), '.*\%'.col('.').'c')
@@ -60,7 +60,10 @@ fu! completion#spel#fix() abort "{{{1
     catch
         return lg#catch_error()
     finally
-        let &l:spell = spell_save
+        if winbufnr(winid) == bufnr
+            let [tabnr, winnr] = win_id2tabwin(winid)
+            call settabwinvar(tabnr, winnr, '&spell', spell_save)
+        endif
     endtry
     " Break undo sequence before `setline()` edits the line, so that we can undo
     " if the fix is wrong.

@@ -45,8 +45,8 @@ fu! completion#abbr#complete() abort
     "     if so, extract the expansion
     "             matchstr(s:abbrev_rhs(v.rhs), '.*,''\zs.*\ze'')')
     "                                           │
-    "                                           └─ describe the text after a comma,
-    "                                              between single quotes, and before a parenthesis
+    "                                           └ describe the text after a comma,
+    "                                             between single quotes, and before a parenthesis
     "
     "     otherwise, let it be
     "             s:abbrev_rhs(v.rhs)
