@@ -80,11 +80,10 @@ fu! completion#file#complete() abort
             "     col('.') - len(cur_path)
             "
             " ...?
-            " Because, we don't complete the whole path. The candidates
-            " in the menu will only match the last component of a path.
-            " So we need to tell `complete()` that the selected entry in
-            " the menu will replace only the last component of the current
-            " path.
+            " Because, we don't complete the whole path. The matches in the menu
+            " will only match the last component of a path.
+            " So we  need to tell  `complete()` that  the selected entry  in the
+            " menu will replace only the last component of the current path.
             "}}}
             let from_where = col('.') - len(fnamemodify(cur_path, ':t'))
             " Why: `cur_path isnot# '~' ? fnamemodify(v, ':t') : v`?{{{

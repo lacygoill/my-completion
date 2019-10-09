@@ -1,18 +1,17 @@
 fu! completion#custom#easy_c_x_c_p() abort "{{{1
-    let s:cot_save = &cot
-    set cot-=noinsert
-    " Why not CompleteDone?{{{
-    "
-    " The first  time we  press `C-z`,  Vim displays  a completion  menu and
-    " inserts its last candidate. But that doesn't fire `CompleteDone`.
-    " The latter will be fired when the candidate has been accepted.
-    " This could happen if we press Enter, or Space, or C-z again.
-    "
-    " I prefer an  event which will be fired for  all completions, including the
-    " very first one, and immediately (not after pressing another key).
-    "}}}
-    au TextChangedP * ++once sil! let &cot = s:cot_save | unlet! s:cot_save
+    if !exists('s:cot_save')
+        let s:cot_save = &cot
+        set cot-=noinsert
+        call timer_start(0, {-> s:restore_cot()})
+    endif
     return "\<c-x>\<c-p>"
+endfu
+
+fu! s:restore_cot() abort
+    if exists('s:cot_save')
+        let &cot = s:cot_save
+        unlet! s:cot_save
+    endif
 endfu
 
 fu! completion#custom#signature(mode) abort "{{{1

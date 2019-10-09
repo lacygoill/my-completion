@@ -88,17 +88,17 @@ fu! completion#ultisnips#complete() abort
     " IOW, `dup` = duplicate detector.
     ""}}}
 
-    let candidates = map(filter(keys(g:current_ulti_dict_info), l:Contain_word),
-    \                    {_,v -> {
-    \                               'word': v,
-    \                               'menu': '[snip] '.g:current_ulti_dict_info[v]['description'],
-    \                               'dup' : 1,
-    \                             }
-    \                    })
+    let matches = map(filter(keys(g:current_ulti_dict_info), l:Contain_word),
+    \                 {_,v -> {
+    \                            'word': v,
+    \                            'menu': '[snip] '.g:current_ulti_dict_info[v]['description'],
+    \                            'dup' : 1,
+    \                          }
+    \                 })
 
     let startcol = col('.') - len(word_to_complete)
-    if !empty(candidates)
-        call complete(startcol, candidates)
+    if !empty(matches)
+        call complete(startcol, matches)
     endif
     return ''
 endfu

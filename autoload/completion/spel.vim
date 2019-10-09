@@ -1,14 +1,14 @@
 fu! completion#spel#suggest() abort "{{{1
     let word_to_complete = matchstr(getline('.'), '\k\+\%'.col('.').'c')
-    let badword          = spellbadword(word_to_complete)
-    let candidates       = !empty(badword[1])
-                       \ ?     spellsuggest(badword[0])
-                       \ :     []
+    let badword = spellbadword(word_to_complete)
+    let matches = !empty(badword[1])
+                 \ ?     spellsuggest(badword[0])
+                 \ :     []
 
     let from_where = col('.') - len(word_to_complete)
 
-    if !empty(candidates)
-        call complete(from_where, candidates)
+    if !empty(matches)
+        call complete(from_where, matches)
     endif
     return ''
 endfu
