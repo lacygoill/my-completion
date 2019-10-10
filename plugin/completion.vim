@@ -223,39 +223,40 @@ set cot-=noinsert
 "}}}
 set cot-=noselect
 
-" TODO:
-" When  we tab-complete  a word,  if there're  several matches  and we  insert a
+" Rationale:{{{
+"
+" When we  tab-complete a  word, if there  are several matches  and we  insert a
 " character to reduce their number, the popup menu closes.
 "
 " Adding `noselect` in `'cot'` would fix this issue, but it would also break the
 " dot command.
 "
-" Update: Including `longest` helps a little.
+" So, instead, we include `longest`, because it helps a little.
+" To test its effect, write this in a file:
 "
-"     fooa
-"     fooab
-"     fooabc
-"     fooabcd
+"     xxxa
+"     xxxab
+"     xxxabc
+"     xxxabcd
 "
-" The pum doesn't close anymore:
+" Then:
 "
-"    - insert 'foo'
+"    - insert 'xxx'
 "    - press Tab
 "    - insert 'a': the menu doesn't close
 "    - insert 'b': the menu doesn't close
 "
-" until we select an entry:
+" The pum doesn't close anymore.
+" However, it *will* after you've selected an entry:
 "
-"    - insert 'foo'
+"    - insert 'xxx'
 "    - press Tab
-"    - press `C-n` until `fooa` is selected
+"    - press `C-n` until `xxxa` is selected
 "    - insert 'b': the menu closes
+"}}}
 set cot+=longest
-"
-" ---
-"
-" Which value  should we  choose for  'cot' when  we invoke  standard completion
-" methods manually?
+
+" TODO: Which value should we choose for 'cot' when we invoke standard completion methods manually?
 "
 "     set cot=menu,menuone
 "     set cot=menu,menuone,noinsert

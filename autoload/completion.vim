@@ -304,18 +304,18 @@ let s:mc_auto_pattern = '\k\k$'
 " complete `some_dir/` or just `~`.
 "}}}
 
-let s:YES_YOU_CAN   = {-> 1}
+let s:YES_YOU_CAN = {_ -> 1}
 let s:mc_conditions = {
-                      \ 'c-p'  : {-> s:manual},
-                      \ 'dict' : {-> s:setup_dict_option() && s:manual},
-                      \ 'digr' : {-> s:manual && get(g:, 'loaded_unicodePlugin', 0)},
+                      \ 'c-p'  : {_ -> s:manual},
+                      \ 'dict' : {_ -> s:setup_dict_option() && s:manual},
+                      \ 'digr' : {_ -> s:manual && get(g:, 'loaded_unicodePlugin', 0)},
                       \ 'file' : {t -> t =~# '\v[/~]\f*$'},
-                      \ 'omni' : {-> !empty(&l:omnifunc) && &ft isnot# 'markdown'},
-                      \ 'spel' : {-> &l:spell && !empty(&l:spelllang)},
-                      \ 'tags' : {-> s:manual && !empty(tagfiles())},
-                      \ 'ulti' : {-> get(g:, 'did_plugin_ultisnips', 0)},
-                      \ 'unic' : {-> s:manual && get(g:, 'loaded_unicodePlugin', 0)},
-                      \ 'user' : {-> !empty(&l:completefunc)},
+                      \ 'omni' : {_ -> !empty(&l:omnifunc) && &ft isnot# 'markdown'},
+                      \ 'spel' : {_ -> &l:spell && !empty(&l:spelllang)},
+                      \ 'tags' : {_ -> s:manual && !empty(tagfiles())},
+                      \ 'ulti' : {_ -> get(g:, 'did_plugin_ultisnips', 0)},
+                      \ 'unic' : {_ -> s:manual && get(g:, 'loaded_unicodePlugin', 0)},
+                      \ 'user' : {_ -> !empty(&l:completefunc)},
                       \ }
 
 " act_on_pumvisible {{{1
@@ -483,7 +483,7 @@ fu! s:act_on_textchanged() abort
     "
     " For example, we could disable the 'thes' method:
     "
-    "     let s:mc_conditions.thes =  {-> s:manual && !empty(&l:thesaurus)}
+    "     let s:mc_conditions.thes =  {_ -> s:manual && !empty(&l:thesaurus)}
     "
     " Now, the `thes` method can only be tried when 'thesaurus' has a value, AND
     " the completion was initiated manually by the user.
@@ -571,7 +571,7 @@ endfu
 " If it's not, `s:next_method()` will try the next one.
 
 fu! s:can_complete() abort
-    return get({ exists('b:mc_conditions') ? 'b:' : 's:' }mc_conditions,
+    return get({exists('b:mc_conditions') ? 'b:' : 's:'}mc_conditions,
                 \ s:methods[s:i], s:YES_YOU_CAN)(s:word)
 endfu
 
