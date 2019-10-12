@@ -11,7 +11,7 @@ let s:ABBREV = map(s:LINES, {_,v -> {
 \                                   }
 \                           })
 
-fu! s:abbrev_rhs(rhs) abort
+fu s:abbrev_rhs(rhs) abort
     if stridx(a:rhs, '&spl is#') == -1
         return a:rhs
 
@@ -23,7 +23,7 @@ fu! s:abbrev_rhs(rhs) abort
     endif
 endfu
 
-fu! completion#abbr#complete() abort
+fu completion#abbr#complete() abort
     let word_to_complete = matchstr(strpart(getline('.'), 0, col('.') - 1), '\S\+$')
 
     " NOTE:

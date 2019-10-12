@@ -75,30 +75,48 @@ let g:autoloaded_completion = 1
 
 " Default completion chain
 
-" Warning: Don't add the 'line' method. {{{
+" Warnings:
+" Do *not* add the 'line' method. {{{
 "
 " It works, but it's annoying to get a whole line when all you want is a word.
 "
 " When that happens, you have to either press `C-q` to cancel the completion, or
 " `C-j` to invoke the next method.
 "
-" But even  after pressing `C-j`,  finding the  right method and  completing the
-" desired word,  sometimes if you  press Tab  again (because you're  expanding a
+" But even  after pressing `C-j`, finding  the right method, and  completing the
+" desired word, sometimes  if you press `Tab` again (because  you're expanding a
 " snippet and  you want  to jump to  the next tabstop),  you may  re-invoke this
 " fucking 'line' method.
 "
 " Bottom line:
-" Line completion is  too cumbersome to be automated. Use C-x  C-l when you know
-" you REALLY need it.
+" Line completion is too cumbersome to be automated. Use `C-x C-l` when you know
+" you *really* need it.
 "}}}
-let s:mc_chain = get(s:, 'mc_chain', [
-    \ 'file',
-    \ 'keyp',
-    \ 'dict',
-    \ 'ulti',
-    \ 'abbr',
-    \ 'c-p',
-    \ ])
+" Do *not* use `keyp` nor `c-p`.{{{
+"
+" `:h 'cot /ctrl-l` doesn't work with `C-x C-p` and `C-p`:
+"
+"     $ vim -Nu NONE +'set cot=menu,longest|startinsert!' =(cat <<'EOF'
+"     xx
+"     xxabc
+"     xxab
+"     xxa
+"     EOF
+"     )
+"
+" If you press `C-x C-p`: `xxa` is completed.
+" If you then press `C-l`: no character is inserted.
+"
+" Had you pressed `C-x C-n` instead of `C-x C-p`, `C-l` would have inserted `b`.
+"}}}
+const s:mc_chain =<< trim END
+    file
+    keyn
+    dict
+    ulti
+    abbr
+    c-n
+END
 
 " Internal state
 let s:methods = get(b:, 'mc_chain', s:mc_chain)
@@ -279,7 +297,7 @@ let s:COMPL_MAPPINGS = {
 
 unlet s:EXIT_CTRL_X
 
-let s:SELECT_ENTRY = { 'c-p' : "\<plug>(MC_c-p)\<plug>(MC_down)", 'keyp': "\<plug>(MC_c-p)\<plug>(MC_down)" }
+let s:SELECT_MATCH = { 'c-p' : "\<plug>(MC_c-p)\<plug>(MC_down)", 'keyp': "\<plug>(MC_c-p)\<plug>(MC_down)" }
 
 " Default pattern to decide when automatic completion should be triggered.
 " I don't uppercase the name, because we can also use `b:mc_auto_pattern`
@@ -331,7 +349,7 @@ let s:mc_conditions = {
 " Annoying. We only want automatic insertion when we press Tab ourselves.
 "}}}
 
-fu! s:act_on_pumvisible() abort
+fu s:act_on_pumvisible() abort
     let s:pumvisible = 0
 
     " If autocompletion is enabled don't do anything (respect the value of 'cot'). {{{
@@ -414,7 +432,7 @@ fu! s:act_on_pumvisible() abort
        \ ? stridx(&l:completeopt, 'noinsert') == -1
        \ ?     ''
        \ :     "\<plug>(MC_c-p)\<plug>(MC_c-n)"
-       \ :     get(s:SELECT_ENTRY, s:methods[s:i], "\<plug>(MC_c-n)\<plug>(MC_up)")
+       \ :     get(s:SELECT_MATCH, s:methods[s:i], "\<plug>(MC_c-n)\<plug>(MC_up)")
 endfu
 
 " act_on_textchanged {{{1
@@ -427,7 +445,7 @@ endfu
 " Technically, it tries an autocompletion by typing `<plug>(MC_Auto)`
 " which calls `completion#complete(1)`. Similar to pressing Tab.
 "}}}
-fu! s:act_on_textchanged() abort
+fu s:act_on_textchanged() abort
     if pumvisible() | return '' | endif
 
     " What is `s:completedone`? {{{
@@ -570,7 +588,7 @@ endfu
 " During `s:next_method()`, test whether the current method can be applied.
 " If it's not, `s:next_method()` will try the next one.
 
-fu! s:can_complete() abort
+fu s:can_complete() abort
     return get({exists('b:mc_conditions') ? 'b:' : 's:'}mc_conditions,
                 \ s:methods[s:i], s:YES_YOU_CAN)(s:word)
 endfu
@@ -594,7 +612,7 @@ endfu
 "    - if the completion is automatic, don't try this method because it's too expensive
 "    - if the completion is manual,    try first to expand a snippet
 " }}}
-fu! completion#complete(dir) abort
+fu completion#complete(dir) abort
     "                                                  ┌ don't use `\k`, it would exclude `/`
     "                                                  │ and we need to include slash for file completion
     "                                                  │
@@ -631,7 +649,7 @@ endfu
 " to call `cycle_or_select()`, their purpose is really to call `cycle()`.
 "}}}
 
-fu! completion#cycle(dir) abort
+fu completion#cycle(dir) abort
     let s:cycling = 1
     let s:manual = 1
     let s:dir = a:dir
@@ -642,7 +660,7 @@ endfu
 
 " disable_auto {{{1
 
-fu! completion#disable_auto() abort
+fu completion#disable_auto() abort
     if exists('#MC_Auto')
         autocmd! MC_Auto
         augroup! MC_Auto
@@ -657,7 +675,7 @@ endfu
 
 " enable_auto {{{1
 
-fu! completion#enable_auto() abort
+fu completion#enable_auto() abort
     let s:auto = 1
     let s:manual = 0
     let s:cot_save = &cot
@@ -735,7 +753,7 @@ endfu
 "
 " It's reset to 0 at the beginning of `s:act_on_pumvisible()`.
 "}}}
-fu! completion#menu_is_up() abort
+fu completion#menu_is_up() abort
     let s:pumvisible = 1
     return ''
 endfu
@@ -761,7 +779,7 @@ endfu
 "    - it finds one OR we reach the beginning/end of the chain if we're not cycling
 "}}}
 
-fu! s:next_method() abort
+fu s:next_method() abort
     if s:cycling
 
         " Explanation of the formula: {{{
@@ -930,9 +948,7 @@ fu! s:next_method() abort
     "
     "       2 → 4 → 2 → 4 → ...
     "}}}
-    " FIXME: {{{
-    "
-    " Lifepillar writes:
+    " FIXME: Lifepillar writes:{{{
     "
     "     (s:i+1) % (s:N+1) != 0
     "
@@ -1042,7 +1058,7 @@ endfu
 
 " setup_dict_option {{{1
 
-fu! s:setup_dict_option() abort
+fu s:setup_dict_option() abort
     "                                            ┌ there should be at least 2 characters in front of the cursor
     "                                            │  otherwise, `C-x C-k` could try to complete a text like:
     "                                            │      #!
@@ -1060,7 +1076,7 @@ endfu
 
 " snippet_or_complete {{{1
 
-fu! completion#snippet_or_complete(dir) abort
+fu completion#snippet_or_complete(dir) abort
     if pumvisible()
         return a:dir > 0 ? "\<c-n>" : "\<c-p>"
     endif
@@ -1103,14 +1119,14 @@ endfu
 " test whether the popup menu is visible. It could make it a bit slower...
 "}}}
 
-fu! completion#tab_complete(dir) abort
+fu completion#tab_complete(dir) abort
     let s:manual = 1
     return completion#complete(a:dir)
 endfu
 
 " toggle_auto {{{1
 
-fu! completion#toggle_auto() abort
+fu completion#toggle_auto() abort
     if exists('#MC_Auto')
         call completion#disable_auto()
     else
@@ -1129,7 +1145,7 @@ endfu
 " If it's open, the function calls `s:act_on_pumvisible()`.
 " If it's not, it recalls `s:next_method()` to try another method.
 "}}}
-fu! completion#verify_completion() abort
+fu completion#verify_completion() abort
     return s:pumvisible
        \ ?     s:act_on_pumvisible()
        \ :     s:next_method()

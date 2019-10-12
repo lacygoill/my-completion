@@ -1,4 +1,4 @@
-fu! completion#file#complete() abort
+fu completion#file#complete() abort
     let line = getline('.')
     let text_before_cursor = strpart(line, 0, col('.') - 1)
     " Remove curly brackets around possible environment variables.

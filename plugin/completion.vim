@@ -5,9 +5,9 @@ let g:loaded_completion = 1
 
 " Commands {{{1
 
-com! -bar McAutoEnable  call completion#enable_auto()
-com! -bar McAutoDisable call completion#disable_auto()
-com! -bar McAutoToggle  call completion#toggle_auto()
+com -bar McAutoEnable  call completion#enable_auto()
+com -bar McAutoDisable call completion#disable_auto()
+com -bar McAutoToggle  call completion#toggle_auto()
 
 " Mappings {{{1
 " completion {{{2
@@ -103,8 +103,8 @@ ino <expr><silent><unique> <c-x><c-s> completion#spel#fix()
 " Pb:
 " If a synonym contains several words (e.g. important → of vital importance),
 " the completion function considers each of them as a distinct synonym.
-" Thus, if a synonym contains 3 words, the function populates the popup
-" menu with 3 entries.
+" Thus, if  a synonym contains  3 words, the function  populates the pum  with 3
+" matches.
 
 " Solution: http://stackoverflow.com/a/21132116
 "
@@ -151,7 +151,7 @@ ino <silent><unique> <c-z> <c-r>=completion#custom#easy_c_x_c_p()<cr><c-x><c-p>
 " Options {{{1
 " complete {{{2
 
-" where should Vim look when using C-n/C-p
+" where should Vim look when pressing `C-n`/`C-p`
 set complete=.,w,b
 "            │ │ │
 "            │ │ └ buffers in buffer list
@@ -160,68 +160,58 @@ set complete=.,w,b
 
 " completeopt {{{2
 " menuone {{{3
-"
-" We add 'menuone' for 2 reasons:
+
+" We add `menuone` for 3 reasons:{{{
 "
 "    - the menu allows us to cancel  a completion if the inserted text is not
 "      the one we wanted
 "
-"    - when  there's   only  1  candidate,  the  menu  will   not  open  and
-"      vim-completion will  think that the  current method has failed,  then will
-"      immediately try the  next one; because of  this we could end up  with 2 or
-"      more completed texts
+"    - when there's only 1 match and `noinsert` is absent from `'cot'`, the menu
+"      will not  open and vim-completion  will think  that the current  method has
+"      failed, then will immediately try the  next one; because of this, we could
+"      end up with 2 or more completed texts
+"
+"    - when there's only 1 match and `noinsert` is in `'cot'`, *all* completion commands fail:
+"
+"         $ vim +"pu ='xxabc'" +"pu ='xx'" +'startinsert!' +'set cot=menu,noinsert'
+"         " press `C-x C-n`: nothing is inserted
+"}}}
 set cot+=menuone
 
-" Issue1:
-" When we press C-d / C-u while the  popup menu is visible, and there are only a
-" few entries, we don't want to move in the menu, we want to delete text.
-" This issue is particularly annoying when there's only one entry in the menu.
-
-" Issue2:
-" If there's only 1 candidate to complete  a word and 'noinsert' is in 'cot', we
-" won't be able to complete the  latter. This is an issue for default completion
-" mechanisms (C-x  C-p, …),  but also  for our  completion plugin  which will,
-" wrongly, think that the method has failed, and try the next one.
-"
-" Warning:
-" So, make sure that you don't have 'noinsert' without 'menuone' in 'cot':
-"
-"    * +noinsert -menuone    ✘ ALL completion mechanisms broken when there's only 1 candidate
-"    * -noinsert -menuone    ✘ vim-completion broken            "
-"    * +noinsert +menuone    ✔
-"    * -noinsert +menuone    ✔
-
 " noinsert {{{3
+
+" We remove `noinsert` for 3 reasons:{{{
 "
-" We remove 'noinsert' for 3 reasons:
-"
-"    - it breaks the repetition of C-x C-p
+"    - it breaks the repetition of `C-x C-p`
 "
 "      The  first invocation  works,  but  the consecutive  ones  don't work  as
-"      expected.  Indeed, we have to press  enter to insert a candidate from the
-"      menu.  This CR breaks the chaining of C-x C-p.
+"      expected.  Indeed,  we have  to press  enter to insert  a match  from the
+"      menu.  This CR breaks the chaining of `C-x C-p`.
 "
-"    - if we remove 'menuone', it  would break all completion mechanisms when
-"      there's only 1 candidate
+"    - if we remove `menuone`, it  would break all completion mechanisms when
+"      there's only 1 match
 "
 "    - it's annoying while in auto-completion mode
 "
-"      vim-completion already makes sure that  'noinsert' is not in 'cot' while
+"      vim-completion already makes sure that  `noinsert` is not in `'cot'` while
 "      in auto mode, but still...
+"}}}
 set cot-=noinsert
 
 " noselect {{{3
 
-" do *not* include 'noselect'{{{
+" do *not* include `noselect`{{{
 "
-" We use a completion system which would break the undo sequence when 'noselect'
+" We use a completion system which would break the undo sequence when `noselect`
 " is in  `'cot'`.  It means  that some text  would be lost  when we use  the dot
 " command to repeat a completion.
 "
-" I think that's  because of the keys stored in  `s:SELECT_ENTRY` and pressed by
+" I think that's  because of the keys stored in  `s:SELECT_MATCH` and pressed by
 " `s:act_on_pumvisible()`.
 "}}}
 set cot-=noselect
+
+" longest {{{3
 
 " Rationale:{{{
 "
@@ -229,40 +219,75 @@ set cot-=noselect
 " character to reduce their number, the popup menu closes.
 "
 " Adding `noselect` in `'cot'` would fix this issue, but it would also break the
-" dot command.
+" dot command, because our plugin would press an up or down key.
 "
-" So, instead, we include `longest`, because it helps a little.
+" So, instead, we include `longest`; it doesn't fix the issue entirely, but it helps.
 " To test its effect, write this in a file:
 "
-"     xxxa
-"     xxxab
-"     xxxabc
-"     xxxabcd
+"     xxa
+"     xxab
+"     xxabc
+"     xxabcd
 "
 " Then:
 "
-"    - insert 'xxx'
+"    - insert 'xx'
 "    - press Tab
 "    - insert 'a': the menu doesn't close
 "    - insert 'b': the menu doesn't close
 "
 " The pum doesn't close anymore.
-" However, it *will* after you've selected an entry:
+" However, it *will* after you've selected a match:
 "
-"    - insert 'xxx'
+"    - insert 'xx'
 "    - press Tab
-"    - press `C-n` until `xxxa` is selected
+"    - press `C-n` until `xxa` is selected
 "    - insert 'b': the menu closes
+"
+" ---
+"
+" `longest` is also useful when:
+"
+"    - the pum contains a lot of matches
+"    - the match you want is *not* near the start/end of the pum, but somewhere in the middle
+"    - the initial inserted match is much longer than the initial text
+"
+" When  the 3  previous statements  are true,  completing your  text is  painful
+" without `longest`.
+"
+" MWE:
+"
+"     $ cat <<'EOF' >/tmp/vimrc
+"     let s:Random_char = {-> nr2char(65+str2nr(matchstr(reltimestr(reltime()), '\.\@<=\d\+')[1:]) % 26)}
+"     let lines = map(range(1,200), {-> 'we_dont_want_this_'..eval(join(repeat(['s:Random_char()'], 10), '..'))})
+"     sil 0pu=lines
+"     100t100 | s/$/_actually_we_do_want_this_one/ | 0pu='# press C-x C-n to complete the next line into `'..getline(101)..'`'
+"     set cot=menu
+"     1pu='we_'
+"     startinsert!
+"     EOF
+"
+"     $ vim -Nu /tmp/vimrc
+"
+" On the first line of the file, you should see sth like:
+"
+"     # press C-x C-n to complete the next line into `we_dont_want_this_QGDSIYNDSI_actually_we_do_want_this_one`
+"
+" Press `C-x C-n`: a huge menu should be opened (>200 matches).
+" Press `Q`: the menu gets much smaller, and you should probably see your match.
+" If you don't see it, it should appear after pressing `G`, or maybe after `D`.
+" The point is that finding your match is easy.
+"
+" OTOH,  if `longest`  was  not in  `'cot'` (repeat  the  same experiment  after
+" executing  `set  cot-=longest`),   you  would  probably  need   to  remove  10
+" characters, before inserting `Q`, `G`, `D`...
+" This may seem like a minor issue; it's not. In practice, you don't always know
+" exactly how many characters you need to remove.
+" And when  that happens,  each time you  remove a character  and the  menu gets
+" updated, you may need to scroll through the menu to look for your match.
+" Anyway, the whole process is usually too cumbersome.
 "}}}
 set cot+=longest
-
-" TODO: Which value should we choose for 'cot' when we invoke standard completion methods manually?
-"
-"     set cot=menu,menuone
-"     set cot=menu,menuone,noinsert
-"     set cot=menu,menuone,noselect
-"     set cot=menu,menuone,noinsert,noselect
-"     " and what about 'longest'?
 
 " preview {{{3
 
@@ -281,7 +306,7 @@ set cot-=preview
 
 " Add some intelligence regarding the case of a text which is completed.{{{
 "
-" For example, suppose we have the word 'WeirdCaseWord' in a buffer.
+" For example, suppose we have the word `WeirdCaseWord` in a buffer.
 " We insert `weirdc` and press Tab to complete:
 "
 "    - with `noinfercase`, we get `WeirdCaseWord`
@@ -297,11 +322,11 @@ set cot-=preview
 
 " isfname {{{2
 
-" A filename can contain an @ character.
+" A filename can contain an `@` character.
 " Example: /usr/lib/systemd/system/getty@.service
 "
-" It's important to include `@` in 'isf',  so that we can complete a filename by
-" pressing Tab.
+" It's important to include  `@` in `'isf'`, so that we  can complete a filename
+" by pressing Tab.
 set isfname+=@-@
 
 " thesaurus {{{2

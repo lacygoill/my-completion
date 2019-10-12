@@ -1,4 +1,4 @@
-fu! completion#util#custom_isk(chars) abort "{{{1
+fu completion#util#custom_isk(chars) abort "{{{1
     if exists('s:isk_save') | return '' | endif
     let [s:isk_save, s:bufnr] = [&l:isk, bufnr('%')]
     try
@@ -18,7 +18,7 @@ fu! completion#util#custom_isk(chars) abort "{{{1
     return ''
 endfu
 
-fu! completion#util#setup_dict() abort "{{{1
+fu completion#util#setup_dict() abort "{{{1
     exe 'setl dict='..(&l:spelllang is# 'en' ? '/usr/share/dict/words' : '/usr/share/dict/french')
     return ''
 endfu

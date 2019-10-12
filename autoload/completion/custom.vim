@@ -1,4 +1,4 @@
-fu! completion#custom#easy_c_x_c_p() abort "{{{1
+fu completion#custom#easy_c_x_c_p() abort "{{{1
     if !exists('s:cot_save')
         let s:cot_save = &cot
         set cot-=noinsert
@@ -7,14 +7,14 @@ fu! completion#custom#easy_c_x_c_p() abort "{{{1
     return "\<c-x>\<c-p>"
 endfu
 
-fu! s:restore_cot() abort
+fu s:restore_cot() abort
     if exists('s:cot_save')
         let &cot = s:cot_save
         unlet! s:cot_save
     endif
 endfu
 
-fu! completion#custom#signature(mode) abort "{{{1
+fu completion#custom#signature(mode) abort "{{{1
     let [line, col] = a:mode is# 'i' ? [getline('.'), col('.')] : [getcmdline(), getcmdpos()]
     let func_name = matchstr(line, '\<\w\+\ze()\?\%'.col.'c')
     if empty(func_name)

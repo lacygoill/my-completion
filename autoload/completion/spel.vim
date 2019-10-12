@@ -1,4 +1,4 @@
-fu! completion#spel#suggest() abort "{{{1
+fu completion#spel#suggest() abort "{{{1
     let word_to_complete = matchstr(getline('.'), '\k\+\%'.col('.').'c')
     let badword = spellbadword(word_to_complete)
     let matches = !empty(badword[1])
@@ -13,7 +13,7 @@ fu! completion#spel#suggest() abort "{{{1
     return ''
 endfu
 
-fu! completion#spel#fix() abort "{{{1
+fu completion#spel#fix() abort "{{{1
     " don't break undo sequence:
     "
     "    - it seems messed up (performs an undo then a redo which gets us in a weird state)
