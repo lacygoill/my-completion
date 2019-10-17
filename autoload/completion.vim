@@ -110,12 +110,12 @@ let g:autoloaded_completion = 1
 " Had you pressed `C-x C-n` instead of `C-x C-p`, `C-l` would have inserted `b`.
 "}}}
 const s:mc_chain =<< trim END
-    file
-    keyn
-    dict
-    ulti
-    abbr
-    c-n
+file
+keyn
+dict
+ulti
+abbr
+c-n
 END
 
 " Internal state
@@ -1081,20 +1081,23 @@ fu completion#snippet_or_complete(dir) abort
         return a:dir > 0 ? "\<c-n>" : "\<c-p>"
     endif
 
-    call UltiSnips#ExpandSnippet()
-
-    if !g:ulti_expand_res
-        if a:dir > 0
-            call UltiSnips#JumpForwards()
-            if !g:ulti_jump_forwards_res
-                call feedkeys("\<plug>(MC_tab_complete)", 'i')
-            endif
-        else
-            call UltiSnips#JumpBackwards()
-            if !g:ulti_jump_backwards_res
-                call feedkeys("\<plug>(MC_stab_complete)", 'i')
+    if exists('*UltiSnips#ExpandSnippet')
+        call UltiSnips#ExpandSnippet()
+        if !g:ulti_expand_res
+            if a:dir > 0
+                call UltiSnips#JumpForwards()
+                if !g:ulti_jump_forwards_res
+                    call feedkeys("\<plug>(MC_tab_complete)", 'i')
+                endif
+            else
+                call UltiSnips#JumpBackwards()
+                if !g:ulti_jump_backwards_res
+                    call feedkeys("\<plug>(MC_stab_complete)", 'i')
+                endif
             endif
         endif
+    else
+        call feedkeys(a:dir > 0 ? "\<plug>(MC_tab_complete)": "\<plug>(MC_stab_complete)", 'i')
     endif
 
     let s:completedone = 0

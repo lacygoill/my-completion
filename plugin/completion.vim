@@ -13,7 +13,7 @@ com -bar McAutoToggle  call completion#toggle_auto()
 " completion {{{2
 
 " expand snippet or complete, when pressing Tab, or S-Tab
-ino  <silent><unique>   <tab>                  <c-r>=completion#snippet_or_complete(1)<cr>
+ino  <silent><unique> <tab>                    <c-r>=completion#snippet_or_complete(1)<cr>
 ino  <silent><unique> <s-tab>                  <c-r>=completion#snippet_or_complete(-1)<cr>
 imap <expr><silent>   <plug>(MC_tab_complete)  completion#tab_complete(1)
 imap <expr><silent>   <plug>(MC_stab_complete) completion#tab_complete(-1)
@@ -140,7 +140,7 @@ ino <silent><unique> <c-x><c-t> <c-r>=completion#util#custom_isk(' -')<cr><c-x><
 " completed text, neither in Vim nor in Nvim).
 "}}}
 ino <silent><unique> <c-x>s <c-r>=completion#custom#signature(mode(1))<cr>
-cno         <unique> <c-x>s <c-\>ecompletion#custom#signature(mode(1))<cr>
+cno         <unique> <c-x>s <c-\>e completion#custom#signature(mode(1))<cr>
 
 " C-z         easy C-x C-p {{{3
 
