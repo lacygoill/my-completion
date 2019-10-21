@@ -258,7 +258,7 @@ set cot-=noselect
 " MWE:
 "
 "     $ cat <<'EOF' >/tmp/vimrc
-"     let s:Random_char = {-> nr2char(65+str2nr(matchstr(reltimestr(reltime()), '\.\@<=\d\+')[1:]) % 26)}
+"     let s:Random_char = {-> nr2char(65+str2nr(matchstr(reltimestr(reltime()), '\.\@1<=\d\+')[1:]) % 26)}
 "     let lines = map(range(1,200), {-> 'we_dont_want_this_'..eval(join(repeat(['s:Random_char()'], 10), '..'))})
 "     sil 0pu=lines
 "     100t100 | s/$/_actually_we_do_want_this_one/ | 0pu='# press C-x C-n to complete the next line into `'..getline(101)..'`'

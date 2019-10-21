@@ -110,12 +110,12 @@ let g:autoloaded_completion = 1
 " Had you pressed `C-x C-n` instead of `C-x C-p`, `C-l` would have inserted `b`.
 "}}}
 const s:mc_chain =<< trim END
-file
-keyn
-dict
-ulti
-abbr
-c-n
+    file
+    keyn
+    dict
+    ulti
+    abbr
+    c-n
 END
 
 " Internal state
@@ -183,14 +183,14 @@ let s:EXIT_CTRL_X = "\<c-g>\<c-g>"
 
 if !empty(mapcheck('<c-g><c-g>', 'i'))
     let msg =<< trim END
-    Warning: you have a mapping whose {lhs} is or begins with C-g C-g.
-    See the output of `execute('verb imap <c-g><c-g>')`.
+        Warning: you have a mapping whose {lhs} is or begins with C-g C-g.
+        See the output of `execute('verb imap <c-g><c-g>')`.
 
-    MC (My Completion) presses those keys before pressing the keys of some methods.
-    It does this to make sure you are out of C-x submode before trying them.
+        MC (My Completion) presses those keys before pressing the keys of some methods.
+        It does this to make sure you are out of C-x submode before trying them.
 
-    Your current mapping could lead to some unexpected behavior.
-    Please remove/change it.
+        Your current mapping could lead to some unexpected behavior.
+        Please remove/change it.
     END
     echohl WarningMsg
     echo join(msg, "\n")
