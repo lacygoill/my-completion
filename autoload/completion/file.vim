@@ -71,7 +71,7 @@ fu completion#file#complete() abort
         " ...  would return  an  empty  list. Indeed, there's  no  entry in  the
         " filesystem whose name  begins with `~`. We need to  expand `~` itself,
         " into `/home/user`."}}}
-        let entries = glob(cur_path . (cur_path isnot# '~' ? '*' : ''), 0, 1, 1)
+        let entries = glob(cur_path..(cur_path isnot# '~' ? '*' : ''), 0, 1, 1)
         if !empty(entries)
             " Why: `col('.') - len(fnamemodify(cur_path, ':t'))`{{{
             "
@@ -97,9 +97,19 @@ fu completion#file#complete() abort
             " But here, we don't want to complete only the last component of
             " `/home/user`, which is `user`, we want the whole path `/home/user`.
             "}}}
+            " Why `[f]` in the menu?{{{
+            "
+            " We inspect  this `menu` key in  our `CR` custom mapping  in insert
+            " mode, to automatically re-perform a file completion.
+            " The  idea is  to  be  able to  chain  file  completions simply  by
+            " pressing `Enter`.
+            "}}}
             call complete(from_where,
                 \ map(entries, {_,v ->
-                \ (cur_path isnot# '~' ? fnamemodify(v, ':t') : v) . (isdirectory(v) ? '/' : '')}))
+                \     {
+                \       'menu': '[f]',
+                \       'word': (cur_path isnot# '~' ? fnamemodify(v, ':t') : v)..(isdirectory(v) ? '/' : '')
+                \     }}))
             return ''
         else
             " If the expansion failed, try a shorter path by removing the text

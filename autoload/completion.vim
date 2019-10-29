@@ -1076,28 +1076,30 @@ endfu
 
 " snippet_or_complete {{{1
 
-fu completion#snippet_or_complete(dir) abort
+fu completion#snippet_or_complete(dir, ...) abort
     if pumvisible()
         return a:dir > 0 ? "\<c-n>" : "\<c-p>"
     endif
 
-    if exists('*UltiSnips#ExpandSnippet')
-        call UltiSnips#ExpandSnippet()
-        if !g:ulti_expand_res
-            if a:dir > 0
-                call UltiSnips#JumpForwards()
-                if !g:ulti_jump_forwards_res
-                    call feedkeys("\<plug>(MC_tab_complete)", 'i')
-                endif
-            else
-                call UltiSnips#JumpBackwards()
-                if !g:ulti_jump_backwards_res
-                    call feedkeys("\<plug>(MC_stab_complete)", 'i')
-                endif
+    if ! exists('*UltiSnips#ExpandSnippet')
+        call feedkeys(a:dir > 0 ? "\<plug>(MC_tab_complete)": "\<plug>(MC_stab_complete)", 'i')
+        return ''
+    endif
+
+    call UltiSnips#ExpandSnippet()
+
+    if !g:ulti_expand_res
+        if a:dir > 0
+            call UltiSnips#JumpForwards()
+            if !g:ulti_jump_forwards_res
+                call feedkeys("\<plug>(MC_tab_complete)", 'i')
+            endif
+        else
+            call UltiSnips#JumpBackwards()
+            if !g:ulti_jump_backwards_res
+                call feedkeys("\<plug>(MC_stab_complete)", 'i')
             endif
         endif
-    else
-        call feedkeys(a:dir > 0 ? "\<plug>(MC_tab_complete)": "\<plug>(MC_stab_complete)", 'i')
     endif
 
     let s:completedone = 0
