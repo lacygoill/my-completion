@@ -1081,7 +1081,21 @@ fu completion#snippet_or_complete(dir, ...) abort
         return a:dir > 0 ? "\<c-n>" : "\<c-p>"
     endif
 
-    if ! exists('*UltiSnips#ExpandSnippet')
+    " Why not checking the existence of `UltiSnips#ExpandSnippet()`?{{{
+    "
+    "     if ! exists('*UltiSnips#ExpandSnippet')
+    "
+    " In Nvim, we clear the augroup `UltiSnips_AutoTrigger` on `VimEnter`.
+    " As a result,  when you've just started  Nvim, if you insert  a tab trigger
+    " and press `Tab`, there is a good chance that UltiSnips has not yet sourced
+    " this public function from:
+    "
+    "     ~/.vim/plugged/ultisnips/autoload/UltiSnips.vim
+    "
+    " Besides,  what we  really  want,  is not  checking  whether this  function
+    " exists, but whether the UltiSnips plugin is enabled in our vimrc.
+    "}}}
+    if ! exists('g:did_plugin_ultisnips')
         call feedkeys(a:dir > 0 ? "\<plug>(MC_tab_complete)": "\<plug>(MC_stab_complete)", 'i')
         return ''
     endif
