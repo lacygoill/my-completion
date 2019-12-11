@@ -20,7 +20,7 @@ fu completion#ultisnips#complete() abort
     "
     " By testing if the output of `UltiSnips#SnippetsInCurrentScope()` is an
     " empty dictionary, we also create the variable `g:current_ulti_dict_info`.
-"}}}
+    "}}}
     if empty(UltiSnips#SnippetsInCurrentScope(1)) | return '' | endif
 
     let word_to_complete = matchstr(strpart(getline('.'), 0, col('.') - 1), '\S\+$')

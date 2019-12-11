@@ -468,7 +468,7 @@ fu s:act_on_textchanged() abort
     " If I just autocompleted something, I'm  probably done. I don't need Vim to
     " try another  autocompletion, which may  suggest me matches that  I already
     " saw in the popup menu last time.
-"}}}
+    "}}}
     if s:completedone
         " When an autocompletion has just been performed, we don't need a new one{{{
         " until we insert a whitespace or we're at the beginning of a new line.
@@ -536,7 +536,7 @@ fu s:act_on_textchanged() abort
         " is 'file'), we want autocompletion to be invoked again, to handle the
         " next component, in case there's one.
         " We just make sure that the character before the cursor is in 'isf'.
-"}}}
+        "}}}
         " Why do we use `get()`? {{{
         "
         " Without it, sometimes, we have an error such as:
@@ -575,7 +575,7 @@ fu s:act_on_textchanged() abort
     " So in increasing order of autocompletion frequency:
     "
     "     \a\a  <  \a  <  \k
-"}}}
+    "}}}
     elseif getline('.')[:col('.')-2] =~# { exists('b:mc_auto_pattern') ? 'b:' : 's:' }mc_auto_pattern
         sil call feedkeys("\<plug>(MC_Auto)", 'i')
     endif
@@ -732,7 +732,7 @@ fu completion#enable_auto() abort
         " `xv` to suggest us `✔`.
         " OTOH, if we define it as `!empty(v:completed_item)`, we get an
         " autocompletion.
-"}}}
+        "}}}
         au CompleteDone * let s:completedone = 1
     augroup END
 
@@ -876,7 +876,7 @@ fu s:next_method() abort
         " to `n`.
         " And it can't be equal to `-1`, because in the definition, we add `s:N`
         " so the result is necessarily positive (zero included).
-"}}}
+        "}}}
 
         while !s:can_complete()
             let s:i = (s:i + s:dir + s:N) % s:N
@@ -917,7 +917,7 @@ fu s:next_method() abort
         " This additional condition makes sure that we stop once we reach the
         " beginning/end of the chain. It wouldn't make sense to go on anyway,
         " because at that point, we would have tried all the methods.
-"}}}
+        "}}}
 
         while s:i != -1
         \ &&  s:i != s:N
