@@ -16,20 +16,23 @@ endfu
 
 fu completion#custom#signature(mode) abort "{{{1
     let [line, col] = a:mode is# 'i' ? [getline('.'), col('.')] : [getcmdline(), getcmdpos()]
-    let func_name = matchstr(line, '\<\w\+\ze()\?\%'.col.'c')
+    let func_name = matchstr(line, '\<\w\+\ze()\?\%'..col..'c')
     if empty(func_name)
         return ''
     endif
 
-    let signature = get(filter(readfile($VIMRUNTIME.'/doc/eval.txt'),
-        \ {_,v -> v =~ '^'.func_name.'('}), 0, '')
+    let file = readfile($VIMRUNTIME..'/doc/eval.txt')
+    if has('nvim')
+        let file += readfile($VIMRUNTIME..'/doc/api.txt')
+    endif
+    let signature = get(filter(file, {_,v -> v =~ '^'..func_name..'('}), 0, '')
     " needed, for example, for `deepcopy()`
     let signature = matchstr(signature, '.\{-})')
     if empty(signature)
         return ''
     endif
 
-    let new_line = substitute(line, func_name.'\%[()]', signature, '')
+    let new_line = substitute(line, func_name..'\%[()]', signature, '')
     if a:mode is# 'i'
         call setline('.', new_line)
     else
