@@ -28,9 +28,7 @@ fu completion#custom#signature(mode) abort "{{{1
     let signature = get(filter(file, {_,v -> v =~ '^'..func_name..'('}), 0, '')
     " needed, for example, for `deepcopy()`
     let signature = matchstr(signature, '.\{-})')
-    if empty(signature)
-        return ''
-    endif
+    if empty(signature) | return '' | endif
 
     let new_line = substitute(line, func_name..'\%[()]', signature, '')
     if a:mode is# 'i'

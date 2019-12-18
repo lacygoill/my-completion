@@ -70,10 +70,9 @@ let g:autoloaded_completion = 1
 " To look for all the global variables used by this plugin, search the
 " pattern:
 "         \v^%(\s*".*)@!.*\zsg:[^ ,]
+"}}}1
 
-" Variables {{{1
-
-" Default completion chain
+" Init {{{1
 
 " Warnings:
 " Do *not* add the 'line' method. {{{
@@ -109,19 +108,18 @@ let g:autoloaded_completion = 1
 "
 " Had you pressed `C-x C-n` instead of `C-x C-p`, `C-l` would have inserted `b`.
 "}}}
-const s:mc_chain =<< trim END
+const s:MC_CHAIN =<< trim END
     file
     keyn
-    dict
     ulti
     abbr
     c-n
+    dict
 END
 
-" Internal state
-let s:methods = get(b:, 'mc_chain', s:mc_chain)
-let s:N       = len(s:methods)
-let s:word    = ''
+let s:methods = get(b:, 'mc_chain', s:MC_CHAIN)
+let s:N = len(s:methods)
+let s:word = ''
 
 " flag: in which direction will we move in the chain
 let s:dir = 1
@@ -135,11 +133,14 @@ let s:i_history = []
 
 " number (positive or negative):   idx of the current method to try
 let s:i = 0
-" The valid values of `s:i` will vary between 0 and s:N-1.
+" The valid values of `s:i` will vary between 0 and `s:N - 1`.
 " It is initialized by `complete()`, which gives it the value:
 "
-"         -1      if we move forward in the chain
-"         s:N     "          backward "
+"    ┌─────┬─────────────────────────────────┐
+"    │ -1  │ if we move forward in the chain │
+"    ├─────┼─────────────────────────────────┤
+"    │ s:N │ "          backward "           │
+"    └─────┴─────────────────────────────────┘
 "
 " It's updated by `s:next_method()`.
 
@@ -148,7 +149,7 @@ let s:pumvisible = 0
 " Its value is tested in `verify_completion()`, which is being called at the end
 " of `s:next_method()`.
 
-" Purpose of `s:auto`: {{{
+" Purpose: {{{
 "
 " `s:auto` is a flag which, when it's set, means that autocompletion is enabled.
 " Its used by `s:act_on_pumvisible()` to know whether it must insert the first
@@ -157,14 +158,13 @@ let s:pumvisible = 0
 " It would constantly insert undesired text, and the user would have to undo
 " it. The popup menu with matches is enough.
 "}}}
-" Why do we use `get()` ? {{{
+" Why `get()` ? {{{
 "
 " Consider this:
 " autocompletion is enabled, and we source manually the plugin, it will
 " wrongly, set `s:auto` to 0. The consequence will be that now autocompletions
 " will automatically insert text.
 "}}}
-
 let s:auto = get(s:, 'auto', 0)
 
 " We could also use "\<c-x>\<c-z>\<bs> {{{
@@ -178,8 +178,7 @@ let s:auto = get(s:, 'auto', 0)
 " We can't unmap it in the vimrc, because it would be too soon. The mappings
 " for a plugin are defined after the vimrc is sourced.
 "}}}
-
-let s:EXIT_CTRL_X = "\<c-g>\<c-g>"
+const s:EXIT_CTRL_X = "\<c-g>\<c-g>"
 
 if !empty(mapcheck('<c-g><c-g>', 'i'))
     let msg =<< trim END
@@ -211,7 +210,7 @@ endif
 "
 "     hello people
 "
-" If we press C-x C-l again, the line completion will insert a newline.
+" If we press `C-x C-l` again, the line completion will insert a newline.
 " Why?
 " It's probably one of Vim's quirks / bugs.
 " It shouldn't insert anything, because now the line is unique.
@@ -227,23 +226,21 @@ endif
 "
 " Here's what lifepillar commented on the patch that introduced it:
 "
-"     Fix 'line' completion method inserting a new line.
-
-"     Line completion seems to work differently from other completion methods:
-"     typing a character that does not belong to an entry does not exit
-"     completion. Before this commit, with autocompletion on such behaviour
-"     resulted in µcomplete inserting a new line while the user was typing,
-"     because µcomplete would insert <c-x><c-l> while in ctrl-x submode.
-
-"     To fix that, we use the same trick as with 'c-p': make sure that we are
-"     out of ctrl-x submode before typing <c-x><c-l>.
+" > Fix 'line' completion method inserting a new line.
+" >
+" > Line completion seems to work differently from other completion methods:
+" > typing a character that does not belong to an entry does not exit
+" > completion. Before this commit, with autocompletion on such behaviour
+" > resulted in µcomplete inserting a new line while the user was typing,
+" > because µcomplete would insert <c-x><c-l> while in ctrl-x submode.
+" >
+" > To fix that, we use the same trick as with 'c-p': make sure that we are
+" > out of ctrl-x submode before typing <c-x><c-l>.
 "
-" To find the commit:
-"
-"     $ gsearch 's:cnp."\<c-x>\<c-l>"'
+" Source: commit `59169596e96c8ff3943e9179a626391ff76f4b76`
 "
 " There's  a case,  though,  where adding  a  newline can  make  sense for  line
-" completion. When we're at  the END of a line existing  in multiple places, and
+" completion. When we're at the *end* of a line existing in multiple places, and
 " we  press `C-x  C-l`. Invoking  line  completion twice  inserts  a newline  to
 " suggest us the next line:
 "
@@ -253,56 +250,34 @@ endif
 "     The first `C-x C-l` invocation only suggests L1.
 "     The second one inserts a newline and suggests L2.
 "}}}
-" Why do we use: "\<plug>(DigraphComplete) {{{
-"                "\<plug>(UnicodeComplete)"
-"
-" ... instead of:
-"
-"     "\<c-x>\<c-g>"
-"     "\<c-x>\<c-z>"
-"
-" ... ?
-" Because, if one day  we want to use `c-x c-z` as keys  to exit c-x submode, it
-" wouldn't work anymore.
-"
-" `c-x c-g` is not concerned, because it doesn't seem to work as exit keys.
-" In this key sequence, for some reason, c-x makes us leave c-x submode and
-" therefore c-g is interpreted as a prefix in insert mode.
-"
-" Nevertheless, I prefer to use the plug mapping for consistency reasons:
-" we use it for the 'unic' method, so we do the same for the 'digr' method.
-"}}}
-
-let s:COMPL_MAPPINGS = {
-\                        'abbr' : "\<plug>(MC_c-r)=completion#abbr#complete()\<cr>",
-\                        'c-n'  : s:EXIT_CTRL_X.."\<plug>(MC_c-n)",
-\                        'c-p'  : s:EXIT_CTRL_X.."\<plug>(MC_c-p)",
-\                        'cmd'  : "\<c-x>\<c-v>",
-\                        'defs' : "\<c-x>\<c-d>",
-\                        'dict' : "\<c-x>\<c-k>",
-\                        'digr' : "\<plug>(DigraphComplete)",
-\                        'file' : "\<plug>(MC_c-r)=completion#file#complete()\<cr>",
-\                        'incl' : "\<c-x>\<c-i>",
-\                        'keyn' : "\<c-x>\<c-n>",
-\                        'keyp' : "\<c-x>\<c-p>",
-\                        'line' : s:EXIT_CTRL_X.."\<c-x>\<c-l>",
-\                        'omni' : "\<c-x>\<c-o>",
-\                        'spel' : "\<plug>(MC_c-r)=completion#spel#suggest()\<cr>",
-\                        'tags' : "\<c-x>\<c-]>",
-\                        'thes' : "\<c-x>\<c-t>",
-\                        'ulti' : "\<plug>(MC_c-r)=completion#ultisnips#complete()\<cr>",
-\                        'unic' : "\<plug>(UnicodeComplete)",
-\                        'user' : "\<c-x>\<c-u>",
-\                        }
+const s:COMPL_MAPPINGS = {
+    \ 'abbr' : "\<plug>(MC_c-r)=completion#abbr#complete()\<cr>",
+    \ 'c-n'  : s:EXIT_CTRL_X.."\<plug>(MC_c-n)",
+    \ 'c-p'  : s:EXIT_CTRL_X.."\<plug>(MC_c-p)",
+    \ 'cmd'  : "\<c-x>\<c-v>",
+    \ 'defs' : "\<c-x>\<c-d>",
+    \ 'dict' : "\<c-x>\<c-k>",
+    \ 'digr' : "\<plug>(DigraphComplete)",
+    \ 'file' : "\<plug>(MC_c-r)=completion#file#complete()\<cr>",
+    \ 'incl' : "\<c-x>\<c-i>",
+    \ 'keyn' : "\<c-x>\<c-n>",
+    \ 'keyp' : "\<c-x>\<c-p>",
+    \ 'line' : s:EXIT_CTRL_X.."\<c-x>\<c-l>",
+    \ 'omni' : "\<c-x>\<c-o>",
+    \ 'spel' : "\<plug>(MC_c-r)=completion#spel#suggest()\<cr>",
+    \ 'tags' : "\<c-x>\<c-]>",
+    \ 'thes' : "\<c-x>\<c-t>",
+    \ 'ulti' : "\<plug>(MC_c-r)=completion#ultisnips#complete()\<cr>",
+    \ 'unic' : "\<plug>(UnicodeComplete)",
+    \ 'user' : "\<c-x>\<c-u>",
+    \ }
 
 unlet s:EXIT_CTRL_X
 
-let s:SELECT_MATCH = { 'c-p' : "\<plug>(MC_c-p)\<plug>(MC_down)", 'keyp': "\<plug>(MC_c-p)\<plug>(MC_down)" }
+const s:SELECT_MATCH = {'c-p' : "\<plug>(MC_c-p)\<plug>(MC_down)", 'keyp': "\<plug>(MC_c-p)\<plug>(MC_down)"}
 
 " Default pattern to decide when automatic completion should be triggered.
-" I don't uppercase the name, because we can also use `b:mc_auto_pattern`
-" whose value may vary from one buffer to the other.
-let s:mc_auto_pattern = '\k\k$'
+const s:MC_AUTO_PATTERN = '\k\k$'
 
 " Conditions to be verified for a given method to be applied.{{{
 "
@@ -321,35 +296,21 @@ let s:mc_auto_pattern = '\k\k$'
 " The filename characters afterwards are optional, because we could try to
 " complete `some_dir/` or just `~`.
 "}}}
+const s:YES_YOU_CAN = {_ -> 1}
+const s:MC_CONDITIONS = {
+    \ 'c-p'  : {_ -> s:manual && completion#util#custom_isk('-')},
+    \ 'dict' : {_ -> s:manual && completion#util#setup_dict()},
+    \ 'digr' : {_ -> s:manual && get(g:, 'loaded_unicodePlugin', 0)},
+    \ 'file' : {t -> t =~# '\v[/~]\f*$'},
+    \ 'omni' : {_ -> !empty(&l:omnifunc) && &ft isnot# 'markdown'},
+    \ 'spel' : {_ -> &l:spell && !empty(&l:spelllang)},
+    \ 'tags' : {_ -> s:manual && !empty(tagfiles()) && completion#util#custom_isk('-'..(&ft is# 'vim' ? ':<' : ''))},
+    \ 'ulti' : {_ -> get(g:, 'did_plugin_ultisnips', 0)},
+    \ 'unic' : {_ -> s:manual && get(g:, 'loaded_unicodePlugin', 0)},
+    \ 'user' : {_ -> !empty(&l:completefunc)},
+    \ }
 
-let s:YES_YOU_CAN = {_ -> 1}
-let s:mc_conditions = {
-                      \ 'c-p'  : {_ -> s:manual},
-                      \ 'dict' : {_ -> s:setup_dict_option() && s:manual},
-                      \ 'digr' : {_ -> s:manual && get(g:, 'loaded_unicodePlugin', 0)},
-                      \ 'file' : {t -> t =~# '\v[/~]\f*$'},
-                      \ 'omni' : {_ -> !empty(&l:omnifunc) && &ft isnot# 'markdown'},
-                      \ 'spel' : {_ -> &l:spell && !empty(&l:spelllang)},
-                      \ 'tags' : {_ -> s:manual && !empty(tagfiles())},
-                      \ 'ulti' : {_ -> get(g:, 'did_plugin_ultisnips', 0)},
-                      \ 'unic' : {_ -> s:manual && get(g:, 'loaded_unicodePlugin', 0)},
-                      \ 'user' : {_ -> !empty(&l:completefunc)},
-                      \ }
-
-" act_on_pumvisible {{{1
-
-" Purpose: {{{
-"
-" Automatically insert the first (or last) entry in the menu, but only when
-" autocompletion is disabled.
-"
-" Indeed, when autocompletion is enabled, we don't want anything to be
-" automatically inserted. Because, sometimes it could be what we wanted, but
-" most of the time it wouldn't be, and we would have to undo the insertion.
-" Annoying. We only want automatic insertion when we press Tab ourselves.
-"}}}
-
-fu s:act_on_pumvisible() abort
+fu s:act_on_pumvisible() abort "{{{1
     let s:pumvisible = 0
 
     " If autocompletion is enabled don't do anything (respect the value of 'cot'). {{{
@@ -423,9 +384,9 @@ fu s:act_on_pumvisible() abort
     " C-p, even if the popup menu  is visible.  The latter should prevent custom
     " mappings from interfering but it doesn't always.
     " Reproduce:
-    "             let s:mc_chain = ['c-p']
-    "             ino <c-p> foobar
-    "             setl cot=menu,noinsert
+    "     let s:MC_CHAIN = ['c-p']
+    "     ino <c-p> foobar
+    "     setl cot=menu,noinsert
     return s:auto || get(s:methods, s:i, '') is# 'spel'
        \ ?     ''
        \ : stridx(&l:completeopt, 'noselect') == -1
@@ -434,18 +395,18 @@ fu s:act_on_pumvisible() abort
        \ :     "\<plug>(MC_c-p)\<plug>(MC_c-n)"
        \ :     get(s:SELECT_MATCH, s:methods[s:i], "\<plug>(MC_c-n)\<plug>(MC_up)")
 endfu
-
-" act_on_textchanged {{{1
-
 " Purpose: {{{
 "
-" Try an autocompletion every time the text changes in insert mode.
+" Automatically insert the first (or last) entry in the menu, but only when
+" autocompletion is disabled.
 "
-" This function is only called when autocompletion is enabled.
-" Technically, it tries an autocompletion by typing `<plug>(MC_Auto)`
-" which calls `completion#complete(1)`. Similar to pressing Tab.
+" Indeed, when autocompletion is enabled, we don't want anything to be
+" automatically inserted. Because, sometimes it could be what we wanted, but
+" most of the time it wouldn't be, and we would have to undo the insertion.
+" Annoying. We only want automatic insertion when we press Tab ourselves.
 "}}}
-fu s:act_on_textchanged() abort
+
+fu s:act_on_textchanged() abort "{{{1
     if pumvisible() | return '' | endif
 
     " What is `s:completedone`? {{{
@@ -501,9 +462,9 @@ fu s:act_on_textchanged() abort
     "
     " For example, we could disable the 'thes' method:
     "
-    "     let s:mc_conditions.thes =  {_ -> s:manual && !empty(&l:thesaurus)}
+    "     let s:MC_CONDITIONS.thes =  {_ -> s:manual && !empty(&l:thesaurus)}
     "
-    " Now, the `thes` method can only be tried when 'thesaurus' has a value, AND
+    " Now, the `thes` method can only be tried when 'thesaurus' has a value, *and*
     " the completion was initiated manually by the user.
     "
     " Why do we reset it here?
@@ -512,7 +473,7 @@ fu s:act_on_textchanged() abort
     "
     " Now think about  this. Autocompletion is enabled, and  we've inserted some
     " text which hasn't  been autocompleted, because the text  before the cursor
-    " didn't match `s:mc_auto_pattern`.
+    " didn't match `s:MC_AUTO_PATTERN`.
     " We still want a completion, so we press Tab.
     " It sets `s:manual` to 1. We complete our text, then go on typing.
     "
@@ -553,7 +514,7 @@ fu s:act_on_textchanged() abort
             sil call completion#file#complete()
         endif
 
-    " Purpose of s:mc_auto_pattern: {{{
+    " Purpose of `s:MC_AUTO_PATTERN`: {{{
     "
     " `strpart(...)` matches the characters from the beginning of the line up to
     " the cursor.
@@ -576,43 +537,30 @@ fu s:act_on_textchanged() abort
     "
     "     \a\a  <  \a  <  \k
     "}}}
-    elseif getline('.')[:col('.')-2] =~# { exists('b:mc_auto_pattern') ? 'b:' : 's:' }mc_auto_pattern
+    elseif getline('.')[:col('.')-2] =~# get(b:, 'mc_auto_pattern', s:MC_AUTO_PATTERN)
         sil call feedkeys("\<plug>(MC_Auto)", 'i')
     endif
 endfu
-
-" can_complete {{{1
+" Purpose:{{{
 "
-" Purpose:
+" Try an autocompletion every time the text changes in insert mode.
+"
+" This function is only called when autocompletion is enabled.
+" Technically, it tries an autocompletion by typing `<plug>(MC_Auto)`
+" which calls `completion#complete(1)`. Similar to pressing Tab.
+"}}}
+
+fu s:can_complete() abort "{{{1
+    return get(get(b:, 'mc_conditions', s:MC_CONDITIONS),
+                \ s:methods[s:i], s:YES_YOU_CAN)(s:word)
+endfu
+" Purpose:{{{
 "
 " During `s:next_method()`, test whether the current method can be applied.
 " If it's not, `s:next_method()` will try the next one.
+"}}}
 
-fu s:can_complete() abort
-    return get({exists('b:mc_conditions') ? 'b:' : 's:'}mc_conditions,
-                \ s:methods[s:i], s:YES_YOU_CAN)(s:word)
-endfu
-
-" complete {{{1
-
-" Why don't you merge this function with `next_method()`? {{{
-"
-" Because, among other things, the latter would reset `s:i` each time it would
-" be called, so the index of the method to try would be stuck on the same value.
-"
-" We couldn't merge it into `tab_complete()` either, because we want to use
-" the latter for when we press Tab manually, not for autocompletion.
-" Eventually, pressing Tab will call `complete()`, and autocompletion also
-" calls (directly) this function. That's why we simply call it `complete()`,
-" because all kind of completions (manual/auto) use it.
-"
-" BUT, by making the 2 kind of completions call different functions / hook
-" into the algo at different points, we can implement some logic, such as:
-"
-"    - if the completion is automatic, don't try this method because it's too expensive
-"    - if the completion is manual,    try first to expand a snippet
-" }}}
-fu completion#complete(dir) abort
+fu completion#complete(dir) abort "{{{1
     "                                                  ┌ don't use `\k`, it would exclude `/`
     "                                                  │ and we need to include slash for file completion
     "                                                  │
@@ -630,26 +578,35 @@ fu completion#complete(dir) abort
     endif
 
     let s:cycling = 0
-    let s:dir     = a:dir
+    let s:dir = a:dir
 
     let s:i_history = []
-    let s:i         = s:dir > 0 ? -1 : s:N
+    let s:i = s:dir > 0 ? -1 : s:N
 
-    let s:methods = get(b:, 'mc_chain', s:mc_chain)
-    let s:N       = len(s:methods)
+    let s:methods = get(b:, 'mc_chain', s:MC_CHAIN)
+    let s:N = len(s:methods)
 
     return s:next_method()
 endfu
-
-" cycle {{{1
-
-" Why don't we merge this function with `cycle_or_select()`? {{{
+" Why don't you merge this function with `next_method()`? {{{
 "
-" Because of the mappings c-j and c-o which cycle in the chain. They don't want
-" to call `cycle_or_select()`, their purpose is really to call `cycle()`.
-"}}}
+" Because, among other things, the latter would reset `s:i` each time it would
+" be called, so the index of the method to try would be stuck on the same value.
+"
+" We couldn't merge it into `tab_complete()` either, because we want to use
+" the latter for when we press Tab manually, not for autocompletion.
+" Eventually, pressing Tab will call `complete()`, and autocompletion also
+" calls (directly) this function. That's why we simply call it `complete()`,
+" because all kind of completions (manual/auto) use it.
+"
+" BUT, by making the 2 kind of completions call different functions / hook
+" into the algo at different points, we can implement some logic, such as:
+"
+"    - if the completion is automatic, don't try this method because it's too expensive
+"    - if the completion is manual,    try first to expand a snippet
+" }}}
 
-fu completion#cycle(dir) abort
+fu completion#cycle(dir) abort "{{{1
     let s:cycling = 1
     let s:manual = 1
     let s:dir = a:dir
@@ -657,10 +614,13 @@ fu completion#cycle(dir) abort
 
     return "\<plug>(MC_c-e)"..s:next_method()
 endfu
+" Why don't you merge this function with `cycle_or_select()`? {{{
+"
+" Because of the mappings c-j and c-o which cycle in the chain. They don't want
+" to call `cycle_or_select()`, their purpose is really to call `cycle()`.
+"}}}
 
-" disable_auto {{{1
-
-fu completion#disable_auto() abort
+fu completion#disable_auto() abort "{{{1
     if exists('#MC_Auto')
         autocmd! MC_Auto
         augroup! MC_Auto
@@ -673,9 +633,7 @@ fu completion#disable_auto() abort
     echo '[auto completion] OFF'
 endfu
 
-" enable_auto {{{1
-
-fu completion#enable_auto() abort
+fu completion#enable_auto() abort "{{{1
     let s:auto = 1
     let s:manual = 0
     let s:cot_save = &cot
@@ -693,7 +651,7 @@ fu completion#enable_auto() abort
         " Because it could make autocompletion press Tab indefinitely.
         " Here's how to reproduce this bug:
         "
-        "    1. let s:mc_chain = ['keyn', 'cmd']
+        "    1. let s:MC_CHAIN = ['keyn', 'cmd']
         "
         "    2. open a buffer and write `test`
         "
@@ -739,9 +697,11 @@ fu completion#enable_auto() abort
     echo '[auto completion] ON'
 endfu
 
-" menu_is_up {{{1
-
-" Purpose: {{{
+fu completion#menu_is_up() abort "{{{1
+    let s:pumvisible = 1
+    return ''
+endfu
+" Purpose:{{{
 "
 " just store 1 in `s:pumvisible`, at the very end of `s:next_method()`,
 " when a method has been invoked, and it succeeded to find completions displayed
@@ -753,35 +713,9 @@ endfu
 "
 " It's reset to 0 at the beginning of `s:act_on_pumvisible()`.
 "}}}
-fu completion#menu_is_up() abort
-    let s:pumvisible = 1
-    return ''
-endfu
 
-" next_method {{{1
-
-" Description {{{
-"
-" s:next_method() is called by:
-"
-"    - completion#verify_completion()    after a failed completion
-"    - completion#complete()             1st attempt to complete (auto / manual)
-"    - completion#cycle()                when we cycle
-"}}}
-" Purpose: {{{
-"
-" The function is going to [in|de]crement the index of the next method to try.
-" It does it one time.
-" Then it checks whether this next method can be applied.
-" If it's not, it [in|de]crement it repeatedly until:
-"
-"    - it finds one if we're cycling
-"    - it finds one OR we reach the beginning/end of the chain if we're not cycling
-"}}}
-
-fu s:next_method() abort
+fu s:next_method() abort "{{{1
     if s:cycling
-
         " Explanation of the formula: {{{
         "
         " Suppose we have the list:
@@ -854,7 +788,6 @@ fu s:next_method() abort
         " the chain. The last one.
         "
         " "}}}
-
         let s:i = (s:i + s:dir + s:N) % s:N
 
         " Why is there no risk to be stuck in a loop? {{{
@@ -877,13 +810,11 @@ fu s:next_method() abort
         " And it can't be equal to `-1`, because in the definition, we add `s:N`
         " so the result is necessarily positive (zero included).
         "}}}
-
         while !s:can_complete()
             let s:i = (s:i + s:dir + s:N) % s:N
         endwhile
 
     else
-
         " We will get out of the loop as soon as: {{{
         "
         "     the next idx is beyond the chain
@@ -893,9 +824,9 @@ fu s:next_method() abort
         " Condition to stay in the loop:
         "
         "     (s:i+1) % (s:N+1) != 0    the next idx is not beyond the chain
-        "                               IOW there IS a NEXT method
+        "                               IOW there *is* a *next* method
         "
-        "     && !s:can_complete()        AND the method of the CURRENT one can't be applied
+        "     && !s:can_complete()      *and* the method of the *current* one can't be applied
         "}}}
 
         let s:i += s:dir
@@ -918,30 +849,14 @@ fu s:next_method() abort
         " beginning/end of the chain. It wouldn't make sense to go on anyway,
         " because at that point, we would have tried all the methods.
         "}}}
-
-        while s:i != -1
-        \ &&  s:i != s:N
-        \ &&  !s:can_complete()
+        while s:i != -1 && s:i != s:N && !s:can_complete()
             let s:i += s:dir
         endwhile
     endif
 
-    " After the while loop: {{{
+    " What's the meaning of: `&& index(s:i_history, s:i) == -1`?{{{
     "
-    "     if (s:i+1) % (s:N+1) != 0
-    "
-    " ... is equivalent to:
-    "
-    "     if s:can_complete()
-    "
-    " Why don't we use that, then?
-    " Probably to save some time, the function call would be slower.
-    "
-    " What's the meaning of:
-    "
-    "     && index(s:i_history, s:i) == -1
-    "
-    " ... ? We want to make sure that the method to be tried hasn't already been
+    " We want to make sure that the method to be tried hasn't already been
     " tried since the last time the user was cycling.
     " Otherwise, we could be stuck in an endless loop of failing methods.
     " For example:
@@ -966,6 +881,19 @@ fu s:next_method() abort
     "
     "     x != -1   &&  x != b    ⇔    (x + 1) % (b + 1) != 0
     "     x != a    &&  x != b    ⇔    ???
+    "
+    " ---
+    "
+    " After the while loop:
+    "
+    "     if (s:i+1) % (s:N+1) != 0
+    "
+    " ... is equivalent to:
+    "
+    "     if s:can_complete()
+    "
+    " Why don't we use that, then?
+    " Probably to save some time, the function call would be slower.
     "}}}
     " Why the 2 first conditions? {{{
     "
@@ -983,16 +911,11 @@ fu s:next_method() abort
     " Therefore,  before pressing  the completion  mappings, we  make sure  that
     " `s:i` is different from `-1` and `s:N`.
     "}}}
-
     if s:i != -1 && s:i != s:N && index(s:i_history, s:i) == -1
-
         " If we're cycling, we store the index of the method to be tried, in a
         " list. We use it to compare its items with the index of the next method
         " to be tried.
-
-        if s:cycling
-            let s:i_history += [s:i]
-        endif
+        if s:cycling | let s:i_history += [s:i] | endif
 
         " 1 - Type the keys to invoke the chosen method. {{{
         "
@@ -1023,7 +946,7 @@ fu s:next_method() abort
     " When I insert the 1st character `j`, `TextChangedI` is triggered and
     " `s:act_on_textchanged()` is called. The function does nothing if:
     "
-    "     s:mc_auto_pattern = \k\k$
+    "     s:MC_AUTO_PATTERN = \k\k$
     "
     " Then I insert `t`. `TextChangedI` is triggered a second time, the function
     " is called again, and this time it does something, because `jt` match the
@@ -1049,34 +972,30 @@ fu s:next_method() abort
     " To tackle the  root issue, we reset  `s:i` to 0, here,  when no completion
     " mapping was press and when `s:i = s:N`.
     "}}}
-    if s:i == s:N
-        let s:i = 0
-    endif
+    if s:i == s:N | let s:i = 0 | endif
 
     return ''
 endfu
+" Description {{{
+"
+" s:next_method() is called by:
+"
+"    - completion#verify_completion()    after a failed completion
+"    - completion#complete()             1st attempt to complete (auto / manual)
+"    - completion#cycle()                when we cycle
+"}}}
+" Purpose: {{{
+"
+" The function is going to [in|de]crement the index of the next method to try.
+" It does it one time.
+" Then it checks whether this next method can be applied.
+" If it's not, it [in|de]crement it repeatedly until:
+"
+"    - it finds one if we're cycling
+"    - it finds one OR we reach the beginning/end of the chain if we're not cycling
+"}}}
 
-" setup_dict_option {{{1
-
-fu s:setup_dict_option() abort
-    "                                            ┌ there should be at least 2 characters in front of the cursor
-    "                                            │  otherwise, `C-x C-k` could try to complete a text like:
-    "                                            │      #!
-    "                                            │
-    "                                            │ ... which would take a long time, because it's not a word
-    "                                            │ so, all the words of the dictionary could follow/match
-    "                                            │
-    if index(['en', 'fr'], &l:spelllang) >= 0 && strchars(matchstr(getline('.'), '\k\+\%'..col('.')..'c'), 1) >= 2
-        let &l:dictionary = &l:spelllang is# 'en' ? '/usr/share/dict/words' : '/usr/share/dict/french'
-        return 1
-    else
-        return 0
-    endif
-endfu
-
-" snippet_or_complete {{{1
-
-fu completion#snippet_or_complete(dir, ...) abort
+fu completion#snippet_or_complete(dir, ...) abort "{{{1
     if pumvisible()
         return a:dir > 0 ? "\<c-n>" : "\<c-p>"
     endif
@@ -1122,30 +1041,26 @@ fu completion#snippet_or_complete(dir, ...) abort
     return ''
 endfu
 
-" tab_complete {{{1
-
-" Why don't we merge this function with `complete()`? {{{
+fu completion#tab_complete(dir) abort "{{{1
+    let s:manual = 1
+    let s:orig_line = getline('.')
+    return completion#complete(a:dir)
+endfu
+" Why don't you merge this function with `complete()`? {{{
 "
 " If we did that, every time `complete()` would be called, `s:manual` would
 " be set to 1. It would be wrong, when `complete()` would be called by the
 " autocompletion (`<Plug>(MC_Auto)`).
 "
 " We could find a workaround, by passing a second argument to `complete()`
-" inside the mappings Tab, S-Tab, and <plug>(MC_auto).
+" inside the mappings `Tab`, `S-Tab`, and `<plug>(MC_auto)`.
 " It would serve as a flag whose meaning is whether we're performing a manual
 " or automatic completion.
 " But, it means that every time the autocompletion would kick in, it would
 " test whether the popup menu is visible. It could make it a bit slower...
 "}}}
 
-fu completion#tab_complete(dir) abort
-    let s:manual = 1
-    return completion#complete(a:dir)
-endfu
-
-" toggle_auto {{{1
-
-fu completion#toggle_auto() abort
+fu completion#toggle_auto() abort "{{{1
     if exists('#MC_Auto')
         call completion#disable_auto()
     else
@@ -1153,8 +1068,11 @@ fu completion#toggle_auto() abort
     endif
 endfu
 
-" verify_completion {{{1
-
+fu completion#verify_completion() abort "{{{1
+    return s:pumvisible
+       \ ?     s:act_on_pumvisible()
+       \ :     s:next_method()
+endfu
 " Purpose: {{{
 "
 " It's invoked by `<plug>(MC_next_method)`, which itself is typed at
@@ -1164,8 +1082,16 @@ endfu
 " If it's open, the function calls `s:act_on_pumvisible()`.
 " If it's not, it recalls `s:next_method()` to try another method.
 "}}}
-fu completion#verify_completion() abort
-    return s:pumvisible
-       \ ?     s:act_on_pumvisible()
-       \ :     s:next_method()
+
+fu completion#restore_base() abort "{{{1
+    if exists('s:orig_line')
+        call setline('.', s:orig_line)
+        augroup completion_unlet_orig_line
+            au!
+            au CursorMovedI,TextChangedI,InsertLeave,InsertEnter *
+                \   exe 'au! completion_unlet_orig_line'
+                \ | unlet! s:orig_line
+        augroup END
+    endif
+    return ''
 endfu

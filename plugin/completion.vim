@@ -42,7 +42,11 @@ ino <silent> <plug>(MC_up)   <up>
 
 " Because  of a  mapping in  `vim-readline`, we've  lost the  ability to  exit a
 " completion menu. Restore it on `c-q`.
-ino <c-q> <c-e>
+" TODO: Document why we need `#restore_base()`.
+" Hint: it's due to `longest` being in `'cot'`.
+" Also, document why we don't invoke `#restore_base()` in `<plug>(MC_c-e)`.
+" Hint: it would break the dot command too frequently (as soon as we cycle).
+ino <silent> <c-q> <c-e><c-r>=completion#restore_base()<cr>
 
 " cycling {{{2
 
@@ -59,9 +63,9 @@ ino        <silent>         <plug>(MC_c-o) <c-o>
 imap <expr><silent> <plug>(MC_next_method) completion#verify_completion()
 imap <expr><silent> <plug>(MC_Auto)        completion#complete(1)
 
-nno <silent><unique> [om :<c-u>call completion#enable_auto()<cr>
-nno <silent><unique> ]om :<c-u>call completion#disable_auto()<cr>
-nno <silent><unique> com :<c-u>call completion#toggle_auto()<cr>
+nno <silent><unique> [oM :<c-u>call completion#enable_auto()<cr>
+nno <silent><unique> ]oM :<c-u>call completion#disable_auto()<cr>
+nno <silent><unique> coM :<c-u>call completion#toggle_auto()<cr>
 
 " improved default methods {{{2
 " C-p         &friends {{{3
@@ -73,26 +77,26 @@ nno <silent><unique> com :<c-u>call completion#toggle_auto()<cr>
 "
 " So we invoke this function to temporarily add it.
 "}}}
-ino <silent><unique> <c-p>      <c-r>=completion#util#custom_isk('-')<cr><c-p>
-ino <silent><unique> <c-x><c-n> <c-r>=completion#util#custom_isk('-')<cr><c-x><c-n>
-ino <silent><unique> <c-x><c-p> <c-r>=completion#util#custom_isk('-')<cr><c-x><c-p>
+ino <silent><unique> <c-p>      <c-r>=completion#util#custom_isk('-')[-1]<cr><c-p>
+ino <silent><unique> <c-x><c-n> <c-r>=completion#util#custom_isk('-')[-1]<cr><c-x><c-n>
+ino <silent><unique> <c-x><c-p> <c-r>=completion#util#custom_isk('-')[-1]<cr><c-x><c-p>
 
 " C-x C-]     tag {{{3
 
 " Some Vim tags contain a colon or begin with a less-than sign.{{{
 "
-" Maybe we should add `:` to 'isk' unconditionally:
+" Maybe we should add `:` to `'isk'` unconditionally:
 "
-"     '-:'.(&ft is# 'vim' ? '<' : '')
+"     '-:'..(&ft is# 'vim' ? '<' : '')
 "
 " But it doesn't seem necessary atm.
 "}}}
-"                                                                     │
-ino <silent><unique> <c-x><c-]> <c-r>=completion#util#custom_isk('-'.(&ft is# 'vim' ? ':<' : ''))<cr><c-x><c-]>
+"                                                                      │
+ino <silent><unique> <c-x><c-]> <c-r>=completion#util#custom_isk('-'..(&ft is# 'vim' ? ':<' : ''))[-1]<cr><c-x><c-]>
 
 " C-x C-k     dictionary {{{3
 
-ino <silent><unique> <c-x><c-k> <c-r>=completion#util#setup_dict()<cr><c-x><c-k>
+ino <silent><unique> <c-x><c-k> <c-r>=completion#util#setup_dict()[-1]<cr><c-x><c-k>
 
 " C-x C-s     fix Spelling error {{{3
 
@@ -115,7 +119,7 @@ ino <expr><silent><unique> <c-x><c-s> completion#spel#fix()
 " Even with a space in 'isk', the completion function only tries to complete the
 " last word before the cursor.
 
-ino <silent><unique> <c-x><c-t> <c-r>=completion#util#custom_isk(' -')<cr><c-x><c-t>
+ino <silent><unique> <c-x><c-t> <c-r>=completion#util#custom_isk(' -')[-1]<cr><c-x><c-t>
 "}}}2
 " new methods {{{2
 " C-x s       function Signature {{{3
@@ -139,8 +143,8 @@ ino <silent><unique> <c-x><c-t> <c-r>=completion#util#custom_isk(' -')<cr><c-x><
 " mode, but  we can't use  it in command-line mode  (again, we wouldn't  see the
 " completed text, neither in Vim nor in Nvim).
 "}}}
-ino <silent><unique> <c-x>s <c-r>=completion#custom#signature(mode(1))<cr>
-cno         <unique> <c-x>s <c-\>e completion#custom#signature(mode(1))<cr>
+ino <silent><unique> <c-x>s <c-r>=completion#custom#signature(mode())<cr>
+cno         <unique> <c-x>s <c-\>e completion#custom#signature(mode())<cr>
 
 " C-z         easy C-x C-p {{{3
 
@@ -306,7 +310,7 @@ set cot-=preview
 " Add some intelligence regarding the case of a text which is completed.{{{
 "
 " For example, suppose we have the word `WeirdCaseWord` in a buffer.
-" We insert `weirdc` and press Tab to complete:
+" We insert `weirdc` and press `C-x C-n` to complete:
 "
 "    - with `noinfercase`, we get `WeirdCaseWord`
 "    - with `infercase`  , we get `weirdcaseword`
