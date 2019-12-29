@@ -7,11 +7,11 @@ let g:autoloaded_completion = 1
 "
 " In `s:act_on_textchanged()`, shouldn't:
 "
-"     getline('.')[col('.')-2] =~# '\v\f'
+"     getline('.')[col('.')-2] =~# '\f'
 "
 " ... be replaced with:
 "
-"     matchstr(getline('.'), '.\%'.col('.').'c') =~# '\v\f'
+"     matchstr(getline('.'), '.\%'.col('.').'c') =~# '\f'
 "
 " to handle the case where the character before the cursor is multi-byte?
 " A multi-byte character can be in 'isf'.
@@ -69,7 +69,8 @@ let g:autoloaded_completion = 1
 
 " To look for all the global variables used by this plugin, search the
 " pattern:
-"         \v^%(\s*".*)@!.*\zsg:[^ ,]
+"
+"     ^\%(\s*".*\)\@!.*\zsg:[^ ,]
 "}}}1
 
 " Init {{{1
@@ -283,13 +284,13 @@ const s:MC_AUTO_PATTERN = '\k\k$'
 "
 " Explanation of the regex for the file completion method:
 "
-"     \v[/~]\f*$
+"     [/~]\f*$
 "
 " Before the cursor, there must a slash or a tilda, then zero or more characters
-" in 'isfname'.
-" By default the tilda is in 'isf', so why not simply:
+" in `'isfname'`.
+" By default the tilda is in `'isf'`, so why not simply:
 "
-"     \v/?\f*
+"     /\=\f*
 "
 " Because then, it would match anything. The condition would be useless.
 " At the very least, we want a slash or a tilda before the cursor.
@@ -301,7 +302,7 @@ const s:MC_CONDITIONS = {
     \ 'c-p'  : {_ -> s:manual && completion#util#custom_isk('-')},
     \ 'dict' : {_ -> s:manual && completion#util#setup_dict()},
     \ 'digr' : {_ -> s:manual && get(g:, 'loaded_unicodePlugin', 0)},
-    \ 'file' : {t -> t =~# '\v[/~]\f*$'},
+    \ 'file' : {t -> t =~# '[/~]\f*$'},
     \ 'omni' : {_ -> !empty(&l:omnifunc) && &ft isnot# 'markdown'},
     \ 'spel' : {_ -> &l:spell && !empty(&l:spelllang)},
     \ 'tags' : {_ -> s:manual && !empty(tagfiles()) && completion#util#custom_isk('-'..(&ft is# 'vim' ? ':<' : ''))},
@@ -507,10 +508,10 @@ fu s:act_on_textchanged() abort "{{{1
         "     E684: list index out of range: 0~
         "     Error detected while processing function <SNR>67_act_on_textchanged:~
         "     line   81:~
-        "     E15: Invalid expression: s:methods[s:i] is# 'file' && matchstr(getline('.'), '.\%'.col('.').'c') =~# '\v\f'~
+        "     E15: Invalid expression: s:methods[s:i] is# 'file' && matchstr(getline('.'), '.\%'.col('.').'c') =~# '\f'~
         "}}}
 
-        if get(s:methods, s:i, '') is# 'file' && matchstr(getline('.'), '.\%'..col('.')..'c') =~# '\v\f'
+        if get(s:methods, s:i, '') is# 'file' && matchstr(getline('.'), '.\%'..col('.')..'c') =~# '\f'
             sil call completion#file#complete()
         endif
 

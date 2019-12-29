@@ -30,10 +30,10 @@ fu completion#spel#fix() abort "{{{1
     setl spell
     try
         let before_cursor = matchstr(getline('.'), '.*\%'.col('.').'c')
-        "                                             ┌ don't eliminate a keyword nor a single quote
-        "                                             │ when you split the line
-        "                                             ├────────┐
-        let words = reverse(split(before_cursor, '\v%(%(\k|'')@!.)+'))
+        "                                            ┌ don't eliminate a keyword nor a single quote
+        "                                            │ when you split the line
+        "                                            ├────────────┐
+        let words = reverse(split(before_cursor, '\%(\%(\k\|''\)\@!.\)\+'))
 
         let found_a_badword = 0
         for word in words

@@ -6,20 +6,19 @@ let g:autoloaded_completion#abbr = 1
 let s:TABLE  = execute('iab')
 let s:LINES  = reverse(split(s:TABLE, '\n'))
 let s:ABBREV = map(s:LINES, {_,v -> {
-\                                     'lhs' : matchstr(v, '\vi\s+\zs\w+'),
-\                                     'rhs' : matchstr(v, '\v\*\s+\zs.*'),
-\                                   }
-\                           })
+    \ 'lhs' : matchstr(v, 'i\s\+\zs\w\+'),
+    \ 'rhs' : matchstr(v, '\*\s\+\zs.*'),
+    \ }})
 
 fu s:abbrev_rhs(rhs) abort
     if stridx(a:rhs, '&spl is#') == -1
         return a:rhs
 
     elseif &l:spl is# 'fr'
-        return matchstr(a:rhs, "\\vfr.{-}'\\zs.{-}\\ze'")
+        return matchstr(a:rhs, 'fr.\{-}''\zs.\{-}\ze''')
 
     elseif &l:spl is# 'en'
-        return matchstr(a:rhs, ":\\s\\+'\\zs.*\\ze'")
+        return matchstr(a:rhs, ':\s\+''\zs.*\ze''')
     endif
 endfu
 
