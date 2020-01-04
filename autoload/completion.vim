@@ -1003,7 +1003,7 @@ fu completion#snippet_or_complete(dir, ...) abort "{{{1
 
     " Why not checking the existence of `UltiSnips#ExpandSnippet()`?{{{
     "
-    "     if ! exists('*UltiSnips#ExpandSnippet')
+    "     if !exists('*UltiSnips#ExpandSnippet')
     "
     " In Nvim, we clear the augroup `UltiSnips_AutoTrigger` on `VimEnter`.
     " As a result,  when you've just started  Nvim, if you insert  a tab trigger
@@ -1015,7 +1015,7 @@ fu completion#snippet_or_complete(dir, ...) abort "{{{1
     " Besides,  what we  really  want,  is not  checking  whether this  function
     " exists, but whether the UltiSnips plugin is enabled in our vimrc.
     "}}}
-    if ! exists('g:did_plugin_ultisnips')
+    if !exists('g:did_plugin_ultisnips')
         call feedkeys(a:dir > 0 ? "\<plug>(MC_tab_complete)": "\<plug>(MC_stab_complete)", 'i')
         return ''
     endif
