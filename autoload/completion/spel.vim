@@ -1,5 +1,5 @@
 fu completion#spel#suggest() abort "{{{1
-    let word_to_complete = matchstr(getline('.'), '\k\+\%'.col('.').'c')
+    let word_to_complete = matchstr(getline('.'), '\k\+\%'..col('.')..'c')
     let badword = spellbadword(word_to_complete)
     let matches = !empty(badword[1])
                  \ ?     spellsuggest(badword[0])
@@ -29,7 +29,7 @@ fu completion#spel#fix() abort "{{{1
     let [spell_save, winid, bufnr] = [&l:spell, win_getid(), bufnr('%')]
     setl spell
     try
-        let before_cursor = matchstr(getline('.'), '.*\%'.col('.').'c')
+        let before_cursor = matchstr(getline('.'), '.*\%'..col('.')..'c')
         "                                            ┌ don't eliminate a keyword nor a single quote
         "                                            │ when you split the line
         "                                            ├────────────┐
@@ -54,7 +54,7 @@ fu completion#spel#fix() abort "{{{1
             if exists('#User#add_to_undolist_i')
                 do <nomodeline> User add_to_undolist_i
             endif
-            let new_line = substitute(getline('.'), '\<'.badword.'\>', suggestion, 'g')
+            let new_line = substitute(getline('.'), '\V\<'..badword..'\>', suggestion, 'g')
             call timer_start(0, {_ -> setline('.', new_line)})
         endif
     catch

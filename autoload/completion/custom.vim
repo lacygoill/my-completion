@@ -30,7 +30,7 @@ fu completion#custom#signature(mode) abort "{{{1
     let signature = matchstr(signature, '.\{-})')
     if empty(signature) | return '' | endif
 
-    let new_line = substitute(line, func_name..'\%[()]', signature, '')
+    let new_line = substitute(line, '\V'..func_name..'\%[()]', signature, '')
     if a:mode is# 'i'
         call setline('.', new_line)
     else
