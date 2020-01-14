@@ -28,17 +28,29 @@ snor <silent><unique> <s-tab> <esc>:call UltiSnips#JumpBackwards()<cr>
 " We don't want recursiveness for those keys when we're in regular insert mode.
 " In C-x submode, custom mappings should not interfere.
 
-" typed/returned by completion#complete()
+" typed/returned by `completion#complete()`
 ino <silent> <plug>(MC_tab) <tab>
 ino <silent> <plug>(MC_c-d) <c-d>
 
-" typed/returned by completion#cycle()
-ino <silent> <plug>(MC_c-e)  <c-e>
-ino <silent> <plug>(MC_c-n)  <c-n>
-ino <silent> <plug>(MC_c-p)  <c-p>
-ino <silent> <plug>(MC_c-r)  <c-r>
+" typed/returned by `completion#cycle()`
+ino <silent> <plug>(MC_c-e) <c-e>
+ino <silent> <plug>(MC_c-n) <c-n>
+ino <silent> <plug>(MC_c-p) <c-p>
+ino <silent> <plug>(MC_c-r) <c-r>
+ino <silent> <plug>(MC_c-x_c-v) <c-x><c-v>
+ino <silent> <plug>(MC_c-x_c-d) <c-x><c-d>
+ino <silent> <plug>(MC_c-x_c-k) <c-x><c-k>
+ino <silent> <plug>(MC_c-x_c-i) <c-x><c-i>
+ino <silent> <plug>(MC_c-x_c-n) <c-x><c-n>
+ino <silent> <plug>(MC_c-x_c-p) <c-x><c-p>
+ino <silent> <plug>(MC_c-x_c-l) <c-x><c-l>
+ino <silent> <plug>(MC_c-x_c-o) <c-x><c-o>
+ino <silent> <plug>(MC_c-x_c-]) <c-x><c-]>
+ino <silent> <plug>(MC_c-x_c-t) <c-x><c-t>
+ino <silent> <plug>(MC_c-x_c-u) <c-x><c-u>
 ino <silent> <plug>(MC_down) <down>
-ino <silent> <plug>(MC_up)   <up>
+ino <silent> <plug>(MC_up) <up>
+cno          <plug>(MC_cr) <cr>
 
 " Because  of a  mapping in  `vim-readline`, we've  lost the  ability to  exit a
 " completion menu. Restore it on `c-q`.
@@ -304,6 +316,11 @@ set cot+=longest
 "     au CompleteDone * if pumvisible() == 0 | pclose | endif
 
 set cot-=preview
+
+" save 'cot' {{{3
+
+" we need it for the tabline flag `[cot+]`
+let g:orig_completeopt = sort(split(&cot, ','))
 "}}}2
 " infercase {{{2
 

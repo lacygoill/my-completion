@@ -252,25 +252,25 @@ endif
 "     The second one inserts a newline and suggests L2.
 "}}}
 const s:COMPL_MAPPINGS = {
-    \ 'abbr' : "\<plug>(MC_c-r)=completion#abbr#complete()\<cr>",
+    \ 'abbr' : "\<plug>(MC_c-r)=completion#abbr#complete()\<Plug>(MC_cr)",
     \ 'c-n'  : s:EXIT_CTRL_X.."\<plug>(MC_c-n)",
     \ 'c-p'  : s:EXIT_CTRL_X.."\<plug>(MC_c-p)",
-    \ 'cmd'  : "\<c-x>\<c-v>",
-    \ 'defs' : "\<c-x>\<c-d>",
-    \ 'dict' : "\<c-x>\<c-k>",
+    \ 'cmd'  : "\<plug>(MC_c-x_c-v)",
+    \ 'defs' : "\<plug>(MC_c-x_c-d)",
+    \ 'dict' : "\<plug>(MC_c-x_c-k)",
     \ 'digr' : "\<plug>(DigraphComplete)",
-    \ 'file' : "\<plug>(MC_c-r)=completion#file#complete()\<cr>",
-    \ 'incl' : "\<c-x>\<c-i>",
-    \ 'keyn' : "\<c-x>\<c-n>",
-    \ 'keyp' : "\<c-x>\<c-p>",
-    \ 'line' : s:EXIT_CTRL_X.."\<c-x>\<c-l>",
-    \ 'omni' : "\<c-x>\<c-o>",
-    \ 'spel' : "\<plug>(MC_c-r)=completion#spel#suggest()\<cr>",
-    \ 'tags' : "\<c-x>\<c-]>",
-    \ 'thes' : "\<c-x>\<c-t>",
-    \ 'ulti' : "\<plug>(MC_c-r)=completion#ultisnips#complete()\<cr>",
+    \ 'file' : "\<plug>(MC_c-r)=completion#file#complete()\<Plug>(MC_cr)",
+    \ 'incl' : "\<plug>(MC_c-x_c-i)",
+    \ 'keyn' : "\<plug>(MC_c-x_c-n)",
+    \ 'keyp' : "\<plug>(MC_c-x_c-p)",
+    \ 'line' : s:EXIT_CTRL_X.."\<plug>(MC_c-x_c-l)",
+    \ 'omni' : "\<plug>(MC_c-x_c-o)",
+    \ 'spel' : "\<plug>(MC_c-r)=completion#spel#suggest()\<plug>(MC_cr)",
+    \ 'tags' : "\<plug>(MC_c-x_c-])",
+    \ 'thes' : "\<plug>(MC_c-x_c-t)",
+    \ 'ulti' : "\<plug>(MC_c-r)=completion#ultisnips#complete()\<plug>(MC_cr)",
     \ 'unic' : "\<plug>(UnicodeComplete)",
-    \ 'user' : "\<c-x>\<c-u>",
+    \ 'user' : "\<plug>(MC_c-x_c-u)",
     \ }
 
 unlet s:EXIT_CTRL_X
@@ -920,8 +920,7 @@ fu s:next_method() abort "{{{1
 
         " 1 - Type the keys to invoke the chosen method. {{{
         "
-        " 2 - Store the state of the menu in `s:pumvisible` through
-        "     `completion#menu_is_up()`.
+        " 2 - Store the state of the menu in `s:pumvisible` through `completion#menu_is_up()`.
         "
         " 3 - call `completion#verify_completion()` through `<plug>(MC_next_method)`
         "}}}

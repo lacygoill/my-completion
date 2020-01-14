@@ -1,5 +1,10 @@
 fu completion#util#custom_isk(chars) abort "{{{1
-    if exists('s:isk_save') | return '' | endif
+    " Why this check?{{{
+    "
+    " If for  some reason  the function  is invoked  twice without  a completion
+    " in-between, I don't want to save/restore a modified value of `'isk'`.
+    "}}}
+    if exists('s:isk_save') | return 1 | endif
     let [s:isk_save, s:bufnr] = [&l:isk, bufnr('%')]
     try
         for char in split(a:chars, '\zs')
@@ -21,6 +26,7 @@ fu completion#util#custom_isk(chars) abort "{{{1
 endfu
 
 fu completion#util#setup_dict() abort "{{{1
+    if exists('s:ic_save') | return 1 | endif
     " There should be at least 2 characters in front of the cursor,{{{
     " otherwise, `C-x C-k` could try to complete a text like:
     "
@@ -30,19 +36,18 @@ fu completion#util#setup_dict() abort "{{{1
     " words of the dictionary could match.
     "}}}
     let complete_more_than_2chars = strchars(matchstr(getline('.'), '\k\+\%'..col('.')..'c'), 1) >= 2
-    if index(['en', 'fr'], &l:spelllang) >= 0 && complete_more_than_2chars
-        let s:ic_save = &ic
-        set noic
-        let &l:dictionary = &l:spelllang is# 'en' ? '/usr/share/dict/words' : '/usr/share/dict/french'
-        augroup completion_dict_restore_ic
-            au!
-            au CompleteDone,TextChanged * exe 'au! completion_dict_restore_ic'
-                \ | let &ic = s:ic_save
-                \ | unlet! s:ic_save
-        augroup END
-        return 1
-    else
+    if index(['en', 'fr'], &l:spelllang) == -1 || !complete_more_than_2chars
         return 0
     endif
+    let s:ic_save = &ic
+    set noic
+    let &l:dictionary = &l:spelllang is# 'en' ? '/usr/share/dict/words' : '/usr/share/dict/french'
+    augroup completion_dict_restore_ic
+        au!
+        au CompleteDone,TextChanged,TextChangedI,TextChangedP * exe 'au! completion_dict_restore_ic'
+            \ | let &ic = s:ic_save
+            \ | unlet! s:ic_save
+    augroup END
+    return 1
 endfu
 
