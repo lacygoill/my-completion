@@ -320,7 +320,7 @@ set cot-=preview
 " save 'cot' {{{3
 
 " we need it for the tabline flag `[cot+]`
-let g:orig_completeopt = sort(split(&cot, ','))
+let g:orig_completeopt = &cot
 "}}}2
 " infercase {{{2
 
