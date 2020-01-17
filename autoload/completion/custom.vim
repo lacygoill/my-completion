@@ -16,7 +16,7 @@ endfu
 
 fu completion#custom#signature(mode) abort "{{{1
     let [line, col] = a:mode is# 'i' ? [getline('.'), col('.')] : [getcmdline(), getcmdpos()]
-    let func_name = matchstr(line, '\<\w\+\ze()\?\%'..col..'c')
+    let func_name = matchstr(line, '\<\w\+\ze()\=\%'..col..'c')
     if empty(func_name)
         return ''
     endif
