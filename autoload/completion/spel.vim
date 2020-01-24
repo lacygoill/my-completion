@@ -55,7 +55,7 @@ fu completion#spel#fix() abort "{{{1
                 do <nomodeline> User add_to_undolist_i
             endif
             let new_line = substitute(getline('.'), '\V\<'..badword..'\>', suggestion, 'g')
-            call timer_start(0, {_ -> setline('.', new_line)})
+            call timer_start(0, {-> setline('.', new_line)})
         endif
     catch
         return lg#catch_error()

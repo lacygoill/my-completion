@@ -2,7 +2,7 @@ fu completion#custom#easy_c_x_c_p() abort "{{{1
     if !exists('s:cot_save')
         let s:cot_save = &cot
         set cot-=noinsert
-        call timer_start(0, {_ -> s:restore_cot()})
+        call timer_start(0, {-> s:restore_cot()})
     endif
     return "\<c-x>\<c-p>"
 endfu
