@@ -317,10 +317,6 @@ set cot+=longest
 
 set cot-=preview
 
-" save 'cot' {{{3
-
-" we need it for the tabline flag `[cot+]`
-let g:orig_completeopt = &cot
 "}}}2
 " infercase {{{2
 
@@ -364,4 +360,13 @@ set isfname+=@-@
 "     mthesaur.txt filetype:txt
 
 set thesaurus+=$HOME/.vim/tools/mthesaur.txt
+"}}}1
+" Autocmds {{{1
+
+" Keep this autocmd **after** setting `'cot'`!
+augroup hoist_cot
+    au!
+    au User MyFlags call statusline#hoist('global',
+        \ '%2*%{&cot !=# "'..&cot..'" && mode(1) is# "n"? "[cot+]" : ""}', 35)
+augroup END
 
