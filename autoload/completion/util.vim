@@ -18,7 +18,7 @@ fu completion#util#custom_isk(chars) abort "{{{1
             \ | unlet! s:isk_save s:bufnr
         augroup END
     catch
-        call lg#catch_error()
+        call lg#catch()
         " Do *not* add a finally clause to restore `'isk'`.
         " It would be too soon. The completion hasn't been done yet.
     endtry

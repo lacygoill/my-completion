@@ -58,7 +58,7 @@ fu completion#spel#fix() abort "{{{1
             call timer_start(0, {-> setline('.', new_line)})
         endif
     catch
-        return lg#catch_error()
+        return lg#catch()
     finally
         if winbufnr(winid) == bufnr
             let [tabnr, winnr] = win_id2tabwin(winid)
