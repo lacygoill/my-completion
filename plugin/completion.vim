@@ -304,7 +304,7 @@ set cot-=noselect
 "}}}
 set cot+=longest
 
-" preview {{{3
+" preview → popup {{{3
 
 " When we press `C-x C-g` by  accident, the unicode.vim plugin opens the preview
 " window (digraph completion), and we have to close it manually.  It's annoying.
@@ -317,6 +317,11 @@ set cot+=longest
 
 set cot-=preview
 
+" a popup doesn't suffer from this issue, and is less obtrusive in general;
+" unfortunately, Nvim doesn't support a float equivalent atm
+if !has('nvim')
+    set cot+=popup
+endif
 "}}}2
 " infercase {{{2
 
