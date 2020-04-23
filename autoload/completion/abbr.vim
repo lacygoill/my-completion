@@ -59,7 +59,7 @@ fu completion#abbr#complete() abort
                         \                 :    s:abbrev_rhs(v.rhs)
                         \ }})
 
-    let from_where = col('.') - len(word_to_complete)
+    let from_where = col('.') - strlen(word_to_complete)
 
     if !empty(matching_abbrev)
         call complete(from_where, matching_abbrev)

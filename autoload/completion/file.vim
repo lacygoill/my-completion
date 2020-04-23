@@ -73,11 +73,11 @@ fu completion#file#complete() abort
         " into `/home/user`."}}}
         let entries = glob(cur_path..(cur_path isnot# '~' ? '*' : ''), 0, 1, 1)
         if !empty(entries)
-            " Why: `col('.') - len(fnamemodify(cur_path, ':t'))`{{{
+            " Why: `col('.') - strlen(fnamemodify(cur_path, ':t'))`{{{
             "
             " ... instead of:
             "
-            "     col('.') - len(cur_path)
+            "     col('.') - strlen(cur_path)
             "
             " ...?
             " Because, we don't complete the whole path. The matches in the menu
@@ -85,7 +85,7 @@ fu completion#file#complete() abort
             " So we  need to tell  `complete()` that  the selected entry  in the
             " menu will replace only the last component of the current path.
             "}}}
-            let from_where = col('.') - len(fnamemodify(cur_path, ':t'))
+            let from_where = col('.') - strlen(fnamemodify(cur_path, ':t'))
             " Why: `cur_path isnot# '~' ? fnamemodify(v, ':t') : v`?{{{
             "
             " Because, if `cur_path` is `~`, then `entries` is:

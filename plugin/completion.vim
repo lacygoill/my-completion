@@ -21,8 +21,8 @@ imap <expr><silent>   <plug>(MC_stab_complete) completion#tab_complete(-1)
 " same thing for `C-g Tab`; useful when we're expanding a snippet
 imap <expr><silent><unique> <c-g><tab> completion#tab_complete(1)
 
-snor <silent><unique>   <tab> <esc>:call UltiSnips#JumpForwards()<cr>
-snor <silent><unique> <s-tab> <esc>:call UltiSnips#JumpBackwards()<cr>
+snor <silent><unique>   <tab> <c-\><c-n>:call UltiSnips#JumpForwards()<cr>
+snor <silent><unique> <s-tab> <c-\><c-n>:call UltiSnips#JumpBackwards()<cr>
 
 " The next mappings are necessary to prevent custom mappings from interfering.
 " We don't want recursiveness for those keys when we're in regular insert mode.

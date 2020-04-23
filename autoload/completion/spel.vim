@@ -5,7 +5,7 @@ fu completion#spel#suggest() abort "{{{1
                  \ ?     spellsuggest(badword[0])
                  \ :     []
 
-    let from_where = col('.') - len(word_to_complete)
+    let from_where = col('.') - strlen(word_to_complete)
 
     if !empty(matches)
         call complete(from_where, matches)

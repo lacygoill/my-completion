@@ -96,7 +96,7 @@ fu completion#ultisnips#complete() abort
     \                          }
     \                 })
 
-    let startcol = col('.') - len(word_to_complete)
+    let startcol = col('.') - strlen(word_to_complete)
     if !empty(matches)
         call complete(startcol, matches)
     endif
