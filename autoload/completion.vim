@@ -344,8 +344,8 @@ fu s:act_on_pumvisible() abort "{{{1
     "        * `C-p Down` for the methods 'c-p' or 'keyp' (LAST entry)
     "        * `C-n Up`   for all the others              (FIRST entry)
     "
-    "       It works but `Down` and `Up` breaks the undo sequence, meaning that
-    "       if we want to repeat the completion with the dot command, a part of
+    "       It works but `Down` and `Up`  breaks the undo sequence, meaning that
+    "       if we want to repeat the completion with the redo command, a part of
     "       the completion will be lost.
     "
     "       We could also do:
