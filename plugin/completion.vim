@@ -57,7 +57,7 @@ cno          <plug>(MC_cr) <cr>
 " TODO: Document why we need `#restore_base()`.
 " Hint: it's due to `longest` being in `'cot'`.
 " Also, document why we don't invoke `#restore_base()` in `<plug>(MC_c-e)`.
-" Hint: it would break the redo command too frequently (as soon as we cycle).
+" Hint: it would break the dot command too frequently (as soon as we cycle).
 ino <silent> <c-q> <c-e><c-r>=completion#restore_base()<cr>
 
 " cycling {{{2
@@ -235,7 +235,7 @@ set cot-=noselect
 " character to reduce their number, the popup menu closes.
 "
 " Adding `noselect` in `'cot'` would fix this issue, but it would also break the
-" redo command, because our plugin would press an up or down key.
+" dot command, because our plugin would press an up or down key.
 "
 " So, instead, we include `longest`; it doesn't fix the issue entirely, but it helps.
 " To test its effect, write this in a file:

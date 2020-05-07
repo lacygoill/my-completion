@@ -227,16 +227,16 @@ endif
 "
 " Here's what lifepillar commented on the patch that introduced it:
 "
-" > Fix 'line' completion method inserting a new line.
+" >     Fix 'line' completion method inserting a new line.
 " >
-" > Line completion seems to work differently from other completion methods:
-" > typing a character that does not belong to an entry does not exit
-" > completion. Before this commit, with autocompletion on such behaviour
-" > resulted in µcomplete inserting a new line while the user was typing,
-" > because µcomplete would insert <c-x><c-l> while in ctrl-x submode.
+" >     Line completion seems to work differently from other completion methods:
+" >     typing a character that does not belong to an entry does not exit
+" >     completion. Before this commit, with autocompletion on such behaviour
+" >     resulted in µcomplete inserting a new line while the user was typing,
+" >     because µcomplete would insert <c-x><c-l> while in ctrl-x submode.
 " >
-" > To fix that, we use the same trick as with 'c-p': make sure that we are
-" > out of ctrl-x submode before typing <c-x><c-l>.
+" >     To fix that, we use the same trick as with 'c-p': make sure that we are
+" >     out of ctrl-x submode before typing <c-x><c-l>.
 "
 " Source: commit `59169596e96c8ff3943e9179a626391ff76f4b76`
 "
@@ -345,7 +345,7 @@ fu s:act_on_pumvisible() abort "{{{1
     "        * `C-n Up`   for all the others              (FIRST entry)
     "
     "       It works but `Down` and `Up`  breaks the undo sequence, meaning that
-    "       if we want to repeat the completion with the redo command, a part of
+    "       if we want to repeat the completion with the dot command, a part of
     "       the completion will be lost.
     "
     "       We could also do:
