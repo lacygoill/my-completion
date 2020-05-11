@@ -369,8 +369,7 @@ set thesaurus+=$HOME/.vim/tools/mthesaur.txt
 " Autocmds {{{1
 
 " Keep this autocmd **after** setting `'cot'`!
-augroup hoist_cot
-    au!
+augroup hoist_cot | au!
     au User MyFlags call statusline#hoist('global',
         \ '%2*%{&cot !=# "'..&cot..'" && mode(1) is# "n"? "[cot+]" : ""}', 25,
         \ expand('<sfile>')..':'..expand('<sflnum>'))

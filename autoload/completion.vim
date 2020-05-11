@@ -644,8 +644,7 @@ fu completion#enable_auto() abort "{{{1
     " auto-completion mode
     set cot+=noinsert
 
-    augroup MC_Auto
-        au!
+    augroup MC_Auto | au!
         au TextChangedI * call s:act_on_textchanged()
         " Why don't you define `s:completedone` as `!empty(v:completed_item)`? {{{
         "
@@ -1086,8 +1085,7 @@ endfu
 fu completion#restore_base() abort "{{{1
     if exists('s:orig_line')
         call setline('.', s:orig_line)
-        augroup completion_unlet_orig_line
-            au!
+        augroup completion_unlet_orig_line | au!
             au CursorMovedI,TextChangedI,InsertLeave,InsertEnter *
                 \   exe 'au! completion_unlet_orig_line'
                 \ | unlet! s:orig_line

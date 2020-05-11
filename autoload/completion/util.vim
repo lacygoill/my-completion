@@ -10,8 +10,7 @@ fu completion#util#custom_isk(chars) abort "{{{1
         for char in split(a:chars, '\zs')
             exe 'setl isk+='..char2nr(char)
         endfor
-        augroup completion_util_restore_isk
-            au!
+        augroup completion_util_restore_isk | au!
             au TextChangedP,TextChangedI,TextChanged,CompleteDone *
             \   exe 'au! completion_util_restore_isk'
             \ | call setbufvar(s:bufnr, '&isk', s:isk_save)
@@ -42,8 +41,7 @@ fu completion#util#setup_dict() abort "{{{1
     let s:ic_save = &ic
     set noic
     let &l:dictionary = &l:spelllang is# 'en' ? '/usr/share/dict/words' : '/usr/share/dict/french'
-    augroup completion_dict_restore_ic
-        au!
+    augroup completion_dict_restore_ic | au!
         au CompleteDone,TextChanged,TextChangedI,TextChangedP * exe 'au! completion_dict_restore_ic'
             \ | let &ic = s:ic_save
             \ | unlet! s:ic_save
