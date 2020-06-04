@@ -142,18 +142,10 @@ ino <silent><unique> <c-x><c-t> <c-r>=completion#util#custom_isk(' -')[-1]<cr><c
 "    2. press `C-x s`
 "    3. you get `call matchadd({group}, {pattern} [, {priority} [, {id} [, {dict}]]])`
 
-" Why not using a single `:noremap!` with the `<expr>` argument?{{{
+" Why not using a single `:noremap!`?{{{
 "
-" We can't use `<expr>` because of an issue with Nvim.
-" After pressing  the lhs, you would  need to insert an  additional character to
-" cause a redraw; otherwise, you would not see the completed text.
-"
-" It's probably due to:
-" https://github.com/neovim/neovim/issues/9006
-"
-" And we  can't use a single  `:noremap!`, because we want  `<silent>` in insert
-" mode, but  we can't use  it in command-line mode  (again, we wouldn't  see the
-" completed text, neither in Vim nor in Nvim).
+" We want `<silent>`  in insert mode, but  we can't use it  in command-line mode
+" (we wouldn't see the completed text, neither in Vim nor in Nvim).
 "}}}
 ino <silent><unique> <c-x>s <c-r>=completion#custom#signature(mode())<cr>
 cno         <unique> <c-x>s <c-\>e completion#custom#signature(mode())<cr>
