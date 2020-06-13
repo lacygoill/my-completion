@@ -22,9 +22,6 @@ fu completion#custom#signature(mode) abort "{{{1
     endif
 
     let file = readfile($VIMRUNTIME..'/doc/eval.txt')
-    if has('nvim')
-        let file += readfile($VIMRUNTIME..'/doc/api.txt')
-    endif
     let signature = get(filter(file, {_,v -> v =~ '^'..func_name..'('}), 0, '')
     " needed, for example, for `deepcopy()`
     let signature = matchstr(signature, '.\{-})')

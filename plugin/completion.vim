@@ -145,7 +145,7 @@ ino <silent><unique> <c-x><c-t> <c-r>=completion#util#custom_isk(' -')[-1]<cr><c
 " Why not using a single `:noremap!`?{{{
 "
 " We want `<silent>`  in insert mode, but  we can't use it  in command-line mode
-" (we wouldn't see the completed text, neither in Vim nor in Nvim).
+" (we wouldn't see the completed text).
 "}}}
 ino <silent><unique> <c-x>s <c-r>=completion#custom#signature(mode())<cr>
 cno         <unique> <c-x>s <c-\>e completion#custom#signature(mode())<cr>
@@ -309,11 +309,8 @@ set cot+=longest
 
 set cot-=preview
 
-" a popup doesn't suffer from this issue, and is less obtrusive in general;
-" unfortunately, Nvim doesn't support a float equivalent atm
-if !has('nvim')
-    set cot+=popup
-endif
+" a popup doesn't suffer from this issue, and is less obtrusive in general
+set cot+=popup
 "}}}2
 " infercase {{{2
 
