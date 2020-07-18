@@ -97,10 +97,10 @@ let g:autoloaded_completion = 1
 " `:h 'cot /ctrl-l` doesn't work with `C-x C-p` and `C-p`:
 "
 "     $ vim -Nu NONE +'set cot=menu,longest|startinsert!' =(cat <<'EOF'
-"     xx
-"     xxabc
-"     xxab
-"     xxa
+"         xx
+"         xxabc
+"         xxab
+"         xxa
 "     EOF
 "     )
 "
