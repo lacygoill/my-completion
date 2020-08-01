@@ -708,8 +708,8 @@ endfu
 " in a menu.
 "
 " `s:pumvisible` is used as a flag to know whether the menu is open.
-" This flag allows `completion#verify_completion()` to choose between acting
-" on the menu if there's one, or trying another method.
+" This flag  lets `completion#verify_completion()` choose between  acting on the
+" menu if there's one, or trying another method.
 "
 " It's reset to 0 at the beginning of `s:act_on_pumvisible()`.
 "}}}

@@ -171,8 +171,7 @@ set complete=.,w,b
 
 " We add `menuone` for 3 reasons:{{{
 "
-"    - the menu allows us to cancel  a completion if the inserted text is not
-"      the one we wanted
+"    - the menu lets us cancel  a completion if the inserted text is not the one we wanted
 "
 "    - when there's only 1 match and `noinsert` is absent from `'cot'`, the menu
 "      will not  open and vim-completion  will think  that the current  method has
