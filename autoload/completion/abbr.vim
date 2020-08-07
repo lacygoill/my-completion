@@ -3,9 +3,9 @@ if exists('g:autoloaded_completion#abbr')
 endif
 let g:autoloaded_completion#abbr = 1
 
-let s:TABLE  = execute('iab')
-let s:LINES  = reverse(split(s:TABLE, '\n'))
-let s:ABBREV = map(s:LINES, {_,v -> {
+let s:TABLE = execute('iab')
+let s:LINES = split(s:TABLE, '\n')->reverse()
+let s:ABBREV = map(s:LINES, {_, v -> {
     \ 'lhs' : matchstr(v, 'i\s\+\zs\w\+'),
     \ 'rhs' : matchstr(v, '\*\s\+\zs.*'),
     \ }})
@@ -23,7 +23,7 @@ fu s:abbrev_rhs(rhs) abort
 endfu
 
 fu completion#abbr#complete() abort
-    let word_to_complete = matchstr(strpart(getline('.'), 0, col('.') - 1), '\S\+$')
+    let word_to_complete = getline('.')->strpart(0, col('.') - 1)->matchstr('\S\+$')
 
     " NOTE:
     " if the abbreviation is complex, and is the output of a function:
@@ -50,14 +50,14 @@ fu completion#abbr#complete() abort
     "     otherwise, let it be
     "             s:abbrev_rhs(v.rhs)
 
-    let matching_abbrev = map(
-                        \     filter(copy(s:ABBREV), {_,v -> stridx(v.lhs, word_to_complete) == 0}),
-                        \     {_,v -> {
-                        \        'word' : v.lhs,
-                        \        'menu' : stridx(s:abbrev_rhs(v.rhs), 'expand_') != -1
-                        \                 ?    matchstr(s:abbrev_rhs(v.rhs), '.*,''\zs.*\ze'')')
-                        \                 :    s:abbrev_rhs(v.rhs)
-                        \ }})
+    let matching_abbrev = copy(s:ABBREV)
+        \ ->filter({_, v -> stridx(v.lhs, word_to_complete) == 0})
+        \ ->map({_, v -> {
+        \    'word' : v.lhs,
+        \    'menu' : stridx(s:abbrev_rhs(v.rhs), 'expand_') != -1
+        \             ?    matchstr(s:abbrev_rhs(v.rhs), '.*,''\zs.*\ze'')')
+        \             :    s:abbrev_rhs(v.rhs)
+        \ }})
 
     let from_where = col('.') - strlen(word_to_complete)
 

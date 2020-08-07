@@ -1,9 +1,11 @@
+import Catch from 'lg.vim'
+
 fu completion#spel#suggest() abort "{{{1
-    let word_to_complete = matchstr(getline('.'), '\k\+\%'..col('.')..'c')
+    let word_to_complete = getline('.')->matchstr('\k\+\%' .. col('.') .. 'c')
     let badword = spellbadword(word_to_complete)
     let matches = !empty(badword[1])
-                 \ ?     spellsuggest(badword[0])
-                 \ :     []
+        \ ?     spellsuggest(badword[0])
+        \ :     []
 
     let from_where = col('.') - strlen(word_to_complete)
 
@@ -29,19 +31,19 @@ fu completion#spel#fix() abort "{{{1
     let [spell_save, winid, bufnr] = [&l:spell, win_getid(), bufnr('%')]
     setl spell
     try
-        let before_cursor = matchstr(getline('.'), '.*\%'..col('.')..'c')
-        "                                            ┌ don't eliminate a keyword nor a single quote
-        "                                            │ when you split the line
-        "                                            ├────────────┐
-        let words = reverse(split(before_cursor, '\%(\%(\k\|''\)\@!.\)\+'))
+        let before_cursor = getline('.')->matchstr('.*\%' .. col('.') .. 'c')
+        "                                    ┌ don't eliminate a keyword nor a single quote
+        "                                    │ when you split the line
+        "                                    ├────────────┐
+        let words = split(before_cursor, '\%(\%(\k\|''\)\@!.\)\+')->reverse()
 
         let found_a_badword = 0
         for word in words
-            let badword = get(spellbadword(word), 0, '')
+            let badword = spellbadword(word)->get(0, '')
             if empty(badword)
                 continue
             endif
-            let suggestion = get(spellsuggest(badword), 0, '')
+            let suggestion = spellsuggest(badword)->get(0, '')
             if empty(suggestion)
                 continue
             else
@@ -54,12 +56,12 @@ fu completion#spel#fix() abort "{{{1
             if exists('#User#add_to_undolist_i')
                 do <nomodeline> User add_to_undolist_i
             endif
-            let new_line = substitute(getline('.'), '\V\<'..badword..'\>', suggestion, 'g')
+            let new_line = getline('.')->substitute('\V\<' .. badword .. '\>', suggestion, 'g')
             let s:fix_word = {-> setline('.', new_line)}
             au SafeState * ++once call s:fix_word()
         endif
     catch
-        return lg#catch()
+        return s:Catch()
     finally
         if winbufnr(winid) == bufnr
             let [tabnr, winnr] = win_id2tabwin(winid)

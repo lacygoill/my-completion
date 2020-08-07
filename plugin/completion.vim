@@ -53,7 +53,7 @@ ino <silent> <plug>(MC_up) <up>
 cno          <plug>(MC_cr) <cr>
 
 " Because  of a  mapping in  `vim-readline`, we've  lost the  ability to  exit a
-" completion menu. Restore it on `c-q`.
+" completion menu.  Restore it on `c-q`.
 " TODO: Document why we need `#restore_base()`.
 " Hint: it's due to `longest` being in `'cot'`.
 " Also, document why we don't invoke `#restore_base()` in `<plug>(MC_c-e)`.
@@ -99,12 +99,12 @@ ino <silent><unique> <c-x><c-p> <c-r>=completion#util#custom_isk('-')[-1]<cr><c-
 "
 " Maybe we should add `:` to `'isk'` unconditionally:
 "
-"     '-:'..(&ft is# 'vim' ? '<' : '')
+"     '-:' .. (&ft is# 'vim' ? '<' : '')
 "
 " But it doesn't seem necessary atm.
 "}}}
-"                                                                      │
-ino <silent><unique> <c-x><c-]> <c-r>=completion#util#custom_isk('-'..(&ft is# 'vim' ? ':<' : ''))[-1]<cr><c-x><c-]>
+"                                                                        │
+ino <silent><unique> <c-x><c-]> <c-r>=completion#util#custom_isk('-' .. (&ft is# 'vim' ? ':<' : ''))[-1]<cr><c-x><c-]>
 
 " C-x C-k     dictionary {{{3
 
@@ -125,7 +125,7 @@ ino <expr><silent><unique> <c-x><c-s> completion#spel#fix()
 " Solution: http://stackoverflow.com/a/21132116
 "
 " Create a  wrapper around C-x C-t  to temporarily include the  space and hyphen
-" characters in 'isk'. We'll  remove them as soon as the  completion is done (or
+" characters in 'isk'.  We'll remove them as  soon as the completion is done (or
 " cancelled).
 " It doesn't seem to affect the completed text, only the synonyms.
 " Even with a space in 'isk', the completion function only tries to complete the
@@ -147,8 +147,8 @@ ino <silent><unique> <c-x><c-t> <c-r>=completion#util#custom_isk(' -')[-1]<cr><c
 " We want `<silent>`  in insert mode, but  we can't use it  in command-line mode
 " (we wouldn't see the completed text).
 "}}}
-ino <silent><unique> <c-x>s <c-r>=completion#custom#signature(mode())<cr>
-cno         <unique> <c-x>s <c-\>e completion#custom#signature(mode())<cr>
+ino <silent><unique> <c-x>s <c-r>=mode()->completion#custom#signature()<cr>
+cno         <unique> <c-x>s <c-\>e mode()->completion#custom#signature()<cr>
 
 " C-z         easy C-x C-p {{{3
 
@@ -266,9 +266,14 @@ set cot-=noselect
 "
 "     $ vim -Nu <(cat <<'EOF'
 "         let seed = srand()
-"         let lines = range(200)->map({-> 'we_dont_want_this_'..range(10)->map({-> (65 + rand(g:seed) % 26)->nr2char()})->join('')})
+"         let lines = range(200)
+"             \ ->map({-> 'we_dont_want_this_'
+"             \         .. range(10)->map({-> (65 + rand(g:seed) % 26)->nr2char()})
+"             \          ->join('')})
 "         sil 0pu=lines
-"         100t100 | s/$/_actually_we_do_want_this_one/ | 0pu='# press C-x C-n to complete the next line into `'..getline(101)..'`'
+"         100t100
+"         s/$/_actually_we_do_want_this_one/
+"         0pu='# press C-x C-n to complete the next line into `' .. getline(101) .. '`'
 "         set cot=menu,longest
 "         1pu='we_'
 "         startinsert!
@@ -287,8 +292,8 @@ set cot-=noselect
 " OTOH,  if `longest`  was  not in  `'cot'` (repeat  the  same experiment  after
 " executing  `set  cot-=longest`),   you  would  probably  need   to  remove  10
 " characters, before inserting `Q`, `G`, `D`...
-" This may seem like a minor issue; it's not. In practice, you don't always know
-" exactly how many characters you need to remove.
+" This may  seem like a  minor issue; it's not.   In practice, you  don't always
+" know exactly how many characters you need to remove.
 " And when  that happens,  each time you  remove a character  and the  menu gets
 " updated, you may need to scroll through the menu to look for your match.
 " Anyway, the whole process is usually too cumbersome.
@@ -359,8 +364,8 @@ set thesaurus+=$HOME/.vim/tools/mthesaur.txt
 " Keep this autocmd **after** setting `'cot'`!
 augroup hoist_cot | au!
     au User MyFlags call statusline#hoist('global',
-        \ '%2*%{&cot !=# "'..&cot..'" && mode(1) is# "n"? "[cot+]" : ""}', 25,
-        \ expand('<sfile>')..':'..expand('<sflnum>'))
+        \ '%2*%{&cot !=# "' .. &cot .. '" && mode(1) is# "n"? "[cot+]" : ""}', 25,
+        \ expand('<sfile>') .. ':' .. expand('<sflnum>'))
     au OptionSet completeopt call timer_start(0, {-> execute('redrawt')})
 augroup END
 

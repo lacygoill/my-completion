@@ -7,11 +7,11 @@ let g:autoloaded_completion = 1
 "
 " In `s:act_on_textchanged()`, shouldn't:
 "
-"     getline('.')[col('.')-2] =~# '\f'
+"     getline('.')[col('.') - 2] =~# '\f'
 "
 " ... be replaced with:
 "
-"     matchstr(getline('.'), '.\%'.col('.').'c') =~# '\f'
+"     getline('.')->matchstr('.\%' .. col('.') .. 'c') =~# '\f'
 "
 " to handle the case where the character before the cursor is multi-byte?
 " A multi-byte character can be in 'isf'.
@@ -33,10 +33,10 @@ let g:autoloaded_completion = 1
 "
 " Incidentally, this new definition also fixes a bug which occurs when `s:i`
 " ends with the value `s:N`, and `s:completedone`'s value is 1.
-" Setting `s:completedone` to `!empty(v:completed_item)` means that when all
-" the methods fail during an autocompletion and nothing is inserted,
-" `s:completedone`'s value is still 0, even though `CompleteDone` was
-" triggered several times. And the next time we insert a character and
+" Setting  `s:completedone`   to  `!empty(v:completed_item)`  means   that  when
+" all  the  methods fail  during  an  autocompletion  and nothing  is  inserted,
+" `s:completedone`'s value is still 0,  even though `CompleteDone` was triggered
+" several times.  And the next time we insert a character and
 " `s:act_on_textchanged()` is called, it won't execute the
 " first block of code which tries to get `s:methods[s:i]` (`s:i = s:N`).
 "
@@ -53,7 +53,7 @@ let g:autoloaded_completion = 1
 "
 " Inside `s:act_on_textchanged()`, why does lifepillar write:
 "
-"     match(strpart(...), g:...) > -1
+"     strpart(...)->match(g:...) > -1
 "
 " instead of simply:
 "
@@ -61,11 +61,11 @@ let g:autoloaded_completion = 1
 "
 " And why does he regularly write:
 "
-"     strpart(getline('.'), 0, col('.')-1)
+"     getline('.')->strpart(0, col('.') - 1)
 "
 " ... instead of simply:
 "
-"     getline('.')[:col('.')-2]
+"     getline('.')[:col('.') - 2]
 
 " To look for all the global variables used by this plugin, search the
 " pattern:
@@ -89,8 +89,8 @@ let g:autoloaded_completion = 1
 " fucking 'line' method.
 "
 " Bottom line:
-" Line completion is too cumbersome to be automated. Use `C-x C-l` when you know
-" you *really* need it.
+" Line completion  is too cumbersome  to be automated.   Use `C-x C-l`  when you
+" know you *really* need it.
 "}}}
 " Do *not* use `keyp` nor `c-p`.{{{
 "
@@ -153,18 +153,18 @@ let s:pumvisible = 0
 " Purpose: {{{
 "
 " `s:auto` is a flag which, when it's set, means that autocompletion is enabled.
-" Its used by `s:act_on_pumvisible()` to know whether it must insert the first
-" entry in the menu. Indeed, when autocompletion is enabled, we don't want to
-" automatically insert anything. Bad idea.
-" It would constantly insert undesired text, and the user would have to undo
-" it. The popup menu with matches is enough.
+" Its used by  `s:act_on_pumvisible()` to know whether it must  insert the first
+" entry in the  menu.  Indeed, when autocompletion is enabled,  we don't want to
+" automatically insert anything.  Bad idea.
+" It would constantly insert undesired text, and the user would have to undo it.
+" The popup menu with matches is enough.
 "}}}
 " Why `get()` ? {{{
 "
 " Consider this:
-" autocompletion is enabled, and we source manually the plugin, it will
-" wrongly, set `s:auto` to 0. The consequence will be that now autocompletions
-" will automatically insert text.
+" autocompletion is enabled, and we source manually the plugin, it will wrongly,
+" set `s:auto`  to 0.   The consequence  will be  that now  autocompletions will
+" automatically insert text.
 "}}}
 let s:auto = get(s:, 'auto', 0)
 
@@ -176,12 +176,12 @@ let s:auto = get(s:, 'auto', 0)
 "
 "     iunmap <C-x><C-z>
 "
-" We can't unmap it in the vimrc, because it would be too soon. The mappings
+" We can't unmap  it in the vimrc,  because it would be too  soon.  The mappings
 " for a plugin are defined after the vimrc is sourced.
 "}}}
 const s:EXIT_CTRL_X = "\<c-g>\<c-g>"
 
-if !empty(mapcheck('<c-g><c-g>', 'i'))
+if !mapcheck('<c-g><c-g>', 'i')->empty()
     let msg =<< trim END
         Warning: you have a mapping whose {lhs} is or begins with C-g C-g.
         See the output of `execute('verb imap <c-g><c-g>')`.
@@ -218,9 +218,9 @@ endif
 "
 " According to lifepillar, this can cause a problem when autocompletion
 " is enabled.
-" I can see how. The user set up line completion in his completion chain.
-" Line completion is invoked automatically but he refuses the suggestion,
-" and goes on typing. Later, line completion is invoked a second time.
+" I can see how.  The user set up line completion in his completion chain.
+" Line completion  is invoked automatically  but he refuses the  suggestion, and
+" goes on typing.  Later, line completion is invoked a second time.
 " This time, there will be no suggestion, because the current line is likely
 " unique (the user typed something that was nowhere else), but line completion
 " will still insert a newline.
@@ -241,8 +241,8 @@ endif
 " Source: commit `59169596e96c8ff3943e9179a626391ff76f4b76`
 "
 " There's  a case,  though,  where adding  a  newline can  make  sense for  line
-" completion. When we're at the *end* of a line existing in multiple places, and
-" we  press `C-x  C-l`. Invoking  line  completion twice  inserts  a newline  to
+" completion.  When  we're at the *end*  of a line existing  in multiple places,
+" and we press  `C-x C-l`.  Invoking line completion twice  inserts a newline to
 " suggest us the next line:
 "
 "     We have 2 identical lines:    L1 and L1'
@@ -252,25 +252,25 @@ endif
 "     The second one inserts a newline and suggests L2.
 "}}}
 const s:COMPL_MAPPINGS = {
-    \ 'abbr' : "\<plug>(MC_c-r)=completion#abbr#complete()\<Plug>(MC_cr)",
-    \ 'c-n'  : s:EXIT_CTRL_X.."\<plug>(MC_c-n)",
-    \ 'c-p'  : s:EXIT_CTRL_X.."\<plug>(MC_c-p)",
-    \ 'cmd'  : "\<plug>(MC_c-x_c-v)",
-    \ 'defs' : "\<plug>(MC_c-x_c-d)",
-    \ 'dict' : "\<plug>(MC_c-x_c-k)",
-    \ 'digr' : "\<plug>(DigraphComplete)",
-    \ 'file' : "\<plug>(MC_c-r)=completion#file#complete()\<Plug>(MC_cr)",
-    \ 'incl' : "\<plug>(MC_c-x_c-i)",
-    \ 'keyn' : "\<plug>(MC_c-x_c-n)",
-    \ 'keyp' : "\<plug>(MC_c-x_c-p)",
-    \ 'line' : s:EXIT_CTRL_X.."\<plug>(MC_c-x_c-l)",
-    \ 'omni' : "\<plug>(MC_c-x_c-o)",
-    \ 'spel' : "\<plug>(MC_c-r)=completion#spel#suggest()\<plug>(MC_cr)",
-    \ 'tags' : "\<plug>(MC_c-x_c-])",
-    \ 'thes' : "\<plug>(MC_c-x_c-t)",
-    \ 'ulti' : "\<plug>(MC_c-r)=completion#ultisnips#complete()\<plug>(MC_cr)",
-    \ 'unic' : "\<plug>(UnicodeComplete)",
-    \ 'user' : "\<plug>(MC_c-x_c-u)",
+    \ 'abbr': "\<plug>(MC_c-r)=completion#abbr#complete()\<Plug>(MC_cr)",
+    \ 'c-n': s:EXIT_CTRL_X .. "\<plug>(MC_c-n)",
+    \ 'c-p': s:EXIT_CTRL_X .. "\<plug>(MC_c-p)",
+    \ 'cmd': "\<plug>(MC_c-x_c-v)",
+    \ 'defs': "\<plug>(MC_c-x_c-d)",
+    \ 'dict': "\<plug>(MC_c-x_c-k)",
+    \ 'digr': "\<plug>(DigraphComplete)",
+    \ 'file': "\<plug>(MC_c-r)=completion#file#complete()\<Plug>(MC_cr)",
+    \ 'incl': "\<plug>(MC_c-x_c-i)",
+    \ 'keyn': "\<plug>(MC_c-x_c-n)",
+    \ 'keyp': "\<plug>(MC_c-x_c-p)",
+    \ 'line': s:EXIT_CTRL_X .. "\<plug>(MC_c-x_c-l)",
+    \ 'omni': "\<plug>(MC_c-x_c-o)",
+    \ 'spel': "\<plug>(MC_c-r)=completion#spel#suggest()\<plug>(MC_cr)",
+    \ 'tags': "\<plug>(MC_c-x_c-])",
+    \ 'thes': "\<plug>(MC_c-x_c-t)",
+    \ 'ulti': "\<plug>(MC_c-r)=completion#ultisnips#complete()\<plug>(MC_cr)",
+    \ 'unic': "\<plug>(UnicodeComplete)",
+    \ 'user': "\<plug>(MC_c-x_c-u)",
     \ }
 
 unlet s:EXIT_CTRL_X
@@ -292,23 +292,23 @@ const s:MC_AUTO_PATTERN = '\k\k$'
 "
 "     /\=\f*
 "
-" Because then, it would match anything. The condition would be useless.
+" Because then, it would match anything.  The condition would be useless.
 " At the very least, we want a slash or a tilda before the cursor.
 " The filename characters afterwards are optional, because we could try to
 " complete `some_dir/` or just `~`.
 "}}}
 const s:YES_YOU_CAN = {_ -> 1}
 const s:MC_CONDITIONS = {
-    \ 'c-p'  : {_ -> s:manual && completion#util#custom_isk('-')},
-    \ 'dict' : {_ -> s:manual && completion#util#setup_dict()},
-    \ 'digr' : {_ -> s:manual && get(g:, 'loaded_unicodePlugin', 0)},
-    \ 'file' : {t -> t =~# '[/~]\f*$'},
-    \ 'omni' : {_ -> !empty(&l:omnifunc) && &ft isnot# 'markdown'},
-    \ 'spel' : {_ -> &l:spell && !empty(&l:spelllang)},
-    \ 'tags' : {_ -> s:manual && !empty(tagfiles()) && completion#util#custom_isk('-'..(&ft is# 'vim' ? ':<' : ''))},
-    \ 'ulti' : {_ -> get(g:, 'did_plugin_ultisnips', 0)},
-    \ 'unic' : {_ -> s:manual && get(g:, 'loaded_unicodePlugin', 0)},
-    \ 'user' : {_ -> !empty(&l:completefunc)},
+    \ 'c-p': {_ -> s:manual && completion#util#custom_isk('-')},
+    \ 'dict': {_ -> s:manual && completion#util#setup_dict()},
+    \ 'digr': {_ -> s:manual && get(g:, 'loaded_unicodePlugin', 0)},
+    \ 'file': {t -> t =~# '[/~]\f*$'},
+    \ 'omni': {_ -> !empty(&l:omnifunc) && &ft isnot# 'markdown'},
+    \ 'spel': {_ -> &l:spell && !empty(&l:spelllang)},
+    \ 'tags': {_ -> s:manual && !tagfiles()->empty() && completion#util#custom_isk('-' .. (&ft is# 'vim' ? ':<' : ''))},
+    \ 'ulti': {_ -> get(g:, 'did_plugin_ultisnips', 0)},
+    \ 'unic': {_ -> s:manual && get(g:, 'loaded_unicodePlugin', 0)},
+    \ 'user': {_ -> !empty(&l:completefunc)},
     \ }
 
 fu s:act_on_pumvisible() abort "{{{1
@@ -362,7 +362,7 @@ fu s:act_on_pumvisible() abort "{{{1
     "
     "    2. 'cot' doesn't contain 'noselect' nor 'noinsert'
     "
-    "       Vim will automatically insert and select an entry. So, nothing to do.
+    "       Vim will automatically insert and select an entry.  So, nothing to do.
     "
     "    3. 'cot' doesn't contain 'noselect' but it DOES contain 'noinsert'
     "
@@ -377,7 +377,7 @@ fu s:act_on_pumvisible() abort "{{{1
     "       then `C-n` will select and insert the first entry.
     "
     "       Basically, `C-p` and `C-n` cancel each other out no matter the method.
-    "       But `C-n` asks for an insertion. The result is that we insert the
+    "       But `C-n` asks for an insertion.  The result is that we insert the
     "       currently selected entry.
     "}}}
 
@@ -389,22 +389,22 @@ fu s:act_on_pumvisible() abort "{{{1
     "     ino <c-p> foobar
     "     setl cot=menu,noinsert
     return s:auto || get(s:methods, s:i, '') is# 'spel'
-       \ ?     ''
-       \ : stridx(&l:completeopt, 'noselect') == -1
-       \ ? stridx(&l:completeopt, 'noinsert') == -1
-       \ ?     ''
-       \ :     "\<plug>(MC_c-p)\<plug>(MC_c-n)"
-       \ :     get(s:SELECT_MATCH, s:methods[s:i], "\<plug>(MC_c-n)\<plug>(MC_up)")
+        \ ?     ''
+        \ : stridx(&l:completeopt, 'noselect') == -1
+        \ ? stridx(&l:completeopt, 'noinsert') == -1
+        \ ?     ''
+        \ :     "\<plug>(MC_c-p)\<plug>(MC_c-n)"
+        \ :     get(s:SELECT_MATCH, s:methods[s:i], "\<plug>(MC_c-n)\<plug>(MC_up)")
 endfu
 " Purpose: {{{
 "
 " Automatically insert the first (or last) entry in the menu, but only when
 " autocompletion is disabled.
 "
-" Indeed, when autocompletion is enabled, we don't want anything to be
-" automatically inserted. Because, sometimes it could be what we wanted, but
+" Indeed,  when  autocompletion  is  enabled,  we  don't  want  anything  to  be
+" automatically inserted.   Because, sometimes it  could be what we  wanted, but
 " most of the time it wouldn't be, and we would have to undo the insertion.
-" Annoying. We only want automatic insertion when we press Tab ourselves.
+" Annoying.  We only want automatic insertion when we press Tab ourselves.
 "}}}
 
 fu s:act_on_textchanged() abort "{{{1
@@ -418,16 +418,16 @@ fu s:act_on_textchanged() abort "{{{1
     "    - a completion has ended (successfully or not); `CompleteDone` event
     "    - we inserted a whitespace or we're at the beginning of a line
     "
-    " It's almost always off, because as soon as it's enabled,
-    " the `TextChangedI` event is triggered, and `s:act_on_textchanged()` is
-    " called. The latter checks the value of the flag and resets it when it's on.
+    " It's  almost   always  off,   because  as  soon   as  it's   enabled,  the
+    " `TextChangedI` event is triggered, and `s:act_on_textchanged()` is called.
+    " The latter checks the value of the flag and resets it when it's on.
     "
     " What is its purpose?
     "
     " It prevents an autocompletion when one was already performed.
     " Triggering an autocompletion just after another one would probably be an
     " annoyance (except for file completion).
-    " If I just autocompleted something, I'm  probably done. I don't need Vim to
+    " If I just autocompleted something, I'm probably done.  I don't need Vim to
     " try another  autocompletion, which may  suggest me matches that  I already
     " saw in the popup menu last time.
     "}}}
@@ -441,13 +441,13 @@ fu s:act_on_textchanged() abort "{{{1
         " Based on these 2 informations, when `s:completedone` is set to 1,
         " we shouldn't reset it to 0 until we insert a whitespace:
         "
-        "     matchstr(getline('.'), '.\%'.col('.').'c') =~# '\s'
+        "     getline('.')->matchstr('.\%' .. col('.') .. 'c') =~# '\s'
         "
         " ... or we are at the beginning of a new line.
         "
         "     col('.') == 1
         "}}}
-        if matchstr(getline('.'), '.\%'..col('.')..'c') =~# '\s' || col('.') == 1
+        if getline('.')->matchstr('.\%' .. col('.') .. 'c') =~# '\s' || col('.') == 1
 
     " If the text changed AND a completion was done, we reset `s:completedone`:{{{
     "
@@ -463,7 +463,7 @@ fu s:act_on_textchanged() abort "{{{1
     "
     " For example, we could disable the 'thes' method:
     "
-    "     let s:MC_CONDITIONS.thes =  {_ -> s:manual && !empty(&l:thesaurus)}
+    "     let s:MC_CONDITIONS.thes = {_ -> s:manual && !empty(&l:thesaurus)}
     "
     " Now, the `thes` method can only be tried when 'thesaurus' has a value, *and*
     " the completion was initiated manually by the user.
@@ -472,11 +472,11 @@ fu s:act_on_textchanged() abort "{{{1
     " Inside completion#tab_complete(), it's set to 1.
     " Inside completion#enable_auto(), it's set to 0.
     "
-    " Now think about  this. Autocompletion is enabled, and  we've inserted some
+    " Now think about this.  Autocompletion  is enabled, and we've inserted some
     " text which hasn't  been autocompleted, because the text  before the cursor
     " didn't match `s:MC_AUTO_PATTERN`.
     " We still want a completion, so we press Tab.
-    " It sets `s:manual` to 1. We complete our text, then go on typing.
+    " It sets `s:manual` to 1.  We complete our text, then go on typing.
     "
     " Now, `s:manual` will  remain with the value 1,  while autocompletion is
     " still active.
@@ -508,10 +508,11 @@ fu s:act_on_textchanged() abort "{{{1
         "     E684: list index out of range: 0~
         "     Error detected while processing function <SNR>67_act_on_textchanged:~
         "     line   81:~
-        "     E15: Invalid expression: s:methods[s:i] is# 'file' && matchstr(getline('.'), '.\%'.col('.').'c') =~# '\f'~
+        "     E15: Invalid expression: s:methods[s:i] is# 'file' && getline('.')->matchstr('.\%' .. col('.') .. 'c') =~# '\f'~
         "}}}
 
-        if get(s:methods, s:i, '') is# 'file' && matchstr(getline('.'), '.\%'..col('.')..'c') =~# '\f'
+        if get(s:methods, s:i, '') is# 'file'
+        \ && getline('.')->matchstr('.\%' .. col('.') .. 'c') =~# '\f'
             sil call completion#file#complete()
         endif
 
@@ -538,7 +539,7 @@ fu s:act_on_textchanged() abort "{{{1
     "
     "     \a\a  <  \a  <  \k
     "}}}
-    elseif getline('.')[:col('.')-2] =~# get(b:, 'mc_auto_pattern', s:MC_AUTO_PATTERN)
+    elseif getline('.')[:col('.') - 2] =~# get(b:, 'mc_auto_pattern', s:MC_AUTO_PATTERN)
         sil call feedkeys("\<plug>(MC_Auto)", 'i')
     endif
 endfu
@@ -547,13 +548,13 @@ endfu
 " Try an autocompletion every time the text changes in insert mode.
 "
 " This function is only called when autocompletion is enabled.
-" Technically, it tries an autocompletion by typing `<plug>(MC_Auto)`
-" which calls `completion#complete(1)`. Similar to pressing Tab.
+" Technically,  it tries  an  autocompletion by  typing `<plug>(MC_Auto)`  which
+" calls `completion#complete(1)`.  Similar to pressing Tab.
 "}}}
 
 fu s:can_complete() abort "{{{1
-    return get(get(b:, 'mc_conditions', s:MC_CONDITIONS),
-                \ s:methods[s:i], s:YES_YOU_CAN)(s:word)
+    return get(b:, 'mc_conditions', s:MC_CONDITIONS)
+        \ ->get(s:methods[s:i], s:YES_YOU_CAN)(s:word)
 endfu
 " Purpose:{{{
 "
@@ -562,16 +563,16 @@ endfu
 "}}}
 
 fu completion#complete(dir) abort "{{{1
-    "                                                  ┌ don't use `\k`, it would exclude `/`
-    "                                                  │ and we need to include slash for file completion
-    "                                                  │
-    let s:word = matchstr(getline('.')[:col('.')-2], '\S\+$')
+    "                                                    ┌ don't use `\k`, it would exclude `/`
+    "                                                    │ and we need to include slash for file completion
+    "                                                    │
+    let s:word = getline('.')[:col('.') - 2]->matchstr('\S\+$')
 
     "                    ┌ if the cursor is right at the beginning of a line:
     "                    │
-    "                    │    - col('.') - 2                 will be negative
-    "                    │    - getline('.')[:col('.')-2]    will give us the whole line
-    "                    │    - matchstr(...)                will give us the last word on the line
+    "                    │    - col('.') - 2                   will be negative
+    "                    │    - getline('.')[:col('.') - 2]    will give us the whole line
+    "                    │    - matchstr(...)                  will give us the last word on the line
     "                    │
     "                    ├───────────┐
     if s:word !~ '\k' || col('.') <= 1
@@ -596,9 +597,9 @@ endfu
 "
 " We couldn't merge it into `tab_complete()` either, because we want to use
 " the latter for when we press Tab manually, not for autocompletion.
-" Eventually, pressing Tab will call `complete()`, and autocompletion also
-" calls (directly) this function. That's why we simply call it `complete()`,
-" because all kind of completions (manual/auto) use it.
+" Eventually, pressing Tab will call `complete()`, and autocompletion also calls
+" (directly) this function.  That's why  we simply call it `complete()`, because
+" all kind of completions (manual/auto) use it.
 "
 " BUT, by making the 2 kind of completions call different functions / hook
 " into the algo at different points, we can implement some logic, such as:
@@ -613,11 +614,11 @@ fu completion#cycle(dir) abort "{{{1
     let s:dir = a:dir
     let s:i_history = []
 
-    return "\<plug>(MC_c-e)"..s:next_method()
+    return "\<plug>(MC_c-e)" .. s:next_method()
 endfu
 " Why don't you merge this function with `cycle_or_select()`? {{{
 "
-" Because of the mappings c-j and c-o which cycle in the chain. They don't want
+" Because of the mappings c-j and c-o which cycle in the chain.  They don't want
 " to call `cycle_or_select()`, their purpose is really to call `cycle()`.
 "}}}
 
@@ -676,7 +677,7 @@ fu completion#enable_auto() abort "{{{1
         " It depends on which text a given method is trying to complete.
         " If a method tries to complete this:
         "
-        "     matchstr(getline('.')[:col('.')-2], '\S\+$')
+        "     getline('.')[:col('.') - 2]->matchstr('\S\+$')
         "
         " ... then it doesn't make sense to try an autocompletion after a failed one.
         " Because inserting a new character will make the text to complete even harder.
@@ -747,7 +748,7 @@ fu s:next_method() abort "{{{1
         " ... where `4` is the length of the list.
         "
         " Indeed, when the current index is below the length of the list,
-        " the modulo operator (%4) won't change anything.
+        " the modulo operator (`% 4`) won't change anything.
         " But when it will reach the end of the list (3), the modulo operator
         " will make the next index go back to the beginning:
         "
@@ -755,7 +756,7 @@ fu s:next_method() abort "{{{1
         "
         " It works because VimL (and most other programming languages?)
         " indexes a list beginning with 0 (and not 1).
-        " If it began with 1, we would have to replace `%4` with `%5`.
+        " If it began with 1, we would have to replace `% 4` with `% 5`.
         "
         " Here is a general formula:
         "
@@ -770,14 +771,15 @@ fu s:next_method() abort "{{{1
         "
         " Because, if we aren't cycling, and the value of `s:i` is `-1`
         " or `s:N`, it means we've tested all the methods in the chain.
-        " It's pointless to go on. We could even get stuck in a loop if no
-        " methods can be applied. Besides, `s:methods[s:N]` does not even exist.
+        " It's pointless  to go on.   We could  even get stuck  in a loop  if no
+        " methods  can  be applied.   Besides,  `s:methods[s:N]`  does not  even
+        " exist.
         "
-        " So, this check is necessary. But it cause an issue.
+        " So, this check is necessary.  But it cause an issue.
         " If we've press `C-o` to go back in the chain (`s:cycling` is set), and
         " we reach the beginning of the chain (s:i = 0), we won't be able to get
-        " back any further. We won't be able to go back to the end of the chain,
-        " because the function won't even try the last / -1 method.
+        " back any  further.  We  won't be  able to go  back to  the end  of the
+        " chain, because the function won't even try the last / -1 method.
         "
         " To allow `C-o` to go back to the end of the chain, in the definition
         " of `s:i`, we add `s:N`.
@@ -785,7 +787,7 @@ fu s:next_method() abort "{{{1
         " because of the `% s:N` operation.
         " But when the value of `s:i` is -1, adding `s:N` will convert the
         " negative index into a positive one, which matches the same method in
-        " the chain. The last one.
+        " the chain.  The last one.
         "
         " "}}}
         let s:i = (s:i + s:dir + s:N) % s:N
@@ -795,7 +797,7 @@ fu s:next_method() abort "{{{1
         " We could be afraid to be stuck in a loop, and to prevent that, add the
         " condition that `s:i` is different from `-1` and `s:N`.
         "
-        " But it's unnecessary. We can't be stuck in a loop.
+        " But it's unnecessary.  We can't be stuck in a loop.
         " Indeed, if we're cycling, it means that the popup menu is currently
         " visible and that a method was successful.
         " So, when we're cycling, we can be sure that there's AT LEAST one method
@@ -803,10 +805,9 @@ fu s:next_method() abort "{{{1
         " true/1.
         "
         " Besides, `s:i` can be equal to `-1` or `s:N`.
-        " It can't be equal to `s:N` because it was defined as the result of
-        " a `% s:N` operation. The result of such operation can't be `s:N`.
-        " When you divide something by `n`, the rest is necessarily inferior
-        " to `n`.
+        " It can't be equal  to `s:N` because it was defined as  the result of a
+        " `% s:N` operation.  The result of such operation can't be `s:N`.  When
+        " you divide something by `n`, the rest is necessarily inferior to `n`.
         " And it can't be equal to `-1`, because in the definition, we add `s:N`
         " so the result is necessarily positive (zero included).
         "}}}
@@ -842,11 +843,11 @@ fu s:next_method() abort "{{{1
         "
         "     s:i != -1 && s:i != s:N
         "
-        " Indeed, we aren't cycling. We've just press Tab/S-Tab.
+        " Indeed, we aren't cycling.  We've just press Tab/S-Tab.
         " So, we don't know whether there's a method which can be applied.
         " If there's none, we could be stuck in a loop.
-        " This additional condition makes sure that we stop once we reach the
-        " beginning/end of the chain. It wouldn't make sense to go on anyway,
+        " This additional  condition makes sure that  we stop once we  reach the
+        " beginning/end of the  chain.  It wouldn't make sense to  go on anyway,
         " because at that point, we would have tried all the methods.
         "}}}
         while s:i != -1 && s:i != s:N && !s:can_complete()
@@ -903,18 +904,18 @@ fu s:next_method() abort "{{{1
     " `s:i` could be `-1` or `s:N`.
     "
     " In this case, we don't want to try a method.
-    " Indeed, we could be stuck in a loop, and it doesn't make any sense to
-    " try any further. At that point, we would have tested all the existing
-    " methods. Besides, there's no `s:methods[s:N]` (but there is
-    " a `s:methods[-1]`).
+    " Indeed,  we could  be stuck  in  a loop,  and  it doesn't  make any  sense
+    " to  try  any  further.  At  that  point,  we  would  have tested  all  the
+    " existing methods.   Besides, there's no  `s:methods[s:N]` (but there  is a
+    " `s:methods[-1]`).
     "
     " Therefore,  before pressing  the completion  mappings, we  make sure  that
     " `s:i` is different from `-1` and `s:N`.
     "}}}
     if s:i != -1 && s:i != s:N && index(s:i_history, s:i) == -1
-        " If we're cycling, we store the index of the method to be tried, in a
-        " list. We use it to compare its items with the index of the next method
-        " to be tried.
+        " If we're cycling, we  store the index of the method to  be tried, in a
+        " list.  We  use it  to compare  its items  with the  index of  the next
+        " method to be tried.
         if s:cycling | let s:i_history += [s:i] | endif
 
         " 1 - Type the keys to invoke the chosen method. {{{
@@ -924,7 +925,7 @@ fu s:next_method() abort "{{{1
         " 3 - call `completion#verify_completion()` through `<plug>(MC_next_method)`
         "}}}
         return s:COMPL_MAPPINGS[s:methods[s:i]]
-        \ .."\<plug>(MC_c-r)=pumvisible()?completion#menu_is_up():''\<cr>\<plug>(MC_next_method)"
+            \ .. "\<plug>(MC_c-r)=pumvisible()?completion#menu_is_up():''\<cr>\<plug>(MC_next_method)"
     endif
 
     " Why do we reset `s:i` here? {{{
@@ -942,8 +943,8 @@ fu s:next_method() abort "{{{1
     "
     " But what leads to this situation?
     "
-    " When I insert the 1st character `j`, `TextChangedI` is triggered and
-    " `s:act_on_textchanged()` is called. The function does nothing if:
+    " When  I insert  the 1st  character  `j`, `TextChangedI`  is triggered  and
+    " `s:act_on_textchanged()` is called.  The function does nothing if:
     "
     "     s:MC_AUTO_PATTERN = \k\k$
     "
@@ -965,7 +966,7 @@ fu s:next_method() abort "{{{1
     " A solution is to use get() like lifepillar did, but it only treats the
     " consequences of some underlying issue.
     "
-    " I want to also treat the issue itself. Because who knows, maybe it could
+    " I want to also treat the issue  itself.  Because who knows, maybe it could
     " cause other unknown issues in the future.
     "
     " To tackle the  root issue, we reset  `s:i` to 0, here,  when no completion
@@ -1040,16 +1041,16 @@ fu completion#tab_complete(dir) abort "{{{1
 endfu
 " Why don't you merge this function with `complete()`? {{{
 "
-" If we did that, every time `complete()` would be called, `s:manual` would
-" be set to 1. It would be wrong, when `complete()` would be called by the
+" If we did  that, every time `complete()` would be  called, `s:manual` would be
+" set  to 1.   It would  be  wrong, when  `complete()`  would be  called by  the
 " autocompletion (`<Plug>(MC_Auto)`).
 "
 " We could find a workaround, by passing a second argument to `complete()`
 " inside the mappings `Tab`, `S-Tab`, and `<plug>(MC_auto)`.
 " It would serve as a flag whose meaning is whether we're performing a manual
 " or automatic completion.
-" But, it means that every time the autocompletion would kick in, it would
-" test whether the popup menu is visible. It could make it a bit slower...
+" But, it means that every time the  autocompletion would kick in, it would test
+" whether the popup menu is visible.  It could make it a bit slower...
 "}}}
 
 fu completion#toggle_auto() abort "{{{1
@@ -1062,8 +1063,8 @@ endfu
 
 fu completion#verify_completion() abort "{{{1
     return s:pumvisible
-       \ ?     s:act_on_pumvisible()
-       \ :     s:next_method()
+        \ ?     s:act_on_pumvisible()
+        \ :     s:next_method()
 endfu
 " Purpose: {{{
 "

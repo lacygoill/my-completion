@@ -4,8 +4,8 @@ fu completion#ultisnips#complete() abort
 
     " By default, it returns a Vim dictionary with the snippets whose trigger
     " matches the current word.
-    " We pass it the argument `1`, because we want ALL snippets information of
-    " current buffer. Indeed, the current word will probably be incomplete.
+    " We pass it the argument `1`, because we want *all* snippets information of
+    " current buffer.  Indeed, the current word will probably be incomplete.
     " That's why we call this function in the first place.
 
     " When we call it like this, it automatically creates the variable
@@ -21,21 +21,23 @@ fu completion#ultisnips#complete() abort
     " By testing if the output of `UltiSnips#SnippetsInCurrentScope()` is an
     " empty dictionary, we also create the variable `g:current_ulti_dict_info`.
     "}}}
-    if empty(UltiSnips#SnippetsInCurrentScope(1)) | return '' | endif
+    if UltiSnips#SnippetsInCurrentScope(1)->empty() | return '' | endif
 
-    let word_to_complete = matchstr(strpart(getline('.'), 0, col('.') - 1), '\S\+$')
+    let word_to_complete = getline('.')
+        \ ->strpart(0, col('.') - 1)
+        \ ->matchstr('\S\+$')
 
     " Condition for a candidate (trigger inside `g:current_ulti_dict_info`) to
     " be valid.
-    " For the moment I want all the snippets, no matter where the word is in
-    " their name. But if we wanted to look for only those containing it at the
+    " For the  moment I want all  the snippets, no  matter where the word  is in
+    " their name.  But if we wanted to look for only those containing it at the
     " beginning, we would simply have to replace `>=0` with `==0`.
 
-    let l:Contain_word = {_,v -> stridx(v, word_to_complete) >= 0}
+    let l:Contain_word = {_, v -> stridx(v, word_to_complete) >= 0}
 
     " keys(g:current_ulti_dict_info)    →    all valid triggers in the buffer{{{
     "
-    " filter(keys(…), contain_word)     →    all triggers containing the word before the cursor
+    " keys(...)->filter(contain_word)   →    all triggers containing the word before the cursor
 
     " `complete()` waits for 2 arguments: {startcol} and {matches}
     " {matches} MUST be a list.
@@ -69,7 +71,7 @@ fu completion#ultisnips#complete() abort
     "    - empty    flag; when non-zero this item will be added even when
     "               it is an empty string
 
-    " map(filter(…),…)
+    " filter(...)->map(...)
     " →
     " convert the triggers into dictionaries with additional info (description)
     "
@@ -88,13 +90,13 @@ fu completion#ultisnips#complete() abort
     " IOW, `dup` = duplicate detector.
     ""}}}
 
-    let matches = map(filter(keys(g:current_ulti_dict_info), l:Contain_word),
-    \                 {_,v -> {
-    \                            'word': v,
-    \                            'menu': '[snip] '.g:current_ulti_dict_info[v]['description'],
-    \                            'dup' : 1,
-    \                          }
-    \                 })
+    let matches = keys(g:current_ulti_dict_info)
+        \ ->filter(l:Contain_word)
+        \ ->map({_, v -> {
+        \    'word': v,
+        \    'menu': '[snip] ' .. g:current_ulti_dict_info[v]['description'],
+        \    'dup' : 1,
+        \ }})
 
     let startcol = col('.') - strlen(word_to_complete)
     if !empty(matches)

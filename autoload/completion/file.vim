@@ -16,7 +16,7 @@ fu completion#file#complete() abort
     " So, initially, the value of `cur_path` is `Some text a dir/`.
     " When the algo will try to expand `Some text a dir/*`:
     "
-    "     let entries = glob(cur_path.'*', 0, 1, 1)
+    "     let entries = glob(cur_path .. '*', 0, 1, 1)
     "
     " It won't find anything. `entries` will be an empty list.
     " We need the algo to retry another, shorter, path.
@@ -53,7 +53,7 @@ fu completion#file#complete() abort
     "        will also  fail, and at the  end of the last  iteration, `cur_path`
     "        will be empty, because:
     "
-    "             matchstr('dir', '\s\zs\f.*$') is# ''
+    "             matchstr('dir', '\s\zs\f.*$') == ''
     " "}}}
     while !empty(cur_path)
         " Why: `cur_path isnot# '~' ? '*' : ''`?{{{
@@ -68,24 +68,25 @@ fu completion#file#complete() abort
         "
         "     glob('~*', 0, 1, 1)
         "
-        " ...  would return  an  empty  list. Indeed, there's  no  entry in  the
+        " ...  would return  an empty  list.  Indeed,  there's no  entry in  the
         " filesystem whose name  begins with `~`. We need to  expand `~` itself,
-        " into `/home/user`."}}}
-        let entries = glob(cur_path..(cur_path isnot# '~' ? '*' : ''), 0, 1, 1)
+        " into `/home/user`.
+        " }}}
+        let entries = glob(cur_path .. (cur_path isnot# '~' ? '*' : ''), 0, 1, 1)
         if !empty(entries)
-            " Why: `col('.') - strlen(fnamemodify(cur_path, ':t'))`{{{
+            " Why: `col('.') - fnamemodify(cur_path, ':t')->strlen()`{{{
             "
             " ... instead of:
             "
             "     col('.') - strlen(cur_path)
             "
             " ...?
-            " Because, we don't complete the whole path. The matches in the menu
-            " will only match the last component of a path.
+            " Because, we  don't complete  the whole path.   The matches  in the
+            " menu will only match the last component of a path.
             " So we  need to tell  `complete()` that  the selected entry  in the
             " menu will replace only the last component of the current path.
             "}}}
-            let from_where = col('.') - strlen(fnamemodify(cur_path, ':t'))
+            let from_where = col('.') - fnamemodify(cur_path, ':t')->strlen()
             " Why: `cur_path isnot# '~' ? fnamemodify(v, ':t') : v`?{{{
             "
             " Because, if `cur_path` is `~`, then `entries` is:
@@ -105,10 +106,10 @@ fu completion#file#complete() abort
             " pressing `Enter`.
             "}}}
             call complete(from_where,
-                \ map(entries, {_,v ->
+                \ map(entries, {_, v ->
                 \     {
                 \       'menu': '[f]',
-                \       'word': (cur_path isnot# '~' ? fnamemodify(v, ':t') : v)..(isdirectory(v) ? '/' : '')
+                \       'word': (cur_path isnot# '~' ? fnamemodify(v, ':t') : v) .. (isdirectory(v) ? '/' : '')
                 \     }}))
             return ''
         else
