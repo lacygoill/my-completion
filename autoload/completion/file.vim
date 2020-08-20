@@ -1,6 +1,6 @@
 fu completion#file#complete() abort
     let line = getline('.')
-    let text_before_cursor = strpart(line, 0, col('.') - 1)
+    let text_before_cursor = line[: col('.') - 2]
     " Remove curly brackets around possible environment variables.
     let text_before_cursor = substitute(text_before_cursor, '${\(\w\+\)}', '$\1', 'g')
     let cur_path = matchstr(text_before_cursor, '\f\%(\f\|\s\)*$')

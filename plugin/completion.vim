@@ -3,6 +3,10 @@ if exists('g:loaded_completion')
 endif
 let g:loaded_completion = 1
 
+" TODO: Implement the concept of "scoped chains".
+" That is, make Vim use different chains depending on the syntax under the cursor.
+" https://github.com/lifepillar/vim-mucomplete/commit/c765784f621e9ed2615cc7490fac446db61466bb
+
 " Commands {{{1
 
 com -bar McAutoEnable  call completion#enable_auto()
@@ -257,7 +261,7 @@ set cot-=noselect
 "
 "    - the pum contains a lot of matches
 "    - the match you want is *not* near the start/end of the pum, but somewhere in the middle
-"    - the initial inserted match is much longer than the initial text
+"    - the inserted match is much longer than the original text
 "
 " When  the 3  previous statements  are true,  completing your  text is  painful
 " without `longest`.

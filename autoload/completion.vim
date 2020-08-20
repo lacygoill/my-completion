@@ -5,19 +5,6 @@ let g:autoloaded_completion = 1
 
 " FIXME: {{{1
 "
-" In `s:act_on_textchanged()`, shouldn't:
-"
-"     getline('.')[col('.') - 2] =~# '\f'
-"
-" ... be replaced with:
-"
-"     getline('.')->matchstr('.\%' .. col('.') .. 'c') =~# '\f'
-"
-" to handle the case where the character before the cursor is multi-byte?
-" A multi-byte character can be in 'isf'.
-
-" FIXME: {{{1
-"
 " I  keep  this section,  but  it's  not a  good  idea  because it  could  cause
 " autocompletion to press Tab indefinitely.
 " See `completion#enable_auto()` for more info.
@@ -59,14 +46,8 @@ let g:autoloaded_completion = 1
 "
 "     strpart(...) =~ g:...
 "
-" And why does he regularly write:
+" ---
 "
-"     getline('.')->strpart(0, col('.') - 1)
-"
-" ... instead of simply:
-"
-"     getline('.')[:col('.') - 2]
-
 " To look for all the global variables used by this plugin, search the
 " pattern:
 "
@@ -121,6 +102,9 @@ END
 let s:methods = get(b:, 'mc_chain', s:MC_CHAIN)
 let s:N = len(s:methods)
 let s:word = ''
+
+let s:manual = 1
+let s:completedone = 1
 
 " flag: in which direction will we move in the chain
 let s:dir = 1
@@ -227,16 +211,16 @@ endif
 "
 " Here's what lifepillar commented on the patch that introduced it:
 "
-" >     Fix 'line' completion method inserting a new line.
-" >
-" >     Line completion seems to work differently from other completion methods:
-" >     typing a character that does not belong to an entry does not exit
-" >     completion. Before this commit, with autocompletion on such behaviour
-" >     resulted in µcomplete inserting a new line while the user was typing,
-" >     because µcomplete would insert <c-x><c-l> while in ctrl-x submode.
-" >
-" >     To fix that, we use the same trick as with 'c-p': make sure that we are
-" >     out of ctrl-x submode before typing <c-x><c-l>.
+"    > Fix 'line' completion method inserting a new line.
+"    >
+"    > Line completion seems to work differently from other completion methods:
+"    > typing a character that does not belong to an entry does not exit
+"    > completion. Before this commit, with autocompletion on such behaviour
+"    > resulted in µcomplete inserting a new line while the user was typing,
+"    > because µcomplete would insert <c-x><c-l> while in ctrl-x submode.
+"    >
+"    > To fix that, we use the same trick as with 'c-p': make sure that we are
+"    > out of ctrl-x submode before typing <c-x><c-l>.
 "
 " Source: commit `59169596e96c8ff3943e9179a626391ff76f4b76`
 "
@@ -407,142 +391,150 @@ endfu
 " Annoying.  We only want automatic insertion when we press Tab ourselves.
 "}}}
 
-fu s:act_on_textchanged() abort "{{{1
-    if pumvisible() | return '' | endif
+def s:act_on_textchanged() #{{{1
+    # Why is this function in Vim9 script?{{{
+    #
+    # For this line to work as expected:
+    #
+    #     && getline('.')->strpart(0, col('.') - 1)[-1:-1] =~ '\f'
+    #                                              ^-----^
+    #                                              in Vim9, this refers to a character;
+    #                                              in legacy, this refers to a byte;
+    #                                              we want a character
+    #}}}
+    if pumvisible() | return | endif
 
-    " What is `s:completedone`? {{{
-    "
-    " A flag, which is only on when 3 conditions are met:
-    "
-    "    - autocompletion is enabled
-    "    - a completion has ended (successfully or not); `CompleteDone` event
-    "    - we inserted a whitespace or we're at the beginning of a line
-    "
-    " It's  almost   always  off,   because  as  soon   as  it's   enabled,  the
-    " `TextChangedI` event is triggered, and `s:act_on_textchanged()` is called.
-    " The latter checks the value of the flag and resets it when it's on.
-    "
-    " What is its purpose?
-    "
-    " It prevents an autocompletion when one was already performed.
-    " Triggering an autocompletion just after another one would probably be an
-    " annoyance (except for file completion).
-    " If I just autocompleted something, I'm probably done.  I don't need Vim to
-    " try another  autocompletion, which may  suggest me matches that  I already
-    " saw in the popup menu last time.
-    "}}}
+    # What is `s:completedone`? {{{
+    #
+    # A flag, which is only on when 3 conditions are met:
+    #
+    #    - autocompletion is enabled
+    #    - a completion has ended (successfully or not); `CompleteDone` event
+    #    - we inserted a whitespace or we're at the beginning of a line
+    #
+    # It's  almost   always  off,   because  as  soon   as  it's   enabled,  the
+    # `TextChangedI` event is triggered, and `s:act_on_textchanged()` is called.
+    # The latter checks the value of the flag and resets it when it's on.
+    #
+    # What is its purpose?
+    #
+    # It prevents an autocompletion when one was already performed.
+    # Triggering an autocompletion just after another one would probably be an
+    # annoyance (except for file completion).
+    # If I just autocompleted something, I'm probably done.  I don't need Vim to
+    # try another  autocompletion, which may  suggest me matches that  I already
+    # saw in the popup menu last time.
+    #}}}
     if s:completedone
-        " When an autocompletion has just been performed, we don't need a new one{{{
-        " until we insert a whitespace or we're at the beginning of a new line.
-        " Indeed, if autocompleting a word just failed, it doesn't make sense to
-        " go on trying to autocomplete it, every time we add a character.
-        "
-        " Besides, autocompletion will be performed only when `s:completedone` is set.
-        " Based on these 2 informations, when `s:completedone` is set to 1,
-        " we shouldn't reset it to 0 until we insert a whitespace:
-        "
-        "     getline('.')->matchstr('.\%' .. col('.') .. 'c') =~# '\s'
-        "
-        " ... or we are at the beginning of a new line.
-        "
-        "     col('.') == 1
-        "}}}
-        if getline('.')->matchstr('.\%' .. col('.') .. 'c') =~# '\s' || col('.') == 1
-
-    " If the text changed AND a completion was done, we reset `s:completedone`:{{{
-    "
-    " When this flag is on, the function doesn't invoke an autocompletion.
-    " So it needs to be off for the next time the function will be called.
-    "
-    " And we reset `s:manual`.
-    "
-    " When this  variable /flag  is on,  it means  the completion  was initiated
-    " manually.
-    " We can  use this  info to  temporarily disable a  too costful  method when
-    " autocompletion is enabled, but still be able to use it manually.
-    "
-    " For example, we could disable the 'thes' method:
-    "
-    "     let s:MC_CONDITIONS.thes = {_ -> s:manual && !empty(&l:thesaurus)}
-    "
-    " Now, the `thes` method can only be tried when 'thesaurus' has a value, *and*
-    " the completion was initiated manually by the user.
-    "
-    " Why do we reset it here?
-    " Inside completion#tab_complete(), it's set to 1.
-    " Inside completion#enable_auto(), it's set to 0.
-    "
-    " Now think about this.  Autocompletion  is enabled, and we've inserted some
-    " text which hasn't  been autocompleted, because the text  before the cursor
-    " didn't match `s:MC_AUTO_PATTERN`.
-    " We still want a completion, so we press Tab.
-    " It sets `s:manual` to 1.  We complete our text, then go on typing.
-    "
-    " Now, `s:manual` will  remain with the value 1,  while autocompletion is
-    " still active.
-    " It means autocompletion will try all  the methods in the chain, even those
-    " that we wanted to disable; to prevent that, we reset it here.
-    "}}}
-            let s:completedone = 0
-            let s:manual = 0
+        # When an autocompletion has just been performed, we don't need a new one{{{
+        # until we insert a whitespace or we're at the beginning of a new line.
+        # Indeed, if autocompleting a word just failed, it doesn't make sense to
+        # go on trying to autocomplete it, every time we add a character.
+        #
+        # Besides, autocompletion will be performed only when `s:completedone` is set.
+        # Based on these 2 informations, when `s:completedone` is set to 1,
+        # we shouldn't reset it to 0 until we insert a whitespace:
+        #
+        "     getline('.')->strpart(0, col('.') - 1)[-1:-1]
+        #
+        # ... or we are at the beginning of a new line.
+        #
+        #     col('.') == 1
+        #}}}
+        if getline('.')->strpart(0, col('.') - 1)[-1:-1] =~ '\s' || col('.') == 1
+        # If the text changed *and* a completion was done, we reset `s:completedone`:{{{
+        #
+        # When this flag is on, the function doesn't invoke an autocompletion.
+        # So it needs to be off for the next time the function will be called.
+        #
+        # And we reset `s:manual`.
+        #
+        # When this variable /flag is on,  it means the completion was initiated
+        # manually.
+        # We can use this info to  temporarily disable a too costful method when
+        # autocompletion is enabled, but still be able to use it manually.
+        #
+        # For example, we could disable the 'thes' method:
+        #
+        #     let s:MC_CONDITIONS.thes = {_ -> s:manual && !empty(&l:thesaurus)}
+        #
+        # Now, the `thes` method can only be tried when 'thesaurus' has a value,
+        # *and* the completion was initiated manually by the user.
+        #
+        # Why do we reset it here?
+        # Inside completion#tab_complete(), it's set to 1.
+        # Inside completion#enable_auto(), it's set to 0.
+        #
+        # Now think about  this.  Autocompletion is enabled,  and we've inserted
+        # some text which hasn't been autocompleted, because the text before the
+        # cursor didn't match `s:MC_AUTO_PATTERN`.
+        # We still want a completion, so we press Tab.
+        # It sets `s:manual` to 1.  We complete our text, then go on typing.
+        #
+        # Now, `s:manual` will remain with  the value 1, while autocompletion is
+        # still active.
+        # It means  autocompletion will try all  the methods in the  chain, even
+        # those that we wanted to disable; to prevent that, we reset it here.
+        #}}}
+            s:completedone = 0
+            s:manual = 0
         endif
 
-        " Why do we call completion#file#complete()? {{{
-        "
-        " Usually, when a completion has been done, we don't want
-        " autocompletion to be invoked again right afterwards.
-        "
-        " Exception:    'file' method
-        "
-        " If we just autocompleted a filepath component (i.e. the current method
-        " is 'file'), we want autocompletion to be invoked again, to handle the
-        " next component, in case there's one.
-        " We just make sure that the character before the cursor is in 'isf'.
-        "}}}
-        " Why do we use `get()`? {{{
-        "
-        " Without it, sometimes, we have an error such as:
-        "
-        "     Error detected while processing function <SNR>67_act_on_textchanged:~
-        "     line   81:~
-        "     E684: list index out of range: 0~
-        "     Error detected while processing function <SNR>67_act_on_textchanged:~
-        "     line   81:~
-        "     E15: Invalid expression: s:methods[s:i] is# 'file' && getline('.')->matchstr('.\%' .. col('.') .. 'c') =~# '\f'~
-        "}}}
-
-        if get(s:methods, s:i, '') is# 'file'
-        \ && getline('.')->matchstr('.\%' .. col('.') .. 'c') =~# '\f'
-            sil call completion#file#complete()
+        # Why `completion#file#complete()`? {{{
+        #
+        # Usually, when a completion has been done, we don't want
+        # autocompletion to be invoked again right afterwards.
+        #
+        # Exception:    'file' method
+        #
+        # If we just autocompleted a filepath component (i.e. the current method
+        # is 'file'), we want autocompletion to be invoked again, to handle the
+        # next component, in case there's one.
+        # We just make sure that the character before the cursor is in 'isf'.
+        #}}}
+        # Why `get()`? {{{
+        #
+        # Without it, sometimes, we have an error such as:
+        #
+        #     Error detected while processing function <SNR>67_act_on_textchanged:~
+        #     line   81:~
+        #     E684: list index out of range: 0~
+        #     Error detected while processing function <SNR>67_act_on_textchanged:~
+        #     line   81:~
+        #     E15: Invalid expression: s:methods[s:i] ...~
+        #}}}
+        if get(s:methods, s:i, '') == 'file'
+            && getline('.')->strpart(0, col('.') - 1)[-1:-1] =~ '\f'
+            sil completion#file#complete()
         endif
 
-    " Purpose of `s:MC_AUTO_PATTERN`: {{{
-    "
-    " `strpart(...)` matches the characters from the beginning of the line up to
-    " the cursor.
-    "
-    " We compare them to `{s:|b:}mc_auto_pattern`, which is a pattern
-    " such as: `\k\k$`.
-    "
-    " This pattern conditions autocompletion.
-    " If its value is `\k\k$`, then autocompletion will only occur when the
-    " cursor is after 2 keyword characters.
-    " So, for example, there would be no autocompletion, if the cursor was after
-    " ` a`, because even though `a` is in 'isk', the space is not.
-    "
-    " It allows the user to control the frequency of autocompletions.
-    " The longer and the more precise the pattern is, the less frequent the
-    " autocompletions will be.
-    "
-    " \a\a is longer than \a, and \a is more precise than \k
-    " So in increasing order of autocompletion frequency:
-    "
-    "     \a\a  <  \a  <  \k
-    "}}}
-    elseif getline('.')[:col('.') - 2] =~# get(b:, 'mc_auto_pattern', s:MC_AUTO_PATTERN)
-        sil call feedkeys("\<plug>(MC_Auto)", 'i')
+    # Purpose of `s:MC_AUTO_PATTERN`: {{{
+    #
+    # `strpart(...)` matches the characters from the beginning of the line up to
+    # the cursor.
+    #
+    # We compare them to `{s:|b:}mc_auto_pattern`, which is a pattern
+    # such as: `\k\k$`.
+    #
+    # This pattern conditions autocompletion.
+    # If its value is `\k\k$`, then autocompletion will only occur when the
+    # cursor is after 2 keyword characters.
+    # So, for example, there would be no autocompletion, if the cursor was after
+    # ` a`, because even though `a` is in 'isk', the space is not.
+    #
+    # It allows the user to control the frequency of autocompletions.
+    # The longer and the more precise the pattern is, the less frequent the
+    # autocompletions will be.
+    #
+    # \a\a is longer than \a, and \a is more precise than \k
+    # So in increasing order of autocompletion frequency:
+    #
+    #     \a\a  <  \a  <  \k
+    #}}}
+    elseif getline('.')[: col('.') - 2] =~ get(b:, 'mc_auto_pattern', s:MC_AUTO_PATTERN)
+        sil feedkeys("\<plug>(MC_Auto)", 'i')
     endif
-endfu
+enddef
 " Purpose:{{{
 "
 " Try an autocompletion every time the text changes in insert mode.
@@ -563,16 +555,16 @@ endfu
 "}}}
 
 fu completion#complete(dir) abort "{{{1
-    "                                                    ┌ don't use `\k`, it would exclude `/`
-    "                                                    │ and we need to include slash for file completion
-    "                                                    │
-    let s:word = getline('.')[:col('.') - 2]->matchstr('\S\+$')
+    "                                                     ┌ don't use `\k`, it would exclude `/`
+    "                                                     │ and we need to include slash for file completion
+    "                                                     │
+    let s:word = getline('.')[: col('.') - 2]->matchstr('\S\+$')
 
     "                    ┌ if the cursor is right at the beginning of a line:
     "                    │
-    "                    │    - col('.') - 2                   will be negative
-    "                    │    - getline('.')[:col('.') - 2]    will give us the whole line
-    "                    │    - matchstr(...)                  will give us the last word on the line
+    "                    │    - col('.') - 2                    will be negative
+    "                    │    - getline('.')[: col('.') - 2]    will give us the whole line
+    "                    │    - matchstr(...)                   will give us the last word on the line
     "                    │
     "                    ├───────────┐
     if s:word !~ '\k' || col('.') <= 1
@@ -677,7 +669,7 @@ fu completion#enable_auto() abort "{{{1
         " It depends on which text a given method is trying to complete.
         " If a method tries to complete this:
         "
-        "     getline('.')[:col('.') - 2]->matchstr('\S\+$')
+        "     getline('.')[: col('.') - 2]->matchstr('\S\+$')
         "
         " ... then it doesn't make sense to try an autocompletion after a failed one.
         " Because inserting a new character will make the text to complete even harder.
@@ -923,6 +915,39 @@ fu s:next_method() abort "{{{1
         " 2 - Store the state of the menu in `s:pumvisible` through `completion#menu_is_up()`.
         "
         " 3 - call `completion#verify_completion()` through `<plug>(MC_next_method)`
+        "}}}
+        " FIXME: A part of the sequence may be unexpectedly dumped into the buffer.{{{
+        "
+        "     =pumvisible()?completion#menu_is_up():''
+        "
+        " That happens if you press `C-c`  to interrupt a method which takes too
+        " much time.
+        "
+        " MWE:
+        "
+        " First temporarily disable `completion#util#setup_dict()` in `s:MC_CONDITIONS`:
+        "
+        "     \ 'dict': {_ -> s:manual && completion#util#setup_dict()},
+        "     →
+        "     \ 'dict': {_ -> s:manual},
+        "
+        " Then, run this:
+        "
+        "     $ vim -S <(cat <<'EOF'
+        "         vim9script
+        "         set dict=/tmp/words
+        "         readfile('/usr/share/dict/words')->repeat(10)->writefile('/tmp/words')
+        "         startinsert
+        "         feedkeys("e\<tab>")
+        "     EOF
+        "     )
+        "
+        " Finally, press `C-j` until you  reach the dictionary completion method
+        " (right now,  pressing it once  is enough).   Once you reach  it, press
+        " `C-c` to interrupt  it.  If Vim is  too fast to populate  the pum, and
+        " you  don't  have  enough  time  to  interrupt  it,  increase  `10`  in
+        " `->repeat(10)`; the  longer `/tmp/words`  is, the  more time  Vim will
+        " need to populate the pum.
         "}}}
         return s:COMPL_MAPPINGS[s:methods[s:i]]
             \ .. "\<plug>(MC_c-r)=pumvisible()?completion#menu_is_up():''\<cr>\<plug>(MC_next_method)"
