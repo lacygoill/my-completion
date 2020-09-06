@@ -39,10 +39,10 @@ fu completion#abbr#complete() abort
     " To do this, we'll follow this algorithm:
     "
     "     does the rhs of the abbreviation contains the string `expand_` ?
-    "             stridx(s:abbrev_rhs(v.rhs), 'expand_') != -1
+    "             s:abbrev_rhs(v.rhs)->stridx('expand_') != -1
     "
     "     if so, extract the expansion
-    "             matchstr(s:abbrev_rhs(v.rhs), '.*,''\zs.*\ze'')')
+    "             s:abbrev_rhs(v.rhs)->matchstr('.*,''\zs.*\ze'')')
     "                                           │
     "                                           └ describe the text after a comma,
     "                                             between single quotes, and before a parenthesis
@@ -54,8 +54,8 @@ fu completion#abbr#complete() abort
         \ ->filter({_, v -> stridx(v.lhs, word_to_complete) == 0})
         \ ->map({_, v -> {
         \    'word' : v.lhs,
-        \    'menu' : stridx(s:abbrev_rhs(v.rhs), 'expand_') != -1
-        \             ?    matchstr(s:abbrev_rhs(v.rhs), '.*,''\zs.*\ze'')')
+        \    'menu' : s:abbrev_rhs(v.rhs)->stridx('expand_') != -1
+        \             ?    s:abbrev_rhs(v.rhs)->matchstr('.*,''\zs.*\ze'')')
         \             :    s:abbrev_rhs(v.rhs)
         \ }})
 
