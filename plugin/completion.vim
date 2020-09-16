@@ -369,7 +369,7 @@ set thesaurus+=$HOME/.vim/tools/mthesaur.txt
 augroup hoist_cot | au!
     au User MyFlags call statusline#hoist('global',
         \ '%2*%{&cot !=# "' .. &cot .. '" && mode(1) is# "n"? "[cot+]" : ""}', 25,
-        \ expand('<sfile>') .. ':' .. expand('<sflnum>'))
+        \ expand('<sfile>:p') .. ':' .. expand('<sflnum>'))
     au OptionSet completeopt call timer_start(0, {-> execute('redrawt')})
 augroup END
 

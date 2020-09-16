@@ -91,7 +91,7 @@ fu completion#ultisnips#complete() abort
     ""}}}
 
     let matches = keys(g:current_ulti_dict_info)
-        \ ->filter(l:Contain_word)
+        \ ->filter(Contain_word)
         \ ->map({_, v -> {
         \    'word': v,
         \    'menu': '[snip] ' .. g:current_ulti_dict_info[v]['description'],
