@@ -257,7 +257,7 @@ const s:COMPL_MAPPINGS = {
     \ 'user': "\<plug>(MC_c-x_c-u)",
     \ }
 
-unlet s:EXIT_CTRL_X
+unlet! s:EXIT_CTRL_X
 
 const s:SELECT_MATCH = {'c-p' : "\<plug>(MC_c-p)\<plug>(MC_down)", 'keyp': "\<plug>(MC_c-p)\<plug>(MC_down)"}
 
