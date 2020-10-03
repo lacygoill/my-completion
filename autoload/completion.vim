@@ -456,7 +456,7 @@ def s:act_on_textchanged() #{{{1
         #
         # For example, we could disable the 'thes' method:
         #
-        #     let s:MC_CONDITIONS.thes = {_ -> s:manual && !empty(&l:thesaurus)}
+        #     var s:MC_CONDITIONS.thes = {_ -> s:manual && !empty(&l:thesaurus)}
         #
         # Now, the `thes` method can only be tried when 'thesaurus' has a value,
         # *and* the completion was initiated manually by the user.
