@@ -1022,7 +1022,8 @@ endfu
 
 fu completion#snippet_or_complete(dir, ...) abort "{{{1
     if pumvisible()
-        return a:dir > 0 ? "\<c-n>" : "\<c-p>"
+        call feedkeys(a:dir > 0 ? "\<c-n>" : "\<c-p>", 'in')
+        return
     endif
 
     " Why not checking the existence of `UltiSnips#ExpandSnippet()`?{{{
@@ -1034,7 +1035,7 @@ fu completion#snippet_or_complete(dir, ...) abort "{{{1
     "}}}
     if !exists('g:did_plugin_ultisnips')
         call feedkeys(a:dir > 0 ? "\<plug>(MC_tab_complete)": "\<plug>(MC_stab_complete)", 'i')
-        return ''
+        return
     endif
 
     call UltiSnips#ExpandSnippet()
@@ -1055,8 +1056,6 @@ fu completion#snippet_or_complete(dir, ...) abort "{{{1
 
     let s:completedone = 0
     let s:manual = 0
-
-    return ''
 endfu
 
 fu completion#tab_complete(dir) abort "{{{1
@@ -1110,5 +1109,4 @@ fu completion#restore_base() abort "{{{1
                 \ | unlet! s:orig_line
         augroup END
     endif
-    return ''
 endfu

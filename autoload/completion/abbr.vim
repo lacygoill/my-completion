@@ -27,13 +27,15 @@ fu completion#abbr#complete() abort
 
     " NOTE:
     " if the abbreviation is complex, and is the output of a function:
+    "
     "     s:expand_adj()
     "     s:expand_adv()
     "     s:expand_noun()
     "     s:expand_verb()
     "
-    " … the rhs will look like this:
-    "     <c-r>=<snr>42_expand_adv('ctl','actuellement')<cr>
+    " ... the rhs will look like this:
+    "
+    "     <c-r><c-r>=<snr>42_expand_adv('ctl', 'actuellement')<cr>
     "
     " To make the description less noisy, we need to extract the expansion (`actuellement`).
     " To do this, we'll follow this algorithm:
@@ -42,7 +44,7 @@ fu completion#abbr#complete() abort
     "             s:abbrev_rhs(v.rhs)->stridx('expand_') != -1
     "
     "     if so, extract the expansion
-    "             s:abbrev_rhs(v.rhs)->matchstr('.*,''\zs.*\ze'')')
+    "             s:abbrev_rhs(v.rhs)->matchstr('.*,\s*''\zs.*\ze'')')
     "                                           │
     "                                           └ describe the text after a comma,
     "                                             between single quotes, and before a parenthesis
@@ -55,7 +57,7 @@ fu completion#abbr#complete() abort
         \ ->map({_, v -> {
         \    'word' : v.lhs,
         \    'menu' : s:abbrev_rhs(v.rhs)->stridx('expand_') != -1
-        \             ?    s:abbrev_rhs(v.rhs)->matchstr('.*,''\zs.*\ze'')')
+        \             ?    s:abbrev_rhs(v.rhs)->matchstr('.*,\s*''\zs.*\ze'')')
         \             :    s:abbrev_rhs(v.rhs)
         \ }})
 

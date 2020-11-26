@@ -17,43 +17,43 @@ com -bar McAutoToggle  call completion#toggle_auto()
 " completion {{{2
 
 " expand snippet or complete, when pressing Tab, or S-Tab
-ino  <silent><unique> <tab>                    <c-r>=completion#snippet_or_complete(1)<cr>
-ino  <silent><unique> <s-tab>                  <c-r>=completion#snippet_or_complete(-1)<cr>
+ino  <silent><unique> <tab>                    <cmd>call completion#snippet_or_complete(1)<cr>
+ino  <silent><unique> <s-tab>                  <cmd>call completion#snippet_or_complete(-1)<cr>
 imap <expr><silent>   <plug>(MC_tab_complete)  completion#tab_complete(1)
 imap <expr><silent>   <plug>(MC_stab_complete) completion#tab_complete(-1)
 
 " same thing for `C-g Tab`; useful when we're expanding a snippet
 imap <expr><silent><unique> <c-g><tab> completion#tab_complete(1)
 
-snor <silent><unique>   <tab> <c-\><c-n>:call UltiSnips#JumpForwards()<cr>
-snor <silent><unique> <s-tab> <c-\><c-n>:call UltiSnips#JumpBackwards()<cr>
+snor <unique>   <tab> <c-\><c-n><cmd>call UltiSnips#JumpForwards()<cr>
+snor <unique> <s-tab> <c-\><c-n><cmd>call UltiSnips#JumpBackwards()<cr>
 
 " The next mappings are necessary to prevent custom mappings from interfering.
 " We don't want recursiveness for those keys when we're in regular insert mode.
 " In C-x submode, custom mappings should not interfere.
 
 " typed/returned by `completion#complete()`
-ino <silent> <plug>(MC_tab) <tab>
-ino <silent> <plug>(MC_c-d) <c-d>
+ino <plug>(MC_tab) <tab>
+ino <plug>(MC_c-d) <c-d>
 
 " typed/returned by `completion#cycle()`
-ino <silent> <plug>(MC_c-e) <c-e>
-ino <silent> <plug>(MC_c-n) <c-n>
-ino <silent> <plug>(MC_c-p) <c-p>
-ino <silent> <plug>(MC_c-r) <c-r>
-ino <silent> <plug>(MC_c-x_c-v) <c-x><c-v>
-ino <silent> <plug>(MC_c-x_c-d) <c-x><c-d>
-ino <silent> <plug>(MC_c-x_c-k) <c-x><c-k>
-ino <silent> <plug>(MC_c-x_c-i) <c-x><c-i>
-ino <silent> <plug>(MC_c-x_c-n) <c-x><c-n>
-ino <silent> <plug>(MC_c-x_c-p) <c-x><c-p>
-ino <silent> <plug>(MC_c-x_c-l) <c-x><c-l>
-ino <silent> <plug>(MC_c-x_c-o) <c-x><c-o>
-ino <silent> <plug>(MC_c-x_c-]) <c-x><c-]>
-ino <silent> <plug>(MC_c-x_c-t) <c-x><c-t>
-ino <silent> <plug>(MC_c-x_c-u) <c-x><c-u>
-ino <silent> <plug>(MC_down) <down>
-ino <silent> <plug>(MC_up) <up>
+ino <plug>(MC_c-e) <c-e>
+ino <plug>(MC_c-n) <c-n>
+ino <plug>(MC_c-p) <c-p>
+ino <plug>(MC_c-r) <c-r>
+ino <plug>(MC_c-x_c-v) <c-x><c-v>
+ino <plug>(MC_c-x_c-d) <c-x><c-d>
+ino <plug>(MC_c-x_c-k) <c-x><c-k>
+ino <plug>(MC_c-x_c-i) <c-x><c-i>
+ino <plug>(MC_c-x_c-n) <c-x><c-n>
+ino <plug>(MC_c-x_c-p) <c-x><c-p>
+ino <plug>(MC_c-x_c-l) <c-x><c-l>
+ino <plug>(MC_c-x_c-o) <c-x><c-o>
+ino <plug>(MC_c-x_c-]) <c-x><c-]>
+ino <plug>(MC_c-x_c-t) <c-x><c-t>
+ino <plug>(MC_c-x_c-u) <c-x><c-u>
+ino <plug>(MC_down) <down>
+ino <plug>(MC_up) <up>
 cno          <plug>(MC_cr) <cr>
 
 " Because  of a  mapping in  `vim-readline`, we've  lost the  ability to  exit a
@@ -62,26 +62,26 @@ cno          <plug>(MC_cr) <cr>
 " Hint: it's due to `longest` being in `'cot'`.
 " Also, document why we don't invoke `#restore_base()` in `<plug>(MC_c-e)`.
 " Hint: it would break the dot command too frequently (as soon as we cycle).
-ino <silent> <c-q> <c-e><c-r>=completion#restore_base()<cr>
+ino <c-q> <c-e><cmd>call completion#restore_base()<cr>
 
 " cycling {{{2
 
-imap <expr><silent><unique> <c-j>         pumvisible() ? completion#cycle(1) : '<plug>(MC_cr)'
-ino        <silent>         <plug>(MC_cr) <cr>
+imap <expr><silent><unique> <c-j> pumvisible() ? completion#cycle(1) : '<plug>(MC_cr)'
+ino <plug>(MC_cr) <cr>
 
 " To cycle back, we can't use `c-k` because it would be shadowed by `c-k c-k`
 " (vimrc) which deletes from cursor till end of line.
 " It's hard to find a key for this mapping (can't use `c-h`, `c-l`, `c-k`, …).
 " We'll try `c-o` with the mnemonic: Old (cycle back).
-imap <expr><silent><unique> <c-o>          pumvisible() ? completion#cycle(-1) : '<plug>(MC_c-o)'
-ino        <silent>         <plug>(MC_c-o) <c-o>
+imap <expr><silent><unique> <c-o> pumvisible() ? completion#cycle(-1) : '<plug>(MC_c-o)'
+ino <plug>(MC_c-o) <c-o>
 
 imap <expr><silent> <plug>(MC_next_method) completion#verify_completion()
 imap <expr><silent> <plug>(MC_Auto)        completion#complete(1)
 
-nno <silent><unique> [oM :<c-u>call completion#enable_auto()<cr>
-nno <silent><unique> ]oM :<c-u>call completion#disable_auto()<cr>
-nno <silent><unique> coM :<c-u>call completion#toggle_auto()<cr>
+nno [oM <cmd>call completion#enable_auto()<cr>
+nno ]oM <cmd>call completion#disable_auto()<cr>
+nno coM <cmd>call completion#toggle_auto()<cr>
 
 " improved default methods {{{2
 " C-p         &friends {{{3
@@ -93,9 +93,9 @@ nno <silent><unique> coM :<c-u>call completion#toggle_auto()<cr>
 "
 " So we invoke this function to temporarily add it.
 "}}}
-ino <silent><unique> <c-p>      <c-r>=completion#util#custom_isk('-')[-1]<cr><c-p>
-ino <silent><unique> <c-x><c-n> <c-r>=completion#util#custom_isk('-')[-1]<cr><c-x><c-n>
-ino <silent><unique> <c-x><c-p> <c-r>=completion#util#custom_isk('-')[-1]<cr><c-x><c-p>
+ino <unique> <c-p>      <cmd>call completion#util#custom_isk('-')<cr><c-p>
+ino <unique> <c-x><c-n> <cmd>call completion#util#custom_isk('-')<cr><c-x><c-n>
+ino <unique> <c-x><c-p> <cmd>call completion#util#custom_isk('-')<cr><c-x><c-p>
 
 " C-x C-]     tag {{{3
 
@@ -107,16 +107,16 @@ ino <silent><unique> <c-x><c-p> <c-r>=completion#util#custom_isk('-')[-1]<cr><c-
 "
 " But it doesn't seem necessary atm.
 "}}}
-"                                                                        │
-ino <silent><unique> <c-x><c-]> <c-r>=completion#util#custom_isk('-' .. (&ft is# 'vim' ? ':<' : ''))[-1]<cr><c-x><c-]>
+"                                                                    │
+ino <unique> <c-x><c-]> <cmd>call completion#util#custom_isk('-' .. (&ft is# 'vim' ? ':<' : ''))<cr><c-x><c-]>
 
 " C-x C-k     dictionary {{{3
 
-ino <silent><unique> <c-x><c-k> <c-r>=completion#util#setup_dict()[-1]<cr><c-x><c-k>
+ino <unique> <c-x><c-k> <cmd>call completion#util#setup_dict()<cr><c-x><c-k>
 
 " C-x C-s     fix Spelling error {{{3
 
-ino <expr><silent><unique> <c-x><c-s> completion#spel#fix()
+ino <expr><unique> <c-x><c-s> completion#spel#fix()
 
 " C-x C-t     synonym {{{3
 
@@ -135,7 +135,7 @@ ino <expr><silent><unique> <c-x><c-s> completion#spel#fix()
 " Even with a space in 'isk', the completion function only tries to complete the
 " last word before the cursor.
 
-ino <silent><unique> <c-x><c-t> <c-r>=completion#util#custom_isk(' -')[-1]<cr><c-x><c-t>
+ino <unique> <c-x><c-t> <cmd>call completion#util#custom_isk(' -')<cr><c-x><c-t>
 "}}}2
 " new methods {{{2
 " C-x s       function Signature {{{3
@@ -146,19 +146,14 @@ ino <silent><unique> <c-x><c-t> <c-r>=completion#util#custom_isk(' -')[-1]<cr><c
 "    2. press `C-x s`
 "    3. you get `call matchadd({group}, {pattern} [, {priority} [, {id} [, {dict}]]])`
 
-" Why not using a single `:noremap!`?{{{
-"
-" We want `<silent>`  in insert mode, but  we can't use it  in command-line mode
-" (we wouldn't see the completed text).
-"}}}
-ino <silent><unique> <c-x>s <c-r>=mode()->completion#custom#signature()<cr>
-cno         <unique> <c-x>s <c-\>e mode()->completion#custom#signature()<cr>
+ino <unique> <c-x>s <cmd>call mode()->completion#custom#signature()<cr>
+cno <unique> <c-x>s <c-\>e mode()->completion#custom#signature()<cr>
 
 " C-z         easy C-x C-p {{{3
 
 " Inspiration:
 " https://www.reddit.com/r/vim/comments/78h4pr/plugins_andor_keybindings_you_couldnt_live_without/dou7z5n/
-ino <silent><unique> <c-z> <c-r>=completion#custom#easy_c_x_c_p()<cr><c-x><c-p>
+ino <unique> <c-z> <cmd>call completion#custom#easy_c_x_c_p()<cr><c-x><c-p>
 "}}}1
 " Options {{{1
 " complete {{{2
