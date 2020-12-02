@@ -35,7 +35,7 @@ fu completion#abbr#complete() abort
     "
     " ... the rhs will look like this:
     "
-    "     <c-r><c-r>=<snr>42_expand_adv('ctl', 'actuellement')<cr>
+    "     <c-r>=<snr>42_expand_adv('ctl', 'actuellement')<cr>
     "
     " To make the description less noisy, we need to extract the expansion (`actuellement`).
     " To do this, we'll follow this algorithm:
@@ -54,11 +54,11 @@ fu completion#abbr#complete() abort
 
     let matching_abbrev = copy(s:ABBREV)
         \ ->filter({_, v -> stridx(v.lhs, word_to_complete) == 0})
-        \ ->map({_, v -> {
-        \    'word' : v.lhs,
-        \    'menu' : s:abbrev_rhs(v.rhs)->stridx('expand_') != -1
-        \             ?    s:abbrev_rhs(v.rhs)->matchstr('.*,\s*''\zs.*\ze'')')
-        \             :    s:abbrev_rhs(v.rhs)
+        \ ->map({_, v -> #{
+        \    word : v.lhs,
+        \    menu : s:abbrev_rhs(v.rhs)->stridx('expand_') != -1
+        \           ?    s:abbrev_rhs(v.rhs)->matchstr('.*,\s*''\zs.*\ze'')')
+        \           :    s:abbrev_rhs(v.rhs)
         \ }})
 
     let from_where = col('.') - strlen(word_to_complete)
