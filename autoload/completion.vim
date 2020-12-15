@@ -24,7 +24,7 @@ let g:autoloaded_completion = 1
 " all  the  methods fail  during  an  autocompletion  and nothing  is  inserted,
 " `s:completedone`'s value is still 0,  even though `CompleteDone` was triggered
 " several times.  And the next time we insert a character and
-" `s:act_on_textchanged()` is called, it won't execute the
+" `s:ActOnTextchanged()` is called, it won't execute the
 " first block of code which tries to get `s:methods[s:i]` (`s:i = s:N`).
 "
 " We don't really need this new definition to fix this bug, because we have
@@ -38,7 +38,7 @@ let g:autoloaded_completion = 1
 
 " FIXME: {{{1
 "
-" Inside `s:act_on_textchanged()`, why does lifepillar write:
+" Inside `s:ActOnTextchanged()`, why does lifepillar write:
 "
 "     strpart(...)->match(g:...) > -1
 "
@@ -391,7 +391,7 @@ endfu
 " Annoying.  We only want automatic insertion when we press Tab ourselves.
 "}}}
 
-def s:act_on_textchanged() #{{{1
+def s:ActOnTextchanged() #{{{1
     # Why is this function in Vim9 script?{{{
     #
     # For this line to work as expected:
@@ -413,7 +413,7 @@ def s:act_on_textchanged() #{{{1
     #    - we inserted a whitespace or we're at the beginning of a line
     #
     # It's  almost   always  off,   because  as  soon   as  it's   enabled,  the
-    # `TextChangedI` event is triggered, and `s:act_on_textchanged()` is called.
+    # `TextChangedI` event is triggered, and `s:ActOnTextchanged()` is called.
     # The latter checks the value of the flag and resets it when it's on.
     #
     # What is its purpose?
@@ -638,7 +638,7 @@ fu completion#enable_auto() abort "{{{1
     set cot+=noinsert
 
     augroup MC_Auto | au!
-        au TextChangedI * call s:act_on_textchanged()
+        au TextChangedI * call s:ActOnTextchanged()
         " Why don't you define `s:completedone` as `!empty(v:completed_item)`? {{{
         "
         " Because it could make autocompletion press Tab indefinitely.
@@ -957,7 +957,7 @@ fu s:next_method() abort "{{{1
     "
     " Consider some unique text, let's say 'jtx', and suppose autocompletion is
     " enabled.
-    " When I will insert `x`, an error will occur inside `s:act_on_textchanged()`.
+    " When I will insert `x`, an error will occur inside `s:ActOnTextchanged()`.
     " Specifically when it will try to get:
     "
     "     s:methods[s:i]
@@ -969,7 +969,7 @@ fu s:next_method() abort "{{{1
     " But what leads to this situation?
     "
     " When  I insert  the 1st  character  `j`, `TextChangedI`  is triggered  and
-    " `s:act_on_textchanged()` is called.  The function does nothing if:
+    " `s:ActOnTextchanged()` is called.  The function does nothing if:
     "
     "     s:MC_AUTO_PATTERN = \k\k$
     "
@@ -982,10 +982,10 @@ fu s:next_method() abort "{{{1
     " Even though the methods failed, `CompleteDone` was triggered after each of
     " them, and `s:completedone` was set to `1` each time.
     " `TextChangedI` was NOT triggered, because of our `Plug(MC_next_method)`
-    " mapping at the end of `s:next_method()`, so `s:act_on_textchanged()` is not
+    " mapping at the end of `s:next_method()`, so `s:ActOnTextchanged()` is not
     " called again.
     " Finally, when we insert `x`, `TextChangedI` is triggered a last (3rd) time,
-    " `s:act_on_textchanged()` is called and it executes its first block of code
+    " `s:ActOnTextchanged()` is called and it executes its first block of code
     " which requires to get the item `s:methods[s:i]`.
     "
     " A solution is to use get() like lifepillar did, but it only treats the
