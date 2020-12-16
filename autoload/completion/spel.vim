@@ -53,8 +53,8 @@ fu completion#spel#fix() abort "{{{1
         endfor
 
         if found_a_badword
-            if exists('#User#add_to_undolist_i')
-                do <nomodeline> User add_to_undolist_i
+            if exists('#User#AddToUndolistI')
+                do <nomodeline> User AddToUndolistI
             endif
             let new_line = getline('.')->substitute('\V\<' .. badword .. '\>', suggestion, 'g')
             let s:fix_word = {-> setline('.', new_line)}

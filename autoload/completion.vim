@@ -435,7 +435,7 @@ def s:ActOnTextchanged() #{{{1
         # Based on these 2 informations, when `s:completedone` is set to 1,
         # we shouldn't reset it to 0 until we insert a whitespace:
         #
-        "     getline('.')->strpart(0, col('.') - 1)[-1:-1]
+        #     getline('.')->strpart(0, col('.') - 1)[-1:-1]
         #
         # ... or we are at the beginning of a new line.
         #
@@ -615,9 +615,9 @@ endfu
 "}}}
 
 fu completion#disable_auto() abort "{{{1
-    if exists('#MC_Auto')
-        autocmd! MC_Auto
-        augroup! MC_Auto
+    if exists('#McAuto')
+        autocmd! McAuto
+        augroup! McAuto
     endif
     let s:auto = 0
     if exists('s:cot_save')
@@ -637,7 +637,7 @@ fu completion#enable_auto() abort "{{{1
     " auto-completion mode
     set cot+=noinsert
 
-    augroup MC_Auto | au!
+    augroup McAuto | au!
         au TextChangedI * call s:ActOnTextchanged()
         " Why don't you define `s:completedone` as `!empty(v:completed_item)`? {{{
         "
@@ -1078,7 +1078,7 @@ endfu
 "}}}
 
 fu completion#toggle_auto() abort "{{{1
-    if exists('#MC_Auto')
+    if exists('#McAuto')
         call completion#disable_auto()
     else
         call completion#enable_auto()
@@ -1103,9 +1103,9 @@ endfu
 fu completion#restore_base() abort "{{{1
     if exists('s:orig_line')
         call setline('.', s:orig_line)
-        augroup completion_unlet_orig_line | au!
+        augroup CompletionUnletOrigLine | au!
             au CursorMovedI,TextChangedI,InsertLeave,InsertEnter *
-                \   exe 'au! completion_unlet_orig_line'
+                \   exe 'au! CompletionUnletOrigLine'
                 \ | unlet! s:orig_line
         augroup END
     endif
