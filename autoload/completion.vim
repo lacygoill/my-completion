@@ -396,8 +396,8 @@ def s:ActOnTextchanged() #{{{1
     #
     # For this line to work as expected:
     #
-    #     && getline('.')->strpart(0, col('.') - 1)[-1:-1] =~ '\f'
-    #                                              ^-----^
+    #     && getline('.')->strpart(0, col('.') - 1)[-1 : -1] =~ '\f'
+    #                                              ^-------^
     #                                              in Vim9, this refers to a character;
     #                                              in legacy, this refers to a byte;
     #                                              we want a character
@@ -435,13 +435,13 @@ def s:ActOnTextchanged() #{{{1
         # Based on these 2 informations, when `s:completedone` is set to 1,
         # we shouldn't reset it to 0 until we insert a whitespace:
         #
-        #     getline('.')->strpart(0, col('.') - 1)[-1:-1]
+        #     getline('.')->strpart(0, col('.') - 1)[-1 : -1]
         #
         # ... or we are at the beginning of a new line.
         #
         #     col('.') == 1
         #}}}
-        if getline('.')->strpart(0, col('.') - 1)[-1:-1] =~ '\s' || col('.') == 1
+        if getline('.')->strpart(0, col('.') - 1)[-1 : -1] =~ '\s' || col('.') == 1
         # If the text changed *and* a completion was done, we reset `s:completedone`:{{{
         #
         # When this flag is on, the function doesn't invoke an autocompletion.
@@ -456,7 +456,7 @@ def s:ActOnTextchanged() #{{{1
         #
         # For example, we could disable the 'thes' method:
         #
-        #     var s:MC_CONDITIONS.thes = {_ -> s:manual && !empty(&l:thesaurus)}
+        #     var s:MC_CONDITIONS.thes = () => s:manual && !empty(&l:thesaurus)
         #
         # Now, the `thes` method can only be tried when 'thesaurus' has a value,
         # *and* the completion was initiated manually by the user.
@@ -504,7 +504,7 @@ def s:ActOnTextchanged() #{{{1
         #     E15: Invalid expression: s:methods[s:i] ...~
         #}}}
         if get(s:methods, s:i, '') == 'file'
-            && getline('.')->strpart(0, col('.') - 1)[-1:-1] =~ '\f'
+            && getline('.')->strpart(0, col('.') - 1)[-1 : -1] =~ '\f'
             sil completion#file#complete()
         endif
 
