@@ -38,7 +38,7 @@ fu completion#util#setup_dict() abort "{{{1
     "}}}
     let complete_more_than_2chars = getline('.')
         \ ->matchstr('\k\+\%' .. col('.') .. 'c')
-        \ ->strchars(1) >= 2
+        \ ->strchars(v:true) >= 2
     if index(['en', 'fr'], &l:spelllang) == -1 || !complete_more_than_2chars
         return 0
     endif
