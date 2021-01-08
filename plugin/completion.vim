@@ -358,13 +358,3 @@ set isfname+=@-@
 
 set thesaurus+=$HOME/.vim/tools/mthesaur.txt
 "}}}1
-" Autocmds {{{1
-
-" Keep this autocmd **after** setting `'cot'`!
-augroup HoistCot | au!
-    au User MyFlags call statusline#hoist('global',
-        \ '%2*%{&cot !=# "' .. &cot .. '" && mode(1) is# "n"? "[cot+]" : ""}', 25,
-        \ expand('<sfile>:p') .. ':' .. expand('<sflnum>'))
-    au OptionSet completeopt call timer_start(0, {-> execute('redrawt')})
-augroup END
-

@@ -934,7 +934,7 @@ fu s:next_method() abort "{{{1
         " Then, run this:
         "
         "     $ vim -S <(cat <<'EOF'
-        "         vim9script
+        "         vim9
         "         set dict=/tmp/words
         "         readfile('/usr/share/dict/words')->repeat(10)->writefile('/tmp/words')
         "         startinsert
