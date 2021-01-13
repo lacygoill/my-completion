@@ -16,7 +16,7 @@ fu completion#file#complete() abort
     " So, initially, the value of `cur_path` is `Some text a dir/`.
     " When the algo will try to expand `Some text a dir/*`:
     "
-    "     let entries = glob(cur_path .. '*', 0, 1, 1)
+    "     let entries = glob(cur_path .. '*', v:false, v:true, v:true)
     "
     " It won't find anything. `entries` will be an empty list.
     " We need the algo to retry another, shorter, path.
@@ -66,13 +66,13 @@ fu completion#file#complete() abort
         " the filesystem whose name begins like `cur_path`.
         " But if `cur_path` is `~`, we don't add a wildcard, because:
         "
-        "     glob('~*', 0, 1, 1)
+        "     glob('~*', v:false, v:true, v:true)
         "
         " ...  would return  an empty  list.  Indeed,  there's no  entry in  the
         " filesystem whose name  begins with `~`. We need to  expand `~` itself,
         " into `/home/user`.
         " }}}
-        let entries = glob(cur_path .. (cur_path isnot# '~' ? '*' : ''), 0, 1, 1)
+        let entries = glob(cur_path .. (cur_path isnot# '~' ? '*' : ''), v:false, v:true, v:true)
         if !empty(entries)
             " Why: `col('.') - fnamemodify(cur_path, ':t')->strlen()`{{{
             "
