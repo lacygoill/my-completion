@@ -52,7 +52,7 @@ def completion#util#setupDict(): bool #{{{1
     #}}}
     var complete_more_than_2chars: bool = getline('.')
         ->matchstr('\k\+\%' .. col('.') .. 'c')
-        ->strchars(v:true) >= 2
+        ->strchars(true) >= 2
     if index(['en', 'fr'], &l:spelllang) == -1
         || !complete_more_than_2chars
         return false
