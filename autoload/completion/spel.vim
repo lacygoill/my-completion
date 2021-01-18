@@ -1,53 +1,66 @@
+vim9 noclear
+
+if exists('loaded') | finish | endif
+var loaded = true
+
 import Catch from 'lg.vim'
 
-fu completion#spel#suggest() abort "{{{1
-    let word_to_complete = getline('.')->matchstr('\k\+\%' .. col('.') .. 'c')
-    let badword = spellbadword(word_to_complete)
-    let matches = !empty(badword[1])
-        \ ?     spellsuggest(badword[0])
-        \ :     []
+def completion#spel#suggest(): string #{{{1
+    var word_to_complete: string = getline('.')
+        ->matchstr('\k\+\%' .. col('.') .. 'c')
+    var badword: list<string> = spellbadword(word_to_complete)
+    var matches: list<string> = !empty(badword[1])
+        ?     spellsuggest(badword[0])
+        :     []
 
-    let from_where = col('.') - strlen(word_to_complete)
+    var from_where: number = col('.') - strlen(word_to_complete)
 
     if !empty(matches)
-        call complete(from_where, matches)
+        complete(from_where, matches)
     endif
     return ''
-endfu
+enddef
 
-fu completion#spel#fix() abort "{{{1
-    " don't break undo sequence:
-    "
-    "    - it seems messed up (performs an undo then a redo which gets us in a weird state)
-    "    - not necessary here, Vim already breaks the undo sequence
+def completion#spel#fix(): string #{{{1
+    # don't break undo sequence:
+    #
+    #    - it seems messed up (performs an undo then a redo which gets us in a weird state)
+    #    - not necessary here, Vim already breaks the undo sequence
 
-    " Alternative:
-    "
-    "     let winview = winsaveview()
-    "     norm! [S1z=
-    "     norm! `^
-    "     call winrestview(winview)
+    # Alternative:
+    #
+    #     var winview: dict<number> = winsaveview()
+    #     norm! [S1z=
+    #     norm! `^
+    #     winrestview(winview)
 
-    let [spell_save, winid, bufnr] = [&l:spell, win_getid(), bufnr('%')]
+    var spell_save: bool = &l:spell
+    var winid: number = win_getid()
+    var bufnr: number = bufnr('%')
     setl spell
     try
-        let before_cursor = getline('.')->matchstr('.*\%' .. col('.') .. 'c')
-        "                                    ┌ don't eliminate a keyword nor a single quote
-        "                                    │ when you split the line
-        "                                    ├────────────┐
-        let words = split(before_cursor, '\%(\%(\k\|''\)\@!.\)\+')->reverse()
+        var before_cursor: string = getline('.')
+            ->matchstr('.*\%' .. col('.') .. 'c')
+        var words: list<string> = split(before_cursor,
+            '\%('
+            # don't eliminate a keyword nor a single quote when you split the line
+            .. '\%(\k\|''\)\@!'
+            .. '.\)\+'
+            )->reverse()
 
-        let found_a_badword = 0
+        var badword: string
+        var suggestion: string
+        var found_a_badword: bool = false
         for word in words
-            let badword = spellbadword(word)->get(0, '')
+            badword = spellbadword(word)->get(0, '')
             if empty(badword)
                 continue
             endif
-            let suggestion = spellsuggest(badword)->get(0, '')
+            suggestion = spellsuggest(badword)->get(0, '')
             if empty(suggestion)
                 continue
             else
-                let found_a_badword = 1
+                found_a_badword = true
                 break
             endif
         endfor
@@ -56,20 +69,25 @@ fu completion#spel#fix() abort "{{{1
             if exists('#User#AddToUndolistI')
                 do <nomodeline> User AddToUndolistI
             endif
-            let new_line = getline('.')->substitute('\V\<' .. badword .. '\>', suggestion, 'g')
-            let s:fix_word = {-> setline('.', new_line)}
-            au SafeState * ++once call s:fix_word()
+            var new_line: string = getline('.')
+                ->substitute('\V\<' .. badword .. '\>', suggestion, 'g')
+            FixWord = () => setline('.', new_line)
+            au SafeState * ++once FixWord()
         endif
     catch
-        return s:Catch()
+        Catch()
+        return ''
     finally
         if winbufnr(winid) == bufnr
-            let [tabnr, winnr] = win_id2tabwin(winid)
-            call settabwinvar(tabnr, winnr, '&spell', spell_save)
+            var tabnr: number
+            var winnr: number
+            [tabnr, winnr] = win_id2tabwin(winid)
+            settabwinvar(tabnr, winnr, '&spell', spell_save)
         endif
     endtry
-    " Break undo sequence before `setline()` edits the line, so that we can undo
-    " if the fix is wrong.
+    # Break undo sequence before `setline()` edits the line, so that we can undo
+    # if the fix is wrong.
     return "\<c-g>u"
-endfu
+enddef
 
+var FixWord: func

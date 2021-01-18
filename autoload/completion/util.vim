@@ -1,55 +1,73 @@
+vim9 noclear
+
+if exists('loaded') | finish | endif
+var loaded = true
+
 import Catch from 'lg.vim'
 
-fu completion#util#custom_isk(chars) abort "{{{1
-    " Why this check?{{{
-    "
-    " If for  some reason  the function  is invoked  twice without  a completion
-    " in between, I don't want to save/restore a modified value of `'isk'`.
-    "}}}
-    if exists('s:isk_save') | return 1 | endif
-    let [s:isk_save, s:bufnr] = [&l:isk, bufnr('%')]
+def completion#util#customIsk(chars: string): bool #{{{1
+    # Why this check?{{{
+    #
+    # If for  some reason  the function  is invoked  twice without  a completion
+    # in between, I don't want to save/restore a modified value of `'isk'`.
+    #}}}
+    if isk_save != ''
+        return true
+    endif
+    isk_save = &l:isk
+    bufnr = bufnr('%')
     try
-        for char in split(a:chars, '\zs')
+        for char in split(chars, '\zs')
             exe 'setl isk+=' .. char2nr(char)
         endfor
         augroup CompletionUtilRestoreIsk | au!
             au TextChangedP,TextChangedI,TextChanged,CompleteDone *
                 \   exe 'au! CompletionUtilRestoreIsk'
-                \ | call setbufvar(s:bufnr, '&isk', s:isk_save)
-                \ | unlet! s:isk_save s:bufnr
+                | setbufvar(bufnr, '&isk', isk_save)
+                | isk_save = ''
+                | bufnr = 0
         augroup END
     catch
-        call s:Catch()
-        " Do *not* add a finally clause to restore `'isk'`.
-        " It would be too soon.  The completion hasn't been done yet.
+        Catch()
+        return false
+        # Do *not* add a finally clause to restore `'isk'`.
+        # It would be too soon.  The completion hasn't been done yet.
     endtry
-    return 1
-endfu
+    return true
+enddef
+var isk_save: string
+var bufnr: number
 
-fu completion#util#setup_dict() abort "{{{1
-    if exists('s:ic_save') | return 1 | endif
-    " There should be at least 2 characters in front of the cursor,{{{
-    " otherwise, `C-x C-k` could try to complete a text like:
-    "
-    "     #!
-    "
-    " ... which  would take a  long time,  because it's not  a word so,  all the
-    " words of the dictionary could match.
-    "}}}
-    let complete_more_than_2chars = getline('.')
-        \ ->matchstr('\k\+\%' .. col('.') .. 'c')
-        \ ->strchars(v:true) >= 2
-    if index(['en', 'fr'], &l:spelllang) == -1 || !complete_more_than_2chars
-        return 0
+def completion#util#setupDict(): bool #{{{1
+    if ic_was_reset
+        return true
     endif
-    let s:ic_save = &ic
+    # There should be at least 2 characters in front of the cursor,{{{
+    # otherwise, `C-x C-k` could try to complete a text like:
+    #
+    #     #!
+    #
+    # ... which  would take a  long time,  because it's not  a word so,  all the
+    # words of the dictionary could match.
+    #}}}
+    var complete_more_than_2chars: bool = getline('.')
+        ->matchstr('\k\+\%' .. col('.') .. 'c')
+        ->strchars(v:true) >= 2
+    if index(['en', 'fr'], &l:spelllang) == -1
+        || !complete_more_than_2chars
+        return false
+    endif
+    ic_save = &ic
     set noic
-    let &l:dictionary = &l:spelllang is# 'en' ? '/usr/share/dict/words' : '/usr/share/dict/french'
+    ic_was_reset = true
+    &l:dictionary = &l:spelllang == 'en' ? '/usr/share/dict/words' : '/usr/share/dict/french'
     augroup CompletionDictRestoreIc | au!
         au CompleteDone,TextChanged,TextChangedI,TextChangedP * exe 'au! CompletionDictRestoreIc'
-            \ | let &ic = s:ic_save
-            \ | unlet! s:ic_save
+            | &ic = ic_save
+            | ic_was_reset = false
     augroup END
-    return 1
-endfu
+    return true
+enddef
+var ic_save: bool
+var ic_was_reset: bool
 

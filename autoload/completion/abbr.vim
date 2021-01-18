@@ -1,70 +1,72 @@
-if exists('g:autoloaded_completion#abbr')
-    finish
-endif
-let g:autoloaded_completion#abbr = 1
+vim9 noclear
 
-let s:TABLE = execute('iab')
-let s:LINES = split(s:TABLE, '\n')->reverse()
-let s:ABBREV = map(s:LINES, {_, v -> {
-    \ 'lhs' : matchstr(v, 'i\s\+\zs\w\+'),
-    \ 'rhs' : matchstr(v, '\*\s\+\zs.*'),
-    \ }})
+if exists('loaded') | finish | endif
+var loaded = true
 
-fu s:abbrev_rhs(rhs) abort
-    if stridx(a:rhs, '&spl is#') == -1
-        return a:rhs
+var table: string = execute('iab')
+var lines: list<string> = split(table, '\n')->reverse()
+const ABBREV: list<dict<string>> = mapnew(lines, (_, v) => ({
+    lhs: matchstr(v, 'i\s\+\zs\w\+'),
+    rhs: matchstr(v, '\*\s\+\zs.*'),
+    }))
 
-    elseif &l:spl is# 'fr'
-        return matchstr(a:rhs, 'fr.\{-}''\zs.\{-}\ze''')
+def completion#abbr#complete(): string
+    var word_to_complete: string = getline('.')
+        ->strpart(0, col('.') - 1)
+        ->matchstr('\S\+$')
 
-    elseif &l:spl is# 'en'
-        return matchstr(a:rhs, ':\s\+''\zs.*\ze''')
-    endif
-endfu
+    # NOTE:
+    # if the abbreviation is complex, and is the output of a function:
+    #
+    #     ExpandAdj()
+    #     ExpandAdv()
+    #     ExpandNoun()
+    #     ExpandVerb()
+    #
+    # ... the rhs will look like this:
+    #
+    #     <c-r>=<snr>42_ExpandAdv('ctl', 'actuellement')<cr>
+    #
+    # To make the description less noisy, we need to extract the expansion (`actuellement`).
+    # To do this, we'll follow this algorithm:
+    #
+    #     does the rhs of the abbreviation contains the string `expand_` ?
+    #             AbbrevRhs(v.rhs)->stridx('expand_') != -1
+    #
+    #     if so, extract the expansion
+    #             AbbrevRhs(v.rhs)->matchstr('.*,\s*''\zs.*\ze'')')
+    #                                        │
+    #                                        └ describe the text after a comma,
+    #                                          between single quotes, and before a parenthesis
+    #
+    #     otherwise, let it be
+    #             AbbrevRhs(v.rhs)
 
-fu completion#abbr#complete() abort
-    let word_to_complete = getline('.')->strpart(0, col('.') - 1)->matchstr('\S\+$')
+    var matching_abbrev: list<dict<string>> = copy(ABBREV)
+        ->filter((_, v) => stridx(v.lhs, word_to_complete) == 0)
+        ->map((_, v) => ({
+            word: v.lhs,
+            menu: AbbrevRhs(v.rhs)->stridx('expand_') != -1
+                ?    AbbrevRhs(v.rhs)->matchstr('.*,\s*''\zs.*\ze'')')
+                :    AbbrevRhs(v.rhs)
+            }))
 
-    " NOTE:
-    " if the abbreviation is complex, and is the output of a function:
-    "
-    "     s:expand_adj()
-    "     s:expand_adv()
-    "     s:expand_noun()
-    "     s:expand_verb()
-    "
-    " ... the rhs will look like this:
-    "
-    "     <c-r>=<snr>42_expand_adv('ctl', 'actuellement')<cr>
-    "
-    " To make the description less noisy, we need to extract the expansion (`actuellement`).
-    " To do this, we'll follow this algorithm:
-    "
-    "     does the rhs of the abbreviation contains the string `expand_` ?
-    "             s:abbrev_rhs(v.rhs)->stridx('expand_') != -1
-    "
-    "     if so, extract the expansion
-    "             s:abbrev_rhs(v.rhs)->matchstr('.*,\s*''\zs.*\ze'')')
-    "                                           │
-    "                                           └ describe the text after a comma,
-    "                                             between single quotes, and before a parenthesis
-    "
-    "     otherwise, let it be
-    "             s:abbrev_rhs(v.rhs)
-
-    let matching_abbrev = copy(s:ABBREV)
-        \ ->filter({_, v -> stridx(v.lhs, word_to_complete) == 0})
-        \ ->map({_, v -> #{
-        \    word : v.lhs,
-        \    menu : s:abbrev_rhs(v.rhs)->stridx('expand_') != -1
-        \           ?    s:abbrev_rhs(v.rhs)->matchstr('.*,\s*''\zs.*\ze'')')
-        \           :    s:abbrev_rhs(v.rhs)
-        \ }})
-
-    let from_where = col('.') - strlen(word_to_complete)
+    var from_where: number = col('.') - strlen(word_to_complete)
 
     if !empty(matching_abbrev)
-        call complete(from_where, matching_abbrev)
+        complete(from_where, matching_abbrev)
     endif
     return ''
-endfu
+enddef
+
+def AbbrevRhs(rhs: string): string
+    if stridx(rhs, '&spl ==') == -1
+        return rhs
+    elseif &l:spl == 'fr'
+        return matchstr(rhs, 'fr.\{-}''\zs.\{-}\ze''')
+    elseif &l:spl == 'en'
+        return matchstr(rhs, ':\s\+''\zs.*\ze''')
+    endif
+    return ''
+enddef
+
