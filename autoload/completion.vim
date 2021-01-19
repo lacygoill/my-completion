@@ -757,8 +757,7 @@ def ActOnTextchanged() #{{{2
     # `strpart(...)` matches the characters from the beginning of the line up to
     # the cursor.
     #
-    # We compare them to `{s:|b:}mc_auto_pattern`, which is a pattern
-    # such as: `\k\k$`.
+    # We compare them to `mc_auto_pattern`, which is a pattern such as: `\k\k$`.
     #
     # This pattern conditions autocompletion.
     # If its value is `\k\k$`, then autocompletion will only occur when the

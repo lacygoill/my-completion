@@ -212,8 +212,8 @@ set cot-=noinsert
 # is in  `'cot'`.  It means that  some text would be  lost when we use  the redo
 # command to repeat a completion.
 #
-# I think that's  because of the keys stored in  `s:SELECT_MATCH` and pressed by
-# `s:act_on_pumvisible()`.
+# I think  that's because of  the keys stored  in `SELECT_MATCH` and  pressed by
+# `ActOnPumvisible()`.
 #}}}
 set cot-=noselect
 
