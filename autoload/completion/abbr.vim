@@ -31,7 +31,7 @@ def completion#abbr#complete(): string
     # To do this, we'll follow this algorithm:
     #
     #     does the rhs of the abbreviation contains the string `expand_` ?
-    #             AbbrevRhs(v.rhs)->stridx('expand_') != -1
+    #             AbbrevRhs(v.rhs)->stridx('expand_') >= 0
     #
     #     if so, extract the expansion
     #             AbbrevRhs(v.rhs)->matchstr('.*,\s*''\zs.*\ze'')')
@@ -46,7 +46,7 @@ def completion#abbr#complete(): string
         ->filter((_, v) => stridx(v.lhs, word_to_complete) == 0)
         ->map((_, v) => ({
             word: v.lhs,
-            menu: AbbrevRhs(v.rhs)->stridx('expand_') != -1
+            menu: AbbrevRhs(v.rhs)->stridx('expand_') >= 0
                 ?    AbbrevRhs(v.rhs)->matchstr('.*,\s*''\zs.*\ze'')')
                 :    AbbrevRhs(v.rhs)
             }))
