@@ -5,7 +5,7 @@ var loaded = true
 
 def completion#file#complete(): string
     var line: string = getline('.')
-    var text_before_cursor: string = line[: col('.') - 2]
+    var text_before_cursor: string = strpart(line, 0, col('.') - 1)
     # Remove curly brackets around possible environment variables.
     text_before_cursor = substitute(text_before_cursor, '${\(\w\+\)}', '$\1', 'g')
     var cur_path: string = matchstr(text_before_cursor, '\f\%(\f\|\s\)*$')

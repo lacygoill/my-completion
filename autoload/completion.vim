@@ -293,16 +293,16 @@ const MC_CONDITIONS: dict<func> = {
 
 # Interface {{{1
 def completion#complete(arg_dir: number): string #{{{2
-    #                                               ┌ don't use `\k`, it would exclude `/`
-    #                                               │ and we need to include slash for file completion
-    #                                               │
-    word = getline('.')[: col('.') - 2]->matchstr('\S\+$')
+    #                                                         ┌ don't use `\k`, it would exclude `/`
+    #                                                         │ and we need to include slash for file completion
+    #                                                         │
+    word = getline('.')->strpart(0, col('.') - 1)->matchstr('\S\+$')
 
     #                  ┌ if the cursor is right at the beginning of a line:
     #                  │
-    #                  │    - col('.') - 2                    will be negative
-    #                  │    - getline('.')[: col('.') - 2]    will give us the whole line
-    #                  │    - matchstr(...)                   will give us the last word on the line
+    #                  │    - col('.') - 2                              will be negative
+    #                  │    - getline('.')->strpart(0, col('.') - 1)    will give us the whole line
+    #                  │    - matchstr(...)                             will give us the last word on the line
     #                  │
     #                  ├───────────┐
     if word !~ '\k' || col('.') <= 1
@@ -407,7 +407,7 @@ def completion#enableAuto() #{{{2
         # It depends on which text a given method is trying to complete.
         # If a method tries to complete this:
         #
-        #     getline('.')[: col('.') - 2]->matchstr('\S\+$')
+        #     getline('.')->strpart(0, col('.') - 1)->matchstr('\S\+$')
         #
         # ... then it doesn't make sense to try an autocompletion after a failed one.
         # Because inserting a new character will make the text to complete even harder.
@@ -774,7 +774,7 @@ def ActOnTextchanged() #{{{2
     #
     #     \a\a  <  \a  <  \k
     #}}}
-    elseif getline('.')[: col('.') - 2] =~ get(b:, 'mc_auto_pattern', MC_AUTO_PATTERN)
+    elseif getline('.')->strpart(0, col('.') - 1) =~ get(b:, 'mc_auto_pattern', MC_AUTO_PATTERN)
         sil feedkeys("\<plug>(MC_Auto)", 'i')
     endif
 enddef
