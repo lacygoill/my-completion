@@ -1,4 +1,4 @@
-vim9 noclear
+vim9script noclear
 
 if exists('loaded') | finish | endif
 var loaded = true
@@ -462,6 +462,12 @@ def completion#snippetOrComplete(arg_dir: number) #{{{2
         return
     endif
 
+    # Note: you might also be interested in these functions:{{{
+    #
+    #    - UltiSnips#CanExpandSnippet()
+    #    - UltiSnips#CanJumpForwards()
+    #    - UltiSnips#CanJumpBackwards()
+    #}}}
     UltiSnips#ExpandSnippet()
 
     if !g:ulti_expand_res
@@ -1024,7 +1030,7 @@ def NextMethod(): string #{{{2
         # Then, run this:
         #
         #     $ vim -S <(cat <<'EOF'
-        #         vim9
+        #         vim9script
         #         set dict=/tmp/words
         #         readfile('/usr/share/dict/words')->repeat(10)->writefile('/tmp/words')
         #         startinsert
