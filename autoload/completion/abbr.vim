@@ -5,10 +5,11 @@ var loaded = true
 
 var table: string = execute('iab')
 var lines: list<string> = split(table, '\n')->reverse()
-const ABBREV: list<dict<string>> = mapnew(lines, (_, v) => ({
-    lhs: matchstr(v, 'i\s\+\zs\w\+'),
-    rhs: matchstr(v, '\*\s\+\zs.*'),
-    }))
+const ABBREV: list<dict<string>> = lines
+    ->mapnew((_, v: string): dict<string> => ({
+        lhs: matchstr(v, 'i\s\+\zs\w\+'),
+        rhs: matchstr(v, '\*\s\+\zs.*'),
+        }))
 
 def completion#abbr#complete(): string
     var word_to_complete: string = getline('.')
@@ -43,8 +44,8 @@ def completion#abbr#complete(): string
     #             AbbrevRhs(v.rhs)
 
     var matching_abbrev: list<dict<string>> = copy(ABBREV)
-        ->filter((_, v) => stridx(v.lhs, word_to_complete) == 0)
-        ->map((_, v) => ({
+        ->filter((_, v: dict<string>): bool => stridx(v.lhs, word_to_complete) == 0)
+        ->map((_, v: dict<string>): dict<string> => ({
             word: v.lhs,
             menu: AbbrevRhs(v.rhs)->stridx('expand_') >= 0
                 ?    AbbrevRhs(v.rhs)->matchstr('.*,\s*''\zs.*\ze'')')

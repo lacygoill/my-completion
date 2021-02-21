@@ -90,7 +90,7 @@ def completion#file#complete(): string
             var from_where: number = col('.')
                 - fnamemodify(cur_path, ':t')->strlen()
             complete(from_where,
-                mapnew(entries, (_, v) => ({
+                mapnew(entries, (_, v: string): dict<string> => ({
                     # Setting 'menu' here can be leveraged in our custom `<CR>` mapping in insert mode.{{{
                     #
                     # To automatically re-perform a file completion.

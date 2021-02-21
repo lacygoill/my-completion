@@ -36,7 +36,9 @@ def completion#custom#signature(mode: string): string #{{{1
     endif
 
     var file: list<string> = readfile($VIMRUNTIME .. '/doc/eval.txt')
-    var signature: string = filter(file, (_, v) => v =~ '^' .. func_name .. '(')->get(0, '')
+    var signature: string = file
+        ->filter((_, v: string): bool => v =~ '^' .. func_name .. '(')
+        ->get(0, '')
     # needed, for example, for `deepcopy()`
     signature = matchstr(signature, '.\{-})')
     if empty(signature)

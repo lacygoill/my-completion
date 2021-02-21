@@ -275,20 +275,20 @@ const MC_AUTO_PATTERN: string = '\k\k$'
 # The filename characters afterwards are optional, because we could try to
 # complete `some_dir/` or just `~`.
 #}}}
-const YES_YOU_CAN: func = (_) => true
-const MC_CONDITIONS: dict<func> = {
-    c-p: (_) => manual && completion#util#customIsk('-'),
-    dict: (_) => manual && completion#util#setupDict(),
-    digr: (_) => manual && get(g:, 'loaded_unicodePlugin', 0),
-    file: (t) => t =~ '[/~]\f*$',
-    omni: (_) => !empty(&l:omnifunc) && &ft != 'markdown',
-    spel: (_) => &l:spell && !empty(&l:spelllang),
-    tags: (_) => manual
+const YES_YOU_CAN: func = (_): bool => true
+const MC_CONDITIONS: dict<func(string): bool> = {
+    c-p: (_): bool => manual && completion#util#customIsk('-'),
+    dict: (_): bool => manual && completion#util#setupDict(),
+    digr: (_): bool => manual && get(g:, 'loaded_unicodePlugin', 0),
+    file: (t: string): bool => t =~ '[/~]\f*$',
+    omni: (_): bool => !empty(&l:omnifunc) && &ft != 'markdown',
+    spel: (_): bool => &l:spell && !empty(&l:spelllang),
+    tags: (_): bool => manual
                 && !tagfiles()->empty()
                 && completion#util#customIsk('-' .. (&ft == 'vim' ? ':<' : '')),
-    ulti: (_) => get(g:, 'did_plugin_ultisnips', 0),
-    unic: (_) => manual && get(g:, 'loaded_unicodePlugin', 0),
-    user: (_) => !empty(&l:completefunc),
+    ulti: (_): bool => get(g:, 'did_plugin_ultisnips', 0),
+    unic: (_): bool => manual && get(g:, 'loaded_unicodePlugin', 0),
+    user: (_): bool => !empty(&l:completefunc),
     }
 
 # Interface {{{1
@@ -706,7 +706,7 @@ def ActOnTextchanged() #{{{2
         #
         # For example, we could disable the 'thes' method:
         #
-        #     MC_CONDITIONS.thes = () => manual && !empty(&l:thesaurus)
+        #     MC_CONDITIONS.thes = (_): bool => manual && !empty(&l:thesaurus)
         #
         # Now, the `thes` method can only be tried when 'thesaurus' has a value,
         # *and* the completion was initiated manually by the user.
@@ -1023,9 +1023,9 @@ def NextMethod(): string #{{{2
         #
         # First temporarily disable `completion#util#setupDict()` in `MC_CONDITIONS`:
         #
-        #     dict: (_) => manual && completion#util#setupDict(),
+        #     dict: (_): bool => manual && completion#util#setupDict(),
         #     →
-        #     dict: (_) => manual,
+        #     dict: (_): bool => manual,
         #
         # Then, run this:
         #

@@ -100,7 +100,7 @@ def completion#ultisnips#complete(): string
 
     var matches: list<dict<any>> = keys(g:current_ulti_dict_info)
         ->filter(Contain_word)
-        ->mapnew((_, v) => ({
+        ->mapnew((_, v: string): dict<any> => ({
             word: v,
             menu: '[snip] ' .. g:current_ulti_dict_info[v]['description'],
             dup: 1,
