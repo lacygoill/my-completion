@@ -114,7 +114,7 @@ var cycling: bool = false
 
 # Indexes of the  methods which have been  tried since the last  time we've been
 # cycling.
-var i_history: list<number> = []
+var i_history: list<number>
 
 # number (positive or negative):   idx of the current method to try
 var i: number = 0
