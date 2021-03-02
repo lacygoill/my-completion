@@ -45,7 +45,8 @@ def completion#custom#signature(mode: string): string #{{{1
         return ''
     endif
 
-    var new_line: string = substitute(line, '\V' .. func_name .. '\%[()]', signature, '')
+    var new_line: string = line
+        ->substitute('\V' .. func_name .. '\%[()]', signature, '')
     if mode == 'i'
         setline('.', new_line)
     else

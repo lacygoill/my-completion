@@ -44,13 +44,14 @@ def completion#abbr#complete(): string
     #             AbbrevRhs(v.rhs)
 
     var matching_abbrev: list<dict<string>> = copy(ABBREV)
-        ->filter((_, v: dict<string>): bool => stridx(v.lhs, word_to_complete) == 0)
+        ->filter((_, v: dict<string>): bool =>
+                    stridx(v.lhs, word_to_complete) == 0)
         ->map((_, v: dict<string>): dict<string> => ({
-            word: v.lhs,
-            menu: AbbrevRhs(v.rhs)->stridx('expand_') >= 0
-                ?    AbbrevRhs(v.rhs)->matchstr('.*,\s*''\zs.*\ze'')')
-                :    AbbrevRhs(v.rhs)
-            }))
+                    word: v.lhs,
+                    menu: AbbrevRhs(v.rhs)->stridx('expand_') >= 0
+                        ?    AbbrevRhs(v.rhs)->matchstr('.*,\s*''\zs.*\ze'')')
+                        :    AbbrevRhs(v.rhs)
+                    }))
 
     var from_where: number = col('.') - strlen(word_to_complete)
 

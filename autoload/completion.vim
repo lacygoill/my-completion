@@ -293,10 +293,11 @@ const MC_CONDITIONS: dict<func(string): bool> = {
 
 # Interface {{{1
 def completion#complete(arg_dir: number): string #{{{2
-    #                                                         ┌ don't use `\k`, it would exclude `/`
-    #                                                         │ and we need to include slash for file completion
-    #                                                         │
-    word = getline('.')->strpart(0, col('.') - 1)->matchstr('\S\+$')
+    word = getline('.')
+        ->strpart(0, col('.') - 1)
+        # Don't use `\k` instead of `\S`, it would exclude `/`.
+        # And we need to include slash for file completion.
+        ->matchstr('\S\+$')
 
     #                  ┌ if the cursor is right at the beginning of a line:
     #                  │

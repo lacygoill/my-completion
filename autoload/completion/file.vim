@@ -7,7 +7,8 @@ def completion#file#complete(): string
     var line: string = getline('.')
     var text_before_cursor: string = strpart(line, 0, col('.') - 1)
     # Remove curly brackets around possible environment variables.
-    text_before_cursor = substitute(text_before_cursor, '${\(\w\+\)}', '$\1', 'g')
+    text_before_cursor = text_before_cursor
+        ->substitute('${\(\w\+\)}', '$\1', 'g')
     var cur_path: string = matchstr(text_before_cursor, '\f\%(\f\|\s\)*$')
     # Why a while loop? {{{
     #
@@ -87,10 +88,9 @@ def completion#file#complete(): string
             # So we  need to tell  `complete()` that  the selected entry  in the
             # menu will replace only the last component of the current path.
             #}}}
-            var from_where: number = col('.')
-                - fnamemodify(cur_path, ':t')->strlen()
-            complete(from_where,
-                mapnew(entries, (_, v: string): dict<string> => ({
+            var from_where: number = col('.') - fnamemodify(cur_path, ':t')->strlen()
+            entries
+                ->mapnew((_, v: string): dict<string> => ({
                     # Setting 'menu' here can be leveraged in our custom `<CR>` mapping in insert mode.{{{
                     #
                     # To automatically re-perform a file completion.
@@ -112,7 +112,7 @@ def completion#file#complete(): string
                     #}}}
                     word: (cur_path != '~' ? fnamemodify(v, ':t') : v)
                         .. (isdirectory(v) ? '/' : '')
-                    })))
+                }))->complete(from_where)
             return ''
         else
             # If the expansion failed, try a shorter path by removing the text
