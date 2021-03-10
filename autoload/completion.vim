@@ -265,8 +265,7 @@ const MC_AUTO_PATTERN: string = '\k\k$'
 #     [/~]\f*$
 #
 # Before the cursor, there must a slash or a tilda, then zero or more characters
-# in `'isfname'`.
-# By default the tilda is in `'isf'`, so why not simply:
+# in `'isfname'`.  By default the tilda is in `'isf'`, so why not simply:
 #
 #     /\=\f*
 #

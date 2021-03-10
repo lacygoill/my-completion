@@ -4,13 +4,16 @@ if exists('loaded') | finish | endif
 var loaded = true
 
 def completion#file#complete(): string
-    var line: string = getline('.')
-    var text_before_cursor: string = strpart(line, 0, col('.') - 1)
-    # Remove curly brackets around possible environment variables.
-    text_before_cursor = text_before_cursor
+    var filepath: string = getline('.')
+        ->strpart(0, col('.') - 1)
+        # remove curly brackets around possible environment variables
         ->substitute('${\(\w\+\)}', '$\1', 'g')
-    var cur_path: string = matchstr(text_before_cursor, '\f\%(\f\|\s\)*$')
-    # Why a while loop? {{{
+        # expand possible environment variables
+        ->substitute('$\w\+', (m: list<string>): string => getenv(m[0][1 :]) ?? m[0], 'g')
+        ->matchstr('\f\%(\f\|\s\)*$')
+
+    var dir: string
+    # Why a loop? {{{
     #
     # Consider this:
     #
@@ -18,113 +21,87 @@ def completion#file#complete(): string
     #
     # We want to complete the path `a dir/`.
     # The current algo doesn't know where the path begins, it grabs as many `\f`
-    # and `\s` characters.
-    # So, initially, the value of `cur_path` is `Some text a dir/`.
-    # When the algo will try to expand `Some text a dir/*`:
+    # and `\s` characters.  So, initially, the value of `filepath` is:
     #
-    #     var entries: list<string> = glob(cur_path .. '*', false, true, true)
+    #     Some text a dir/
     #
-    # It won't find anything. `entries` will be an empty list.
-    # We need the algo to retry another, shorter, path.
-    # To achieve this, we do 2 things:
+    # That's not a directory which `readdir()` can read.
+    # We need the algo to retry another, shorter, path:
     #
-    #    - call `complete()` and return (`return ''`) on the condition that
-    #      `entries` is not empty
+    #     matchstr(filepath, '\s\zs\f.*$')
     #
-    #    - if `entries` is empty, we:
+    # This new value removes the text from the beginning of the string up to the
+    # first sequence of whitespace (whitespace excluded).
+    # For example, if the value of `filepath`'s was initially:
     #
-    #        1. reset `cur_path`, giving it the value:
+    #     Some text a dir/
     #
-    #             matchstr(cur_path, '\s\zs\f.*$')
+    # ... its next values will be:
     #
-    #        This new value removes the text from the beginning of the
-    #        string up to the first sequence of whitespace (whitespace
-    #        excluded).
-    #        For example, if the value of `cur_path`'s was initially:
-    #
-    #             Some text a dir/
-    #
-    #        ... its next value will be:
-    #
-    #             text a dir/
-    #
-    #        2. loop as long as `cur_path` is not empty.
-    #        The loop will try to expand, consecutively:
-    #
-    #             Some text a dir/
-    #             text a dir/
-    #             a dir/
-    #
-    #        If `a dir` and `dir` are not an existing directory, their expansion
-    #        will also  fail, and at the  end of the last  iteration, `cur_path`
-    #        will be empty, because:
-    #
-    #             matchstr('dir', '\s\zs\f.*$') == ''
-    # "}}}
-    while !empty(cur_path)
-        # Why: `cur_path != '~' ? '*' : ''`?{{{
-        #
-        # If `cur_path` is different from `~`, for example if it's:
-        #
-        #     /home/user/Do
-        #
-        # ... we add a wildcard, so that `glob()` gives us any existing entry in
-        # the filesystem whose name begins like `cur_path`.
-        # But if `cur_path` is `~`, we don't add a wildcard, because:
-        #
-        #     glob('~*', false, true, true)
-        #
-        # ...  would return  an empty  list.  Indeed,  there's no  entry in  the
-        # filesystem whose name  begins with `~`. We need to  expand `~` itself,
-        # into `/home/user`.
-        # }}}
-        var entries: list<string> = glob(cur_path .. (cur_path != '~' ? '*' : ''),
-            false, true, true)
-        if !empty(entries)
-            # Why not simply `col('.') - strlen(cur_path)`? {{{
-
-            # Because, we  don't complete  the whole path.   The matches  in the
-            # menu will only match the last component of a path.
-            # So we  need to tell  `complete()` that  the selected entry  in the
-            # menu will replace only the last component of the current path.
-            #}}}
-            var from_where: number = col('.') - fnamemodify(cur_path, ':t')->strlen()
-            entries
-                ->mapnew((_, v: string): dict<string> => ({
-                    # Setting 'menu' here can be leveraged in our custom `<CR>` mapping in insert mode.{{{
-                    #
-                    # To automatically re-perform a file completion.
-                    # The idea is to be able to chain file completions simply by
-                    # pressing `Enter`.
-                    #}}}
-                    menu: '[f]',
-                    # `~` is a special case.{{{
-                    #
-                    # If `cur_path` is `~`, then `entries` is:
-                    #
-                    #     ['/home/user']
-                    #
-                    # and `v` will take the (single) value `'/home/user'`.
-                    # Usually, we want to complete only the last component of a path.
-                    # But  here,  we  don't  want  to  complete  only  the  last
-                    # component of  `/home/user`, which  is `user`, we  want the
-                    # whole path `/home/user`.
-                    #}}}
-                    word: (cur_path != '~' ? fnamemodify(v, ':t') : v)
-                        .. (isdirectory(v) ? '/' : '')
-                }))->complete(from_where)
-            return ''
-        else
-            # If the expansion failed, try a shorter path by removing the text
-            # from the beginning of the path up to the first sequence of
-            # whitespace (whitespace excluded), or up to the first equal sign.
-            cur_path = matchstr(cur_path, '[ \t=]\zs\f.*$')
-            #                                  │
-            #                                  └ try to also complete a path
-            #                                    after an equal sign
+    #     text a dir/
+    #     a dir/
+    #     dir/
+    # }}}
+    while !empty(filepath)
+        dir = (fnamemodify(filepath, ':h') .. '/')
+            ->substitute('^\~/', $HOME .. '/', '')
+        if isdirectory(dir)
+            break
         endif
+        # If `dir` is not  a directory, try a shorter path  by removing the text
+        # from the beginning of the path  up to the first sequence of whitespace
+        # (whitespace excluded), or up to the first equal sign.
+        filepath = matchstr(filepath, '[ \t=]\zs\f.*$')
+        #                                  │
+        #                                  └ try to also complete a path
+        #                                    after an equal sign
     endwhile
-    # If `cur_path` is empty, return nothing.
+    if !isdirectory(dir)
+        return ''
+    endif
+
+    # Simpler alternative:{{{
+    #
+    #     var entries: list<string> = glob(filepath .. '*'), false, true, true)
+    #     if filepath[-1] == '/'
+    #         entries += glob(filepath .. '.*', false, true, true)
+    #             ->filter((_, v: string): bool => v[-2 : -1] != '/.' && v[-3 : -1] != '/..')
+    #     endif
+    #}}}
+    #   Why don't you use it?{{{
+    #
+    # It's a bit faster when `filepath`  contains a filename to complete, but it
+    # can be much slower otherwise (i.e. when `filepath` is a directory).
+    #}}}
+    var entries: list<string>
+    var filestart: string = fnamemodify(filepath, ':t')
+    if filestart == ''
+        entries = readdir(dir)
+    else
+        var flen: number = filestart->len()
+        entries = dir
+            ->readdir((n: string): bool => strpart(n, 0, flen)  == filestart)
+    endif
+
+    # Why not simply `col('.') - strlen(filepath)`? {{{
+
+    # Because, we don't  complete the whole path.  The matches  in the menu will
+    # only match the last component of a path.
+    # So we need to  tell `complete()` that the selected entry  in the menu will
+    # replace only the last component of the current path.
+    #}}}
+    var from_where: number = col('.') - strlen(filestart)
+    entries
+        ->mapnew((_, v: string): dict<string> => ({
+            # Setting 'menu' here can be leveraged in our custom `<CR>` mapping in insert mode.{{{
+            #
+            # To automatically re-perform a file completion.
+            # The  idea is  to  be  able to  chain  file  completions simply  by
+            # pressing `Enter`.
+            #}}}
+            menu: '[f]',
+            word: fnamemodify(v, ':t') .. (isdirectory(dir .. v) ? '/' : '')
+        }))->complete(from_where)
     return ''
 enddef
 
