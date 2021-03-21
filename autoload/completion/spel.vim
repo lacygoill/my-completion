@@ -7,7 +7,8 @@ import Catch from 'lg.vim'
 
 def completion#spel#suggest(): string #{{{1
     var word_to_complete: string = getline('.')
-        ->matchstr('\k\+\%' .. col('.') .. 'c')
+        ->strpart(0, col('.') - 1)
+        ->matchstr('\k\+$')
     var badword: list<string> = spellbadword(word_to_complete)
     var matches: list<string> = !empty(badword[1])
         ?     spellsuggest(badword[0])
@@ -40,7 +41,7 @@ def completion#spel#fix(): string #{{{1
     setl spell
     try
         var before_cursor: string = getline('.')
-            ->matchstr('.*\%' .. col('.') .. 'c')
+            ->strpart(0, col('.') - 1)
         var words: list<string> = split(before_cursor,
             '\%('
             # don't eliminate a keyword nor a single quote when you split the line

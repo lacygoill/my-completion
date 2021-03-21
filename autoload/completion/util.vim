@@ -51,8 +51,9 @@ def completion#util#setupDict(): bool #{{{1
     # words of the dictionary could match.
     #}}}
     var complete_more_than_2chars: bool = getline('.')
-        ->matchstr('\k\+\%' .. col('.') .. 'c')
-        ->strchars(true) >= 2
+        ->strpart(0, col('.') - 1)
+        ->matchstr('\k\+$')
+        ->strcharlen() >= 2
     if index(['en', 'fr'], &l:spelllang) == -1
         || !complete_more_than_2chars
         return false

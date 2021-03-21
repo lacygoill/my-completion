@@ -78,9 +78,9 @@ def completion#file#complete(): string
     if filestart == ''
         entries = readdir(dir)
     else
-        var flen: number = filestart->len()
+        var flen: number = filestart->strcharlen()
         entries = dir
-            ->readdir((n: string): bool => strpart(n, 0, flen)  == filestart)
+            ->readdir((n: string): bool => n[: flen - 1]  == filestart)
     endif
 
     # Why not simply `col('.') - strlen(filepath)`? {{{

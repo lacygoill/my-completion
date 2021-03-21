@@ -640,16 +640,6 @@ enddef
 #}}}
 
 def ActOnTextchanged() #{{{2
-    # Why is this function in Vim9 script?{{{
-    #
-    # For this line to work as expected:
-    #
-    #     && getline('.')->strpart(0, col('.') - 1)[-1] =~ '\f'
-    #                                              ^--^
-    # In legacy, `[-1]` doesn't refer to anything.
-    # In legacy, `[-1:-1]` refers to the last byte.
-    # In Vim9, `[-1]` refers to the last character.
-    #}}}
     if pumvisible()
         return
     endif
@@ -1059,7 +1049,7 @@ def NextMethod(): string #{{{2
     #     methods[i]
     #
     # The error occurs because at that moment,  `i` = `N`, and there's no method
-    # whose index is `N`. `N`  is the length of the chain,  so the biggest index
+    # whose index is `N`.  `N`  is the length of the chain,  so the biggest index
     # is `N - 1`.
     #
     # But what leads to this situation?
@@ -1069,7 +1059,7 @@ def NextMethod(): string #{{{2
     #
     #     MC_AUTO_PATTERN = \k\k$
     #
-    # Then I insert `t`. `TextChangedI` is triggered a second time, the function
+    # Then I insert `t`.  `TextChangedI` is triggered a second time, the function
     # is called again, and this time it does something, because `jt` match the
     # pattern `\k\k$`.
     # It presses `Tab` for us, to try to autocomplete `jt`.
