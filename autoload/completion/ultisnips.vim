@@ -104,7 +104,7 @@ def completion#ultisnips#complete(): string
             word: v,
             menu: '[snip] ' .. g:current_ulti_dict_info[v]['description'],
             dup: 1,
-            }))
+        }))
 
     var startcol: number = col('.') - strlen(word_to_complete)
     if !empty(matches)

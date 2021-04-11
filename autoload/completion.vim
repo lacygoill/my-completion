@@ -51,7 +51,7 @@ var loaded = true
 # To look for all the global variables used by this plugin, search the
 # pattern:
 #
-#     ^\%(\s*".*\)\@!.*\zsg:[^ ,]
+#     ^\%(\s*"\)\@!.*\zsg:[^ ,]
 #}}}1
 
 # Init {{{1
@@ -104,6 +104,7 @@ var N: number = len(methods)
 var word: string
 
 var manual: bool = true
+var cot_save: string
 var completedone: bool = true
 
 # flag: in which direction will we move in the chain
@@ -170,7 +171,7 @@ if !mapcheck('<c-g><c-g>', 'i')->empty()
         Please remove/change it.
     END
     echohl WarningMsg
-    echo join(msg, "\n")
+    echo msg->join("\n")
     echohl None
 endif
 
@@ -248,12 +249,12 @@ const COMPL_MAPPINGS: dict<string> = {
     ulti: "\<plug>(MC_c-r)=completion#ultisnips#complete()\<plug>(MC_cr)",
     unic: "\<plug>(UnicodeComplete)",
     user: "\<plug>(MC_c-x_c-u)",
-    }
+}
 
 const SELECT_MATCH: dict<string> = {
     c-p: "\<plug>(MC_c-p)\<plug>(MC_down)",
     keyp: "\<plug>(MC_c-p)\<plug>(MC_down)",
-    }
+}
 
 # Default pattern to decide when automatic completion should be triggered.
 const MC_AUTO_PATTERN: string = '\k\k$'
@@ -288,7 +289,7 @@ const MC_CONDITIONS: dict<func(string): bool> = {
     ulti: (_): bool => get(g:, 'did_plugin_ultisnips', 0),
     unic: (_): bool => manual && get(g:, 'loaded_unicodePlugin', 0),
     user: (_): bool => !empty(&l:completefunc),
-    }
+}
 
 # Interface {{{1
 def completion#complete(arg_dir: number): string #{{{2
@@ -445,6 +446,13 @@ enddef
 #}}}
 
 def completion#snippetOrComplete(arg_dir: number) #{{{2
+    var mode: string = mode(1)
+    # replace mode
+    if mode == 'R' || mode == 'Rv'
+        feedkeys("\<tab>", 'in')
+        return
+    endif
+
     if pumvisible()
         feedkeys(arg_dir > 0 ? "\<c-n>" : "\<c-p>", 'in')
         return
@@ -644,6 +652,10 @@ def ActOnTextchanged() #{{{2
         return
     endif
 
+    var line: string = getline('.')
+    var col: number = col('.')
+    var charcol: number = charcol('.')
+
     # What is `completedone`? {{{
     #
     # A flag, which is only on when 3 conditions are met:
@@ -675,13 +687,13 @@ def ActOnTextchanged() #{{{2
         # Based on these 2 informations, when `completedone` is set to 1,
         # we shouldn't reset it to 0 until we insert a whitespace:
         #
-        #     getline('.')->strpart(0, col('.') - 1)[-1]
+        #     charcol > 1 && line[charcol - 2] =~ '\s'
         #
         # ... or we are at the beginning of a new line.
         #
-        #     col('.') == 1
+        #     col == 1
         #}}}
-        if getline('.')->strpart(0, col('.') - 1)[-1] =~ '\s' || col('.') == 1
+        if charcol > 1 && line[charcol - 2] =~ '\s' || col == 1
         # If the text changed *and* a completion was done, we reset `completedone`:{{{
         #
         # When this flag is on, the function doesn't invoke an autocompletion.
@@ -744,7 +756,7 @@ def ActOnTextchanged() #{{{2
         #     E15: Invalid expression: methods[i] ...~
         #}}}
         if get(methods, i, '') == 'file'
-            && getline('.')->strpart(0, col('.') - 1)[-1] =~ '\f'
+        && charcol > 1 && line[charcol - 2] =~ '\f'
             sil completion#file#complete()
         endif
 
@@ -770,7 +782,7 @@ def ActOnTextchanged() #{{{2
     #
     #     \a\a  <  \a  <  \k
     #}}}
-    elseif getline('.')->strpart(0, col('.') - 1) =~ get(b:, 'mc_auto_pattern', MC_AUTO_PATTERN)
+    elseif line->strpart(0, col - 1) =~ get(b:, 'mc_auto_pattern', MC_AUTO_PATTERN)
         sil feedkeys("\<plug>(MC_Auto)", 'i')
     endif
 enddef

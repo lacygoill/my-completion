@@ -9,7 +9,7 @@ const ABBREV: list<dict<string>> = lines
     ->mapnew((_, v: string): dict<string> => ({
         lhs: matchstr(v, 'i\s\+\zs\w\+'),
         rhs: matchstr(v, '\*\s\+\zs.*'),
-        }))
+    }))
 
 def completion#abbr#complete(): string
     var word_to_complete: string = getline('.')
@@ -51,7 +51,7 @@ def completion#abbr#complete(): string
                     menu: AbbrevRhs(v.rhs)->stridx('expand_') >= 0
                         ?    AbbrevRhs(v.rhs)->matchstr('.*,\s*''\zs.*\ze'')')
                         :    AbbrevRhs(v.rhs)
-                    }))
+        }))
 
     var from_where: number = col('.') - strlen(word_to_complete)
 

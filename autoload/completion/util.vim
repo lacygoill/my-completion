@@ -17,7 +17,7 @@ def completion#util#customIsk(chars: string): bool #{{{1
     isk_save = &l:isk
     bufnr = bufnr('%')
     try
-        for char in split(chars, '\zs')
+        for char in chars
             exe 'setl isk+=' .. char2nr(char)
         endfor
         augroup CompletionUtilRestoreIsk | au!

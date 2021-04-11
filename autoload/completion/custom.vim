@@ -7,7 +7,7 @@ def completion#custom#easyCXCP() #{{{1
     if cot_save == ''
         cot_save = &cot
         set cot-=noinsert
-        timer_start(0, () => RestoreCot())
+        timer_start(0, (_) => RestoreCot())
     endif
 enddef
 var cot_save: string
