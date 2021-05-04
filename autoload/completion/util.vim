@@ -59,7 +59,7 @@ def completion#util#setupDict(): bool #{{{1
         return false
     endif
     ic_save = &ic
-    set noic
+    &ic = false
     ic_was_reset = true
     &l:dictionary = &l:spelllang == 'en' ? '/usr/share/dict/words' : '/usr/share/dict/french'
     augroup CompletionDictRestoreIc | au!

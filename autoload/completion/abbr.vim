@@ -7,8 +7,8 @@ var table: string = execute('iab')
 var lines: list<string> = split(table, '\n')->reverse()
 const ABBREV: list<dict<string>> = lines
     ->mapnew((_, v: string): dict<string> => ({
-        lhs: matchstr(v, 'i\s\+\zs\w\+'),
-        rhs: matchstr(v, '\*\s\+\zs.*'),
+        lhs: v->matchstr('i\s\+\zs\w\+'),
+        rhs: v->matchstr('\*\s\+\zs.*'),
     }))
 
 def completion#abbr#complete(): string
@@ -65,9 +65,9 @@ def AbbrevRhs(rhs: string): string
     if stridx(rhs, '&spl ==') == -1
         return rhs
     elseif &l:spl == 'fr'
-        return matchstr(rhs, 'fr.\{-}''\zs.\{-}\ze''')
+        return rhs->matchstr('fr.\{-}''\zs.\{-}\ze''')
     elseif &l:spl == 'en'
-        return matchstr(rhs, ':\s\+''\zs.*\ze''')
+        return rhs->matchstr(':\s\+''\zs.*\ze''')
     endif
     return ''
 enddef

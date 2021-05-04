@@ -30,7 +30,7 @@ def completion#custom#signature(mode: string): string #{{{1
         col = getcmdpos()
     endif
 
-    var func_name: string = matchstr(line, '\<\w\+\ze()\=\%' .. col .. 'c')
+    var func_name: string = line->matchstr('\<\w\+\ze()\=\%' .. col .. 'c')
     if empty(func_name)
         return ''
     endif
@@ -40,7 +40,7 @@ def completion#custom#signature(mode: string): string #{{{1
         ->filter((_, v: string): bool => v =~ '^' .. func_name .. '(')
         ->get(0, '')
     # needed, for example, for `deepcopy()`
-    signature = matchstr(signature, '.\{-})')
+    signature = signature->matchstr('.\{-})')
     if empty(signature)
         return ''
     endif

@@ -103,12 +103,12 @@ ino <unique> <c-x><c-p> <cmd>call completion#util#customIsk('-')<cr><c-x><c-p>
 #
 # Maybe we should add `:` to `'isk'` unconditionally:
 #
-#     '-:' .. (&ft is# 'vim' ? '<' : '')
+#     '-:' .. (&filetype is# 'vim' ? '<' : '')
 #
 # But it doesn't seem necessary atm.
 #}}}
 #                                                                   │
-ino <unique> <c-x><c-]> <cmd>call completion#util#customIsk('-' .. (&ft is# 'vim' ? ':<' : ''))<cr><c-x><c-]>
+ino <unique> <c-x><c-]> <cmd>call completion#util#customIsk('-' .. (&filetype is# 'vim' ? ':<' : ''))<cr><c-x><c-]>
 
 # C-x C-k     dictionary {{{3
 

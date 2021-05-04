@@ -17,7 +17,7 @@ def completion#spel#suggest(): string #{{{1
     var from_where: number = col('.') - strlen(word_to_complete)
 
     if !empty(matches)
-        complete(from_where, matches)
+        matches->complete(from_where)
     endif
     return ''
 enddef

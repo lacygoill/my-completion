@@ -281,11 +281,11 @@ const MC_CONDITIONS: dict<func(string): bool> = {
     dict: (_): bool => manual && completion#util#setupDict(),
     digr: (_): bool => manual && get(g:, 'loaded_unicodePlugin', 0),
     file: (t: string): bool => t =~ '[/~]\f*$',
-    omni: (_): bool => !empty(&l:omnifunc) && &ft != 'markdown',
+    omni: (_): bool => !empty(&l:omnifunc) && &filetype != 'markdown',
     spel: (_): bool => &l:spell && !empty(&l:spelllang),
     tags: (_): bool => manual
                 && !tagfiles()->empty()
-                && completion#util#customIsk('-' .. (&ft == 'vim' ? ':<' : '')),
+                && completion#util#customIsk('-' .. (&filetype == 'vim' ? ':<' : '')),
     ulti: (_): bool => get(g:, 'did_plugin_ultisnips', 0),
     unic: (_): bool => manual && get(g:, 'loaded_unicodePlugin', 0),
     user: (_): bool => !empty(&l:completefunc),
@@ -1079,7 +1079,7 @@ def NextMethod(): string #{{{2
     # will end up with the value `N`.
     # Even though the methods failed, `CompleteDone` was triggered after each of
     # them, and `completedone` was set to `1` each time.
-    # `TextChangedI` was  NOT triggered,  because of  our `Plug(MC_next_method)`
+    # `TextChangedI` was NOT triggered,  because of our `<Plug>(MC_next_method)`
     # mapping  at the  end  of `NextMethod()`,  so  `ActOnTextchanged()` is  not
     # called again.
     # Finally,  when we  insert `x`,  `TextChangedI` is  triggered a  last (3rd)

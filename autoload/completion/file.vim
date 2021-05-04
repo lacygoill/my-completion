@@ -28,7 +28,7 @@ def completion#file#complete(): string
     # That's not a directory which `readdir()` can read.
     # We need the algo to retry another, shorter, path:
     #
-    #     matchstr(filepath, '\s\zs\f.*$')
+    #     filepath->matchstr('\s\zs\f.*$')
     #
     # This new value removes the text from the beginning of the string up to the
     # first sequence of whitespace (whitespace excluded).
@@ -43,7 +43,7 @@ def completion#file#complete(): string
     #     dir/
     # }}}
     while !empty(filepath)
-        dir = (fnamemodify(filepath, ':h') .. '/')
+        dir = (filepath->fnamemodify(':h') .. '/')
             ->substitute('^\~/', $HOME .. '/', '')
         if isdirectory(dir)
             break
@@ -51,7 +51,7 @@ def completion#file#complete(): string
         # If `dir` is not  a directory, try a shorter path  by removing the text
         # from the beginning of the path  up to the first sequence of whitespace
         # (whitespace excluded), or up to the first equal sign.
-        filepath = matchstr(filepath, '[ \t=]\zs\f.*$')
+        filepath = filepath->matchstr('[ \t=]\zs\f.*$')
         #                                  │
         #                                  └ try to also complete a path
         #                                    after an equal sign
@@ -74,7 +74,7 @@ def completion#file#complete(): string
     # can be much slower otherwise (i.e. when `filepath` is a directory).
     #}}}
     var entries: list<string>
-    var filestart: string = fnamemodify(filepath, ':t')
+    var filestart: string = filepath->fnamemodify(':t')
     if filestart == ''
         entries = readdir(dir)
     else
@@ -100,7 +100,7 @@ def completion#file#complete(): string
             # pressing `Enter`.
             #}}}
             menu: '[f]',
-            word: fnamemodify(v, ':t') .. (isdirectory(dir .. v) ? '/' : '')
+            word: v->fnamemodify(':t') .. (isdirectory(dir .. v) ? '/' : '')
         }))->complete(from_where)
     return ''
 enddef
