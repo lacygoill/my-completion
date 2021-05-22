@@ -748,12 +748,12 @@ def ActOnTextchanged() #{{{2
         #
         # Without it, sometimes, we have an error such as:
         #
-        #     Error detected while processing function <SNR>67_act_on_textchanged:~
-        #     line   81:~
-        #     E684: list index out of range: 0~
-        #     Error detected while processing function <SNR>67_act_on_textchanged:~
-        #     line   81:~
-        #     E15: Invalid expression: methods[i] ...~
+        #     Error detected while processing function <SNR>67_act_on_textchanged:˜
+        #     line   81:˜
+        #     E684: list index out of range: 0˜
+        #     Error detected while processing function <SNR>67_act_on_textchanged:˜
+        #     line   81:˜
+        #     E15: Invalid expression: methods[i] ...˜
         #}}}
         if get(methods, i, '') == 'file'
         && charcol > 1 && line[charcol - 2] =~ '\f'
