@@ -4,18 +4,18 @@ if exists('loaded') | finish | endif
 var loaded = true
 
 def completion#custom#easyCXCP() #{{{1
-    if cot_save == ''
-        cot_save = &cot
-        set cot-=noinsert
+    if completeopt_save == ''
+        completeopt_save = &completeopt
+        set completeopt-=noinsert
         timer_start(0, (_) => RestoreCot())
     endif
 enddef
-var cot_save: string
+var completeopt_save: string
 
 def RestoreCot()
-    if cot_save != ''
-        &cot = cot_save
-        cot_save = ''
+    if completeopt_save != ''
+        &completeopt = completeopt_save
+        completeopt_save = ''
     endif
 enddef
 

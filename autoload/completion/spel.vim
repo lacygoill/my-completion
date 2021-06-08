@@ -38,7 +38,7 @@ def completion#spel#fix(): string #{{{1
     var spell_save: bool = &l:spell
     var winid: number = win_getid()
     var bufnr: number = bufnr('%')
-    setl spell
+    &l:spell = true
     try
         var before_cursor: string = getline('.')
             ->strpart(0, col('.') - 1)

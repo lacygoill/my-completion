@@ -59,7 +59,7 @@ cno          <plug>(MC_cr) <cr>
 # Because  of a  mapping in  `vim-readline`, we've  lost the  ability to  exit a
 # completion menu.  Restore it on `c-q`.
 # TODO: Document why we need `#restore_base()`.
-# Hint: it's due to `longest` being in `'cot'`.
+# Hint: it's due to `longest` being in `'completeopt'`.
 # Also, document why we don't invoke `#restore_base()` in `<plug>(MC_c-e)`.
 # Hint: it would break the dot command too frequently (as soon as we cycle).
 ino <c-q> <c-e><cmd>call completion#restoreBase()<cr>
@@ -71,7 +71,7 @@ ino <plug>(MC_cr) <cr>
 
 # To cycle back, we can't use `c-k` because it would be shadowed by `c-k c-k`
 # (vimrc) which deletes from cursor till end of line.
-# It's hard to find a key for this mapping (can't use `c-h`, `c-l`, `c-k`, …).
+# It's hard to find a key for this mapping (can't use `c-h`, `c-l`, `c-k`, ...).
 # We'll try `c-o` with the mnemonic: Old (cycle back).
 imap <expr><silent><unique> <c-o> pumvisible() ? completion#cycle(-1) : '<plug>(MC_c-o)'
 ino <plug>(MC_c-o) <c-o>
@@ -88,8 +88,8 @@ nno coM <cmd>call completion#toggleAuto()<cr>
 
 # What's the purpose of `completion#util#customIsk()`?{{{
 #
-# Most default ftplugins don't include `-`  in 'isk', but it's convenient to
-# include it temporarily when we complete a word such as `foo-bar-baz`.
+# Most default ftplugins  don't include `-` in 'iskeyword',  but it's convenient
+# to include it temporarily when we complete a word such as `foo-bar-baz`.
 #
 # So we invoke this function to temporarily add it.
 #}}}
@@ -101,14 +101,14 @@ ino <unique> <c-x><c-p> <cmd>call completion#util#customIsk('-')<cr><c-x><c-p>
 
 # Some Vim tags contain a colon or begin with a less-than sign.{{{
 #
-# Maybe we should add `:` to `'isk'` unconditionally:
+# Maybe we should add `:` to `'iskeyword'` unconditionally:
 #
-#     '-:' .. (&filetype is# 'vim' ? '<' : '')
+#     '-:' .. (&filetype ==# 'vim' ? '<' : '')
 #
 # But it doesn't seem necessary atm.
 #}}}
 #                                                                   │
-ino <unique> <c-x><c-]> <cmd>call completion#util#customIsk('-' .. (&filetype is# 'vim' ? ':<' : ''))<cr><c-x><c-]>
+ino <unique> <c-x><c-]> <cmd>call completion#util#customIsk('-' .. (&filetype ==# 'vim' ? ':<' : ''))<cr><c-x><c-]>
 
 # C-x C-k     dictionary {{{3
 
@@ -129,11 +129,11 @@ ino <expr><unique> <c-x><c-s> completion#spel#fix()
 # Solution: http://stackoverflow.com/a/21132116
 #
 # Create a  wrapper around C-x C-t  to temporarily include the  space and hyphen
-# characters in 'isk'.  We'll remove them as  soon as the completion is done (or
-# cancelled).
-# It doesn't seem to affect the completed text, only the synonyms.
-# Even with a space in 'isk', the completion function only tries to complete the
-# last word before the cursor.
+# characters in  'iskeyword'.  We'll remove  them as  soon as the  completion is
+# done (or cancelled).
+# It doesn't seem to affect the completed  text, only the synonyms.  Even with a
+# space in 'iskeyword', the completion function  only tries to complete the last
+# word before the cursor.
 
 ino <unique> <c-x><c-t> <cmd>call completion#util#customIsk(' -')<cr><c-x><c-t>
 #}}}2
@@ -159,7 +159,7 @@ ino <unique> <c-z> <cmd>call completion#custom#easyCXCP()<cr><c-x><c-p>
 # complete {{{2
 
 # where should Vim look when pressing `C-n`/`C-p`
-set complete=.,w,b
+&complete = '.,w,b'
 #            │ │ │
 #            │ │ └ buffers in buffer list
 #            │ └ other windows
@@ -170,19 +170,20 @@ set complete=.,w,b
 
 # We add `menuone` for 3 reasons:{{{
 #
-#    - the menu lets us cancel  a completion if the inserted text is not the one we wanted
+#    - the menu lets us cancel a completion if the inserted text is not the one we wanted
 #
-#    - when there's only 1 match and `noinsert` is absent from `'cot'`, the menu
+#    - when there's only 1 match and `noinsert` is absent from `'completeopt'`, the menu
 #      will not  open and vim-completion  will think  that the current  method has
 #      failed, then will immediately try the  next one; because of this, we could
 #      end up with 2 or more completed texts
 #
-#    - when there's only 1 match and `noinsert` is in `'cot'`, *all* completion commands fail:
+#    - when there's only 1 match and `noinsert` is in `'completeopt'`,
+#      *all* completion commands fail:
 #
-#         $ vim +"pu ='xxabc'" +"pu ='xx'" +'startinsert!' +'set cot=menu,noinsert'
+#         $ vim +"pu ='xxabc'" +"pu ='xx'" +'startinsert!' +'set completeopt=menu,noinsert'
 #         " press `C-x C-n`: nothing is inserted
 #}}}
-set cot+=menuone
+set completeopt+=menuone
 
 # noinsert {{{3
 
@@ -199,23 +200,23 @@ set cot+=menuone
 #
 #    - it's annoying while in auto-completion mode
 #
-#      vim-completion already makes sure that  `noinsert` is not in `'cot'` while
-#      in auto mode, but still...
+#      vim-completion already makes sure that  `noinsert` is not in `'completeopt'`
+#      while in auto mode, but still...
 #}}}
-set cot-=noinsert
+set completeopt-=noinsert
 
 # noselect {{{3
 
 # do *not* include `noselect`{{{
 #
 # We use a completion system which would break the undo sequence when `noselect`
-# is in  `'cot'`.  It means that  some text would be  lost when we use  the redo
-# command to repeat a completion.
+# is in `'completeopt'`.  It means that some  text would be lost when we use the
+# redo command to repeat a completion.
 #
 # I think  that's because of  the keys stored  in `SELECT_MATCH` and  pressed by
 # `ActOnPumvisible()`.
 #}}}
-set cot-=noselect
+set completeopt-=noselect
 
 # longest {{{3
 
@@ -224,8 +225,8 @@ set cot-=noselect
 # When we  tab-complete a  word, if there  are several matches  and we  insert a
 # character to reduce their number, the popup menu closes.
 #
-# Adding `noselect` in `'cot'` would fix this issue, but it would also break the
-# dot command, because our plugin would press an up or down key.
+# Adding `noselect` in  `'completeopt'` would fix this issue, but  it would also
+# break the dot command, because our plugin would press an up or down key.
 #
 # So, instead, we include `longest`; it doesn't fix the issue entirely, but it helps.
 # To test its effect, write this in a file:
@@ -264,17 +265,20 @@ set cot-=noselect
 # MWE:
 #
 #     $ vim -Nu <(cat <<'EOF'
-#         let seed = srand()
-#         let lines = range(200)
-#             \ ->map({-> 'we_dont_want_this_'
-#             \         .. range(10)->map({-> (65 + rand(g:seed) % 26)->nr2char()})
-#             \          ->join('')})
-#         sil 0pu=lines
-#         100t100
+#         vim9script
+#
+#         var seed: list<number> = srand()
+#         var lines = range(200)
+#             ->mapnew((_, _) => 'we_dont_want_this_'
+#                 .. range(10)->mapnew((_, _) => (65 + rand(seed) % 26)->nr2char())
+#                  ->join(''))
+#
+#         sil :0pu =lines
+#         :100copy 100
 #         s/$/_actually_we_do_want_this_one/
-#         0pu='# press C-x C-n to complete the next line into `' .. getline(101) .. '`'
-#         set cot=menu,longest
-#         1pu='we_'
+#         :0pu ='# press C-x C-n to complete the next line into `' .. getline(101) .. '`'
+#         set completeopt=menu,longest
+#         :1pu ='we_'
 #         startinsert!
 #     EOF
 #     )
@@ -288,32 +292,32 @@ set cot-=noselect
 # If you don't see it, it should appear after pressing `G`, or maybe after `D`.
 # The point is that finding your match is easy.
 #
-# OTOH,  if `longest`  was  not in  `'cot'` (repeat  the  same experiment  after
-# executing  `set  cot-=longest`),   you  would  probably  need   to  remove  10
-# characters, before inserting `Q`, `G`, `D`...
+# OTOH,  if `longest`  was not  in `'completeopt'`  (repeat the  same experiment
+# after executing `set completeopt-=longest`), you would probably need to remove
+# 10 characters, before inserting `Q`, `G`, `D`...
 # This may  seem like a  minor issue; it's not.   In practice, you  don't always
 # know exactly how many characters you need to remove.
 # And when  that happens,  each time you  remove a character  and the  menu gets
 # updated, you may need to scroll through the menu to look for your match.
 # Anyway, the whole process is usually too cumbersome.
 #}}}
-set cot+=longest
+set completeopt+=longest
 
 # preview → popup {{{3
 
 # When we press `C-x C-g` by  accident, the unicode.vim plugin opens the preview
 # window (digraph completion), and we have to close it manually.  It's annoying.
 #
-# If one day, we  need to add 'preview' in 'cot' again, we  could get around the
-# unicode.vim  plugin issue  with an  autocmd  which closes  the preview  window
-# automatically each time we complete a text:
+# If one  day, we  need to add  'preview' in 'completeopt'  again, we  could get
+# around the unicode.vim  plugin issue with an autocmd which  closes the preview
+# window automatically each time we complete a text:
 #
 #     au CompleteDone * if pumvisible() == 0 | pclose | endif
 
-set cot-=preview
+set completeopt-=preview
 
 # a popup doesn't suffer from this issue, and is less obtrusive in general
-set cot+=popup
+set completeopt+=popup
 #}}}2
 # infercase {{{2
 
@@ -331,15 +335,15 @@ set cot+=popup
 # Besides,  it's a  buffer-local option,  so it  should be  set from  a filetype
 # plugin.
 #}}}
-#     set infercase
+#     &infercase = true
 
 # isfname {{{2
 
 # A filename can contain an `@` character.
 # Example: /usr/lib/systemd/system/getty@.service
 #
-# It's important to include  `@` in `'isf'`, so that we  can complete a filename
-# by pressing Tab.
+# It's  important to  include `@`  in  `'isfname'`, so  that we  can complete  a
+# filename by pressing Tab.
 set isfname+=@-@
 
 # thesaurus {{{2
@@ -347,7 +351,7 @@ set isfname+=@-@
 # `C-x C-t`  looks for synonyms in  all the files  whose path is present  in the
 # option `'thesaurus'`.
 # Each  line of  the  file must  contain  a  group of  synonyms  separated by  a
-# character which is not in `'isk'` (space or comma for example).
+# character which is not in `'iskeyword'` (space or comma for example).
 #
 # We can download such a file at the following url:
 # https://archive.org/stream/mobythesauruslis03202gut/mthesaur.txt

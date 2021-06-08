@@ -9,37 +9,37 @@ def completion#util#customIsk(chars: string): bool #{{{1
     # Why this check?{{{
     #
     # If for  some reason  the function  is invoked  twice without  a completion
-    # in between, I don't want to save/restore a modified value of `'isk'`.
+    # in between, I don't want to save/restore a modified value of `'iskeyword'`.
     #}}}
-    if isk_save != ''
+    if iskeyword_save != ''
         return true
     endif
-    isk_save = &l:isk
+    iskeyword_save = &l:iskeyword
     bufnr = bufnr('%')
     try
         for char in chars
-            exe 'setl isk+=' .. char2nr(char)
+            exe 'setl iskeyword+=' .. char2nr(char)
         endfor
         augroup CompletionUtilRestoreIsk | au!
             au TextChangedP,TextChangedI,TextChanged,CompleteDone *
                 \   exe 'au! CompletionUtilRestoreIsk'
-                | setbufvar(bufnr, '&isk', isk_save)
-                | isk_save = ''
+                | setbufvar(bufnr, '&iskeyword', iskeyword_save)
+                | iskeyword_save = ''
                 | bufnr = 0
         augroup END
     catch
         Catch()
         return false
-        # Do *not* add a finally clause to restore `'isk'`.
+        # Do *not* add a finally clause to restore `'iskeyword'`.
         # It would be too soon.  The completion hasn't been done yet.
     endtry
     return true
 enddef
-var isk_save: string
+var iskeyword_save: string
 var bufnr: number
 
 def completion#util#setupDict(): bool #{{{1
-    if ic_was_reset
+    if ignorecase_was_reset
         return true
     endif
     # There should be at least 2 characters in front of the cursor,{{{
@@ -58,17 +58,19 @@ def completion#util#setupDict(): bool #{{{1
         || !complete_more_than_2chars
         return false
     endif
-    ic_save = &ic
-    &ic = false
-    ic_was_reset = true
-    &l:dictionary = &l:spelllang == 'en' ? '/usr/share/dict/words' : '/usr/share/dict/french'
+    ignorecase_save = &ignorecase
+    &ignorecase = false
+    ignorecase_was_reset = true
+    &l:dictionary = &l:spelllang == 'en'
+        ? '/usr/share/dict/words'
+        : '/usr/share/dict/french'
     augroup CompletionDictRestoreIc | au!
         au CompleteDone,TextChanged,TextChangedI,TextChangedP * exe 'au! CompletionDictRestoreIc'
-            | &ic = ic_save
-            | ic_was_reset = false
+            | &ignorecase = ignorecase_save
+            | ignorecase_was_reset = false
     augroup END
     return true
 enddef
-var ic_save: bool
-var ic_was_reset: bool
+var ignorecase_save: bool
+var ignorecase_was_reset: bool
 

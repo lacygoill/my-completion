@@ -75,9 +75,9 @@ var loaded = true
 #}}}
 # Do *not* use `keyp` nor `c-p`.{{{
 #
-# `:h 'cot /ctrl-l` doesn't work with `C-x C-p` and `C-p`:
+# `:h 'completeopt /ctrl-l` doesn't work with `C-x C-p` and `C-p`:
 #
-#     $ vim -Nu NONE +'set cot=menu,longest|startinsert!' =(cat <<'EOF'
+#     $ vim -Nu NONE +'set completeopt=menu,longest|startinsert!' =(cat <<'EOF'
 #         xx
 #         xxabc
 #         xxab
@@ -104,7 +104,7 @@ var N: number = len(methods)
 var word: string
 
 var manual: bool = true
-var cot_save: string
+var completeopt_save: string
 var completedone: bool = true
 
 # flag: in which direction will we move in the chain
@@ -266,7 +266,7 @@ const MC_AUTO_PATTERN: string = '\k\k$'
 #     [/~]\f*$
 #
 # Before the cursor, there must a slash or a tilda, then zero or more characters
-# in `'isfname'`.  By default the tilda is in `'isf'`, so why not simply:
+# in `'isfname'`.  By default the tilda is in `'isfname'`, so why not simply:
 #
 #     /\=\f*
 #
@@ -279,15 +279,15 @@ const YES_YOU_CAN: func = (_): bool => true
 const MC_CONDITIONS: dict<func(string): bool> = {
     c-p: (_): bool => manual && completion#util#customIsk('-'),
     dict: (_): bool => manual && completion#util#setupDict(),
-    digr: (_): bool => manual && get(g:, 'loaded_unicodePlugin', 0),
+    digr: (_): bool => manual && get(g:, 'loaded_unicodePlugin', false),
     file: (t: string): bool => t =~ '[/~]\f*$',
     omni: (_): bool => !empty(&l:omnifunc) && &filetype != 'markdown',
     spel: (_): bool => &l:spell && !empty(&l:spelllang),
     tags: (_): bool => manual
                 && !tagfiles()->empty()
                 && completion#util#customIsk('-' .. (&filetype == 'vim' ? ':<' : '')),
-    ulti: (_): bool => get(g:, 'did_plugin_ultisnips', 0),
-    unic: (_): bool => manual && get(g:, 'loaded_unicodePlugin', 0),
+    ulti: (_): bool => get(g:, 'did_plugin_ultisnips', false),
+    unic: (_): bool => manual && get(g:, 'loaded_unicodePlugin', false),
     user: (_): bool => !empty(&l:completefunc),
 }
 
@@ -359,9 +359,9 @@ def completion#disableAuto() #{{{2
         augroup! McAuto
     endif
     auto = false
-    if cot_save != ''
-        &cot = cot_save
-        cot_save = ''
+    if completeopt_save != ''
+        &completeopt = completeopt_save
+        completeopt_save = ''
     endif
     echo '[auto completion] OFF'
 enddef
@@ -369,12 +369,12 @@ enddef
 def completion#enableAuto() #{{{2
     auto = true
     manual = false
-    cot_save = &cot
+    completeopt_save = &completeopt
     completedone = false
 
     # automatically   inserted   text   is  particularly   annoying   while   in
     # auto-completion mode
-    set cot+=noinsert
+    set completeopt+=noinsert
 
     augroup McAuto | au!
         au TextChangedI * ActOnTextchanged()
@@ -446,7 +446,7 @@ enddef
 #}}}
 
 def completion#snippetOrComplete(arg_dir: number) #{{{2
-    var mode: string = mode(1)
+    var mode: string = mode(true)
     # replace mode
     if mode == 'R' || mode == 'Rv'
         feedkeys("\<tab>", 'in')
@@ -554,12 +554,12 @@ enddef
 def ActOnPumvisible(): string #{{{2
     pumvisible = false
 
-    # If autocompletion is enabled don't do anything (respect the value of 'cot'). {{{
+    # If autocompletion is enabled don't do anything (respect the value of 'completeopt'). {{{
     #
-    # Note that if 'cot' doesn't contain 'noinsert' nor 'noselect', Vim will
-    # still automatically insert an entry from the menu.
-    # That's why we'll have to make sure that 'cot' contains 'noselect' when
-    # autocompletion is enabled.
+    # Note that if 'completeopt' doesn't  contain 'noinsert' nor 'noselect', Vim
+    # will still automatically insert an entry from the menu.
+    # That's why we'll have to  make sure that 'completeopt' contains 'noselect'
+    # when autocompletion is enabled.
     #
     # If the method is 'spel', don't do anything either.
     #
@@ -567,16 +567,16 @@ def ActOnPumvisible(): string #{{{2
     # Fixing a spelling error is a bit different from simply completing text.
     # It's much more error prone.
     # We don't want to force the insertion of the first spelling suggestion.
-    # We want `Tab` to respect the value of 'cot'.
+    # We want `Tab` to respect the value of 'completeopt'.
     # In particular, the values 'noselect' and 'noinsert'.
     #
     # Otherwise, autocompletion is off, and the current method is not 'spel'.
-    # In this case, we want to insert the first or last entry of the menu,
-    # regardless of the values contained in 'cot'.
+    # In this  case, we  want to  insert the first  or last  entry of  the menu,
+    # regardless of the values contained in 'completeopt'.
     #
-    # Depending on the values in 'cot', there are 3 cases to consider:
+    # Depending on the values in 'completeopt', there are 3 cases to consider:
     #
-    #    1. 'cot' contains 'noselect'
+    #    1. 'completeopt' contains 'noselect'
     #
     #       Vim won't do anything (regardless whether 'noinsert' is there).
     #       So, to insert an entry of the menu, we'll have to return:
@@ -597,14 +597,14 @@ def ActOnPumvisible(): string #{{{2
     #                                C-n would temporarily insert an entry,
     #                                then C-p would immediately remove it
     #
-    #       This means we shouldn't put 'noselect' in 'cot', at least for the
+    #       This means we shouldn't put 'noselect' in 'completeopt', at least for the
     #       moment.
     #
-    #    2. 'cot' doesn't contain 'noselect' nor 'noinsert'
+    #    2. 'completeopt' doesn't contain 'noselect' nor 'noinsert'
     #
     #       Vim will automatically insert and select an entry.  So, nothing to do.
     #
-    #    3. 'cot' doesn't contain 'noselect' but it DOES contain 'noinsert'
+    #    3. 'completeopt' doesn't contain 'noselect' but it *does* contain 'noinsert'
     #
     #       Vim will automatically select an entry, but it won't insert it.
     #       To force the insertion, we'll have to return `C-p C-n`.
@@ -625,13 +625,13 @@ def ActOnPumvisible(): string #{{{2
     # C-p, even if the popup menu  is visible.  The latter should prevent custom
     # mappings from interfering but it doesn't always.
     # Reproduce:
-    #     var MC_CHAIN: string = ['c-p']
+    #     var MC_CHAIN: list<string> = ['c-p']
     #     ino <c-p> foobar
-    #     setl cot=menu,noinsert
+    #     &l:completeopt = 'menu,noinsert'
     return auto || get(methods, i, '') == 'spel'
         ?     ''
-        : stridx(&l:completeopt, 'noselect') == -1
-        ? stridx(&l:completeopt, 'noinsert') == -1
+        : &l:completeopt->stridx('noselect') == -1
+        ? &l:completeopt->stridx('noinsert') == -1
         ?     ''
         :     "\<plug>(MC_c-p)\<plug>(MC_c-n)"
         :     get(SELECT_MATCH, methods[i], "\<plug>(MC_c-n)\<plug>(MC_up)")
@@ -742,7 +742,7 @@ def ActOnTextchanged() #{{{2
         # If we just autocompleted a filepath component (i.e. the current method
         # is 'file'), we want autocompletion to be invoked again, to handle the
         # next component, in case there's one.
-        # We just make sure that the character before the cursor is in 'isf'.
+        # We just make sure that the character before the cursor is in 'isfname'.
         #}}}
         # Why `get()`? {{{
         #
@@ -771,7 +771,7 @@ def ActOnTextchanged() #{{{2
     # If its value is `\k\k$`, then autocompletion will only occur when the
     # cursor is after 2 keyword characters.
     # So, for example, there would be no autocompletion, if the cursor was after
-    # ` a`, because even though `a` is in 'isk', the space is not.
+    # ` a`, because even though `a` is in 'iskeyword', the space is not.
     #
     # It allows the user to control the frequency of autocompletions.
     # The longer and the more precise the pattern is, the less frequent the
@@ -1033,7 +1033,7 @@ def NextMethod(): string #{{{2
         #
         #     $ vim -S <(cat <<'EOF'
         #         vim9script
-        #         set dict=/tmp/words
+        #         &dictionary = '/tmp/words'
         #         readfile('/usr/share/dict/words')->repeat(10)->writefile('/tmp/words')
         #         startinsert
         #         feedkeys("e\<tab>")

@@ -62,11 +62,11 @@ def completion#abbr#complete(): string
 enddef
 
 def AbbrevRhs(rhs: string): string
-    if stridx(rhs, '&spl ==') == -1
+    if stridx(rhs, '&spelllang ==') == -1
         return rhs
-    elseif &l:spl == 'fr'
+    elseif &l:spelllang == 'fr'
         return rhs->matchstr('fr.\{-}''\zs.\{-}\ze''')
-    elseif &l:spl == 'en'
+    elseif &l:spelllang == 'en'
         return rhs->matchstr(':\s\+''\zs.*\ze''')
     endif
     return ''
