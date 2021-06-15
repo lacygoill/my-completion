@@ -273,12 +273,12 @@ set completeopt-=noselect
 #                 .. range(10)->mapnew((_, _) => (65 + rand(seed) % 26)->nr2char())
 #                  ->join(''))
 #
-#         sil :0pu =lines
-#         :100copy 100
+#         sil :0 put =lines
+#         :100 copy 100
 #         s/$/_actually_we_do_want_this_one/
-#         :0pu ='# press C-x C-n to complete the next line into `' .. getline(101) .. '`'
+#         :0 put ='# press C-x C-n to complete the next line into `' .. getline(101) .. '`'
 #         set completeopt=menu,longest
-#         :1pu ='we_'
+#         :1 put ='we_'
 #         startinsert!
 #     EOF
 #     )
