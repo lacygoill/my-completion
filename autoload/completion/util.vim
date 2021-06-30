@@ -18,11 +18,11 @@ def completion#util#customIsk(chars: string): bool #{{{1
     bufnr = bufnr('%')
     try
         for char in chars
-            exe 'setl iskeyword+=' .. char2nr(char)
+            execute 'setlocal iskeyword+=' .. char2nr(char)
         endfor
-        augroup CompletionUtilRestoreIsk | au!
-            au TextChangedP,TextChangedI,TextChanged,CompleteDone *
-                \   exe 'au! CompletionUtilRestoreIsk'
+        augroup CompletionUtilRestoreIsk | autocmd!
+            autocmd TextChangedP,TextChangedI,TextChanged,CompleteDone *
+                \   execute 'autocmd! CompletionUtilRestoreIsk'
                 | setbufvar(bufnr, '&iskeyword', iskeyword_save)
                 | iskeyword_save = ''
                 | bufnr = 0
@@ -64,8 +64,9 @@ def completion#util#setupDict(): bool #{{{1
     &l:dictionary = &l:spelllang == 'en'
         ? '/usr/share/dict/words'
         : '/usr/share/dict/french'
-    augroup CompletionDictRestoreIc | au!
-        au CompleteDone,TextChanged,TextChangedI,TextChangedP * exe 'au! CompletionDictRestoreIc'
+    augroup CompletionDictRestoreIc | autocmd!
+        autocmd CompleteDone,TextChanged,TextChangedI,TextChangedP *
+            \ execute 'autocmd! CompletionDictRestoreIc'
             | &ignorecase = ignorecase_save
             | ignorecase_was_reset = false
     augroup END

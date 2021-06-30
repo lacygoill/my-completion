@@ -73,9 +73,9 @@ var loaded = true
 # Line completion  is too cumbersome  to be automated.   Use `C-x C-l`  when you
 # know you *really* need it.
 #}}}
-# Do *not* use `keyp` nor `c-p`.{{{
+# Do *not* use `keyp` nor `C-p`.{{{
 #
-# `:h 'completeopt /ctrl-l` doesn't work with `C-x C-p` and `C-p`:
+# `:help 'completeopt /ctrl-l` doesn't work with `C-x C-p` and `C-p`:
 #
 #     $ vim -Nu NONE +'set completeopt=menu,longest|startinsert!' =(cat <<'EOF'
 #         xx
@@ -95,7 +95,7 @@ const MC_CHAIN: list<string> =<< trim END
     keyn
     ulti
     abbr
-    c-n
+    C-n
     dict
 END
 
@@ -146,23 +146,23 @@ var pumvisible: bool
 #}}}
 var auto: bool
 
-# We could also use "\<c-x>\<c-z>\<bs> {{{
+# We could also use "\<C-X>\<C-Z>\<BS> {{{
 # In this case update the warning.
 #
-# Currently we have a mapping using C-x C-z, installed by the unicode plugin.
+# Currently we have a mapping using `C-x C-z`, installed by the unicode plugin.
 # We would have to unmap it in this script:
 #
-#     iunmap <C-x><C-z>
+#     iunmap <C-X><C-Z>
 #
 # We can't unmap  it in the vimrc,  because it would be too  soon.  The mappings
 # for a plugin are defined after the vimrc is sourced.
 #}}}
-const EXIT_CTRL_X: string = "\<c-g>\<c-g>"
+const EXIT_CTRL_X: string = "\<C-G>\<C-G>"
 
-if !mapcheck('<c-g><c-g>', 'i')->empty()
+if !mapcheck('<C-G><C-G>', 'i')->empty()
     var msg: list<string> =<< trim END
         Warning: you have a mapping whose {lhs} is or begins with C-g C-g.
-        See the output of `execute('verb imap <c-g><c-g>')`.
+        See the output of `execute('verbose imap <C-G><C-G>')`.
 
         MC (My Completion) presses those keys before pressing the keys of some methods.
         It does this to make sure you are out of C-x submode before trying them.
@@ -175,7 +175,7 @@ if !mapcheck('<c-g><c-g>', 'i')->empty()
     echohl None
 endif
 
-# Why do we need to prepend `EXIT_CTRL_X` in front of "\<c-x>\<c-l>"? {{{
+# Why do we need to prepend `EXIT_CTRL_X` in front of "\<C-X>\<C-L>"? {{{
 #
 # Suppose we have the following buffer:
 #
@@ -211,10 +211,10 @@ endif
 #    > typing a character that does not belong to an entry does not exit
 #    > completion. Before this commit, with autocompletion on such behaviour
 #    > resulted in µcomplete inserting a new line while the user was typing,
-#    > because µcomplete would insert <c-x><c-l> while in ctrl-x submode.
+#    > because µcomplete would insert <C-X><C-L> while in ctrl-x submode.
 #    >
 #    > To fix that, we use the same trick as with 'c-p': make sure that we are
-#    > out of ctrl-x submode before typing <c-x><c-l>.
+#    > out of ctrl-x submode before typing <C-X><C-L>.
 #
 # Source: commit `59169596e96c8ff3943e9179a626391ff76f4b76`
 #
@@ -230,30 +230,30 @@ endif
 #     The second one inserts a newline and suggests L2.
 #}}}
 const COMPL_MAPPINGS: dict<string> = {
-    abbr: "\<plug>(MC_c-r)=completion#abbr#complete()\<Plug>(MC_cr)",
-    c-n: EXIT_CTRL_X .. "\<plug>(MC_c-n)",
-    c-p: EXIT_CTRL_X .. "\<plug>(MC_c-p)",
-    cmd: "\<plug>(MC_c-x_c-v)",
-    defs: "\<plug>(MC_c-x_c-d)",
-    dict: "\<plug>(MC_c-x_c-k)",
-    digr: "\<plug>(DigraphComplete)",
-    file: "\<plug>(MC_c-r)=completion#file#complete()\<Plug>(MC_cr)",
-    incl: "\<plug>(MC_c-x_c-i)",
-    keyn: "\<plug>(MC_c-x_c-n)",
-    keyp: "\<plug>(MC_c-x_c-p)",
-    line: EXIT_CTRL_X .. "\<plug>(MC_c-x_c-l)",
-    omni: "\<plug>(MC_c-x_c-o)",
-    spel: "\<plug>(MC_c-r)=completion#spel#suggest()\<plug>(MC_cr)",
-    tags: "\<plug>(MC_c-x_c-])",
-    thes: "\<plug>(MC_c-x_c-t)",
-    ulti: "\<plug>(MC_c-r)=completion#ultisnips#complete()\<plug>(MC_cr)",
-    unic: "\<plug>(UnicodeComplete)",
-    user: "\<plug>(MC_c-x_c-u)",
+    abbr: "\<Plug>(MC_c-r)=completion#abbr#complete()\<Plug>(MC_cr)",
+    C-n: EXIT_CTRL_X .. "\<Plug>(MC_c-n)",
+    C-p: EXIT_CTRL_X .. "\<Plug>(MC_c-p)",
+    cmd: "\<Plug>(MC_c-x_c-v)",
+    defs: "\<Plug>(MC_c-x_c-d)",
+    dict: "\<Plug>(MC_c-x_c-k)",
+    digr: "\<Plug>(DigraphComplete)",
+    file: "\<Plug>(MC_c-r)=completion#file#complete()\<Plug>(MC_cr)",
+    incl: "\<Plug>(MC_c-x_c-i)",
+    keyn: "\<Plug>(MC_c-x_c-n)",
+    keyp: "\<Plug>(MC_c-x_c-p)",
+    line: EXIT_CTRL_X .. "\<Plug>(MC_c-x_c-l)",
+    omni: "\<Plug>(MC_c-x_c-o)",
+    spel: "\<Plug>(MC_c-r)=completion#spel#suggest()\<Plug>(MC_cr)",
+    tags: "\<Plug>(MC_c-x_c-])",
+    thes: "\<Plug>(MC_c-x_c-t)",
+    ulti: "\<Plug>(MC_c-r)=completion#ultisnips#complete()\<Plug>(MC_cr)",
+    unic: "\<Plug>(UnicodeComplete)",
+    user: "\<Plug>(MC_c-x_c-u)",
 }
 
 const SELECT_MATCH: dict<string> = {
-    c-p: "\<plug>(MC_c-p)\<plug>(MC_down)",
-    keyp: "\<plug>(MC_c-p)\<plug>(MC_down)",
+    C-p: "\<Plug>(MC_c-p)\<Plug>(MC_down)",
+    keyp: "\<Plug>(MC_c-p)\<Plug>(MC_down)",
 }
 
 # Default pattern to decide when automatic completion should be triggered.
@@ -277,7 +277,7 @@ const MC_AUTO_PATTERN: string = '\k\k$'
 #}}}
 const YES_YOU_CAN: func = (_): bool => true
 const MC_CONDITIONS: dict<func(string): bool> = {
-    c-p: (_): bool => manual && completion#util#customIsk('-'),
+    C-p: (_): bool => manual && completion#util#customIsk('-'),
     dict: (_): bool => manual && completion#util#setupDict(),
     digr: (_): bool => manual && get(g:, 'loaded_unicodePlugin', false),
     file: (t: string): bool => t =~ '[/~]\f*$',
@@ -307,7 +307,7 @@ def completion#complete(arg_dir: number): string #{{{2
     #                  │
     #                  ├───────────┐
     if word !~ '\k' || col('.') <= 1
-        return (arg_dir > 0 ? "\<plug>(MC_tab)" : "\<plug>(MC_c-d)")
+        return (arg_dir > 0 ? "\<Plug>(MC_tab)" : "\<Plug>(MC_c-d)")
     endif
 
     cycling = false
@@ -345,11 +345,11 @@ def completion#cycle(arg_dir: number): string #{{{2
     dir = arg_dir
     i_history = []
 
-    return "\<plug>(MC_c-e)" .. NextMethod()
+    return "\<Plug>(MC_c-e)" .. NextMethod()
 enddef
 # Why don't you merge this function with `cycle_or_select()`? {{{
 #
-# Because of the mappings c-j and c-o which cycle in the chain.  They don't want
+# Because of the mappings C-j and C-o which cycle in the chain.  They don't want
 # to call `cycle_or_select()`, their purpose is really to call `cycle()`.
 #}}}
 
@@ -376,8 +376,8 @@ def completion#enableAuto() #{{{2
     # auto-completion mode
     set completeopt+=noinsert
 
-    augroup McAuto | au!
-        au TextChangedI * ActOnTextchanged()
+    augroup McAuto | autocmd!
+        autocmd TextChangedI * ActOnTextchanged()
         # Why don't you define `completedone` as `!empty(v:completed_item)`? {{{
         #
         # Because it could make autocompletion press Tab indefinitely.
@@ -423,7 +423,7 @@ def completion#enableAuto() #{{{2
         # OTOH, if we define it as `!empty(v:completed_item)`, we get an
         # autocompletion.
         #}}}
-        au CompleteDone * completedone = true
+        autocmd CompleteDone * completedone = true
     augroup END
 
     echo '[auto completion] ON'
@@ -449,12 +449,12 @@ def completion#snippetOrComplete(arg_dir: number) #{{{2
     var mode: string = mode(true)
     # replace mode
     if mode == 'R' || mode == 'Rv'
-        feedkeys("\<tab>", 'in')
+        feedkeys("\<Tab>", 'in')
         return
     endif
 
     if pumvisible()
-        feedkeys(arg_dir > 0 ? "\<c-n>" : "\<c-p>", 'in')
+        feedkeys(arg_dir > 0 ? "\<C-N>" : "\<C-P>", 'in')
         return
     endif
 
@@ -466,7 +466,7 @@ def completion#snippetOrComplete(arg_dir: number) #{{{2
     # whether the UltiSnips plugin is enabled in our vimrc.
     #}}}
     if !exists('g:did_plugin_ultisnips')
-        feedkeys(arg_dir > 0 ? "\<plug>(MC_tab_complete)" : "\<plug>(MC_stab_complete)", 'i')
+        feedkeys(arg_dir > 0 ? "\<Plug>(MC_tab_complete)" : "\<Plug>(MC_stab_complete)", 'i')
         return
     endif
 
@@ -482,12 +482,12 @@ def completion#snippetOrComplete(arg_dir: number) #{{{2
         if arg_dir > 0
             UltiSnips#JumpForwards()
             if !g:ulti_jump_forwards_res
-                feedkeys("\<plug>(MC_tab_complete)", 'i')
+                feedkeys("\<Plug>(MC_tab_complete)", 'i')
             endif
         else
             UltiSnips#JumpBackwards()
             if !g:ulti_jump_backwards_res
-                feedkeys("\<plug>(MC_stab_complete)", 'i')
+                feedkeys("\<Plug>(MC_stab_complete)", 'i')
             endif
         endif
     endif
@@ -509,7 +509,7 @@ var orig_line: string
 # autocompletion (`<Plug>(MC_Auto)`).
 #
 # We could find a workaround, by passing a second argument to `complete()`
-# inside the mappings `Tab`, `S-Tab`, and `<plug>(MC_auto)`.
+# inside the mappings `Tab`, `S-Tab`, and `<Plug>(MC_auto)`.
 # It would serve as a flag whose meaning is whether we're performing a manual
 # or automatic completion.
 # But, it means that every time the  autocompletion would kick in, it would test
@@ -531,7 +531,7 @@ def completion#verifyCompletion(): string #{{{2
 enddef
 # Purpose: {{{
 #
-# It's invoked  by `<plug>(MC_next_method)`, which  itself is typed at  the very
+# It's invoked  by `<Plug>(MC_next_method)`, which  itself is typed at  the very
 # end of `NextMethod()`.
 # It checks whether the last completion succeeded by looking at the state of the
 # menu.
@@ -542,9 +542,9 @@ enddef
 def completion#restoreBase() #{{{2
     if orig_line != ''
         setline('.', orig_line)
-        augroup CompletionUnletOrigLine | au!
-            au CursorMovedI,TextChangedI,InsertLeave,InsertEnter *
-                \   exe 'au! CompletionUnletOrigLine'
+        augroup CompletionUnletOrigLine | autocmd!
+            autocmd CursorMovedI,TextChangedI,InsertLeave,InsertEnter *
+                \   execute 'autocmd! CompletionUnletOrigLine'
                 | orig_line = ''
         augroup END
     endif
@@ -581,7 +581,7 @@ def ActOnPumvisible(): string #{{{2
     #       Vim won't do anything (regardless whether 'noinsert' is there).
     #       So, to insert an entry of the menu, we'll have to return:
     #
-    #        * `C-p Down` for the methods 'c-p' or 'keyp' (LAST entry)
+    #        * `C-p Down` for the methods 'C-p' or 'keyp' (LAST entry)
     #        * `C-n Up`   for all the others              (FIRST entry)
     #
     #       It works but `Down` and `Up`  breaks the undo sequence, meaning that
@@ -610,7 +610,7 @@ def ActOnPumvisible(): string #{{{2
     #       To force the insertion, we'll have to return `C-p C-n`.
     #
     #       It will work no matter the method.
-    #       If the method is 'c-p' or 'keyp', `C-p` will make us select the
+    #       If the method is 'C-p' or 'keyp', `C-p` will make us select the
     #       second but last entry, then `C-n` will select and insert the last
     #       entry.
     #       For all the other methods, `C-p` will make us leave the menu,
@@ -625,16 +625,16 @@ def ActOnPumvisible(): string #{{{2
     # C-p, even if the popup menu  is visible.  The latter should prevent custom
     # mappings from interfering but it doesn't always.
     # Reproduce:
-    #     var MC_CHAIN: list<string> = ['c-p']
-    #     ino <c-p> foobar
+    #     var MC_CHAIN: list<string> = ['C-p']
+    #     inoremap <C-P> foobar
     #     &l:completeopt = 'menu,noinsert'
     return auto || get(methods, i, '') == 'spel'
         ?     ''
         : &l:completeopt->stridx('noselect') == -1
         ? &l:completeopt->stridx('noinsert') == -1
         ?     ''
-        :     "\<plug>(MC_c-p)\<plug>(MC_c-n)"
-        :     get(SELECT_MATCH, methods[i], "\<plug>(MC_c-n)\<plug>(MC_up)")
+        :     "\<Plug>(MC_c-p)\<Plug>(MC_c-n)"
+        :     get(SELECT_MATCH, methods[i], "\<Plug>(MC_c-n)\<Plug>(MC_up)")
 enddef
 # Purpose: {{{
 #
@@ -757,7 +757,7 @@ def ActOnTextchanged() #{{{2
         #}}}
         if get(methods, i, '') == 'file'
         && charcol > 1 && line[charcol - 2] =~ '\f'
-            sil completion#file#complete()
+            silent completion#file#complete()
         endif
 
     # Purpose of `MC_AUTO_PATTERN`: {{{
@@ -783,7 +783,7 @@ def ActOnTextchanged() #{{{2
     #     \a\a  <  \a  <  \k
     #}}}
     elseif line->strpart(0, col - 1) =~ get(b:, 'mc_auto_pattern', MC_AUTO_PATTERN)
-        sil feedkeys("\<plug>(MC_Auto)", 'i')
+        silent feedkeys("\<Plug>(MC_Auto)", 'i')
     endif
 enddef
 # Purpose:{{{
@@ -791,7 +791,7 @@ enddef
 # Try an autocompletion every time the text changes in insert mode.
 #
 # This function is only called when autocompletion is enabled.
-# Technically,  it tries  an  autocompletion by  typing `<plug>(MC_Auto)`  which
+# Technically,  it tries  an  autocompletion by  typing `<Plug>(MC_Auto)`  which
 # calls `completion#complete(1)`.  Similar to pressing Tab.
 #}}}
 
@@ -1012,7 +1012,7 @@ def NextMethod(): string #{{{2
         #
         # 2 - Store the state of the menu in `pumvisible` through `completion#menuIsUp()`.
         #
-        # 3 - call `completion#verifyCompletion()` through `<plug>(MC_next_method)`
+        # 3 - call `completion#verifyCompletion()` through `<Plug>(MC_next_method)`
         #}}}
         # FIXME: A part of the sequence may be unexpectedly dumped into the buffer.{{{
         #
@@ -1036,7 +1036,7 @@ def NextMethod(): string #{{{2
         #         &dictionary = '/tmp/words'
         #         readfile('/usr/share/dict/words')->repeat(10)->writefile('/tmp/words')
         #         startinsert
-        #         feedkeys("e\<tab>")
+        #         feedkeys("e\<Tab>")
         #     EOF
         #     )
         #
@@ -1048,7 +1048,7 @@ def NextMethod(): string #{{{2
         # need to populate the pum.
         #}}}
         return COMPL_MAPPINGS[methods[i]]
-            .. "\<plug>(MC_c-r)=pumvisible()?completion#menuIsUp():''\<cr>\<plug>(MC_next_method)"
+            .. "\<Plug>(MC_c-r)=pumvisible()?completion#menuIsUp():''\<CR>\<Plug>(MC_next_method)"
     endif
 
     # Why do we reset `i` here? {{{

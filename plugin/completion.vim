@@ -9,79 +9,79 @@ var loaded = true
 
 # Commands {{{1
 
-com -bar McAutoEnable  completion#enableAuto()
-com -bar McAutoDisable completion#disableAuto()
-com -bar McAutoToggle  completion#toggleAuto()
+command -bar McAutoEnable  completion#enableAuto()
+command -bar McAutoDisable completion#disableAuto()
+command -bar McAutoToggle  completion#toggleAuto()
 
 # Mappings {{{1
 # completion {{{2
 
 # expand snippet or complete, when pressing Tab, or S-Tab
-ino  <silent><unique> <tab>                    <cmd>call completion#snippetOrComplete(1)<cr>
-ino  <silent><unique> <s-tab>                  <cmd>call completion#snippetOrComplete(-1)<cr>
-imap <expr><silent>   <plug>(MC_tab_complete)  completion#tabComplete(1)
-imap <expr><silent>   <plug>(MC_stab_complete) completion#tabComplete(-1)
+inoremap  <silent><unique> <Tab>               <Cmd>call completion#snippetOrComplete(1)<CR>
+inoremap  <silent><unique> <S-Tab>             <Cmd>call completion#snippetOrComplete(-1)<CR>
+imap <expr><silent>   <Plug>(MC_tab_complete)  completion#tabComplete(1)
+imap <expr><silent>   <Plug>(MC_stab_complete) completion#tabComplete(-1)
 
 # same thing for `C-g Tab`; useful when we're expanding a snippet
-imap <expr><silent><unique> <c-g><tab> completion#tabComplete(1)
+imap <expr><silent><unique> <C-G><Tab> completion#tabComplete(1)
 
-snor <unique>   <tab> <c-\><c-n><cmd>call UltiSnips#JumpForwards()<cr>
-snor <unique> <s-tab> <c-\><c-n><cmd>call UltiSnips#JumpBackwards()<cr>
+snoremap <unique>   <Tab> <C-\><C-N><Cmd>call UltiSnips#JumpForwards()<CR>
+snoremap <unique> <S-Tab> <C-\><C-N><Cmd>call UltiSnips#JumpBackwards()<CR>
 
 # The next mappings are necessary to prevent custom mappings from interfering.
 # We don't want recursiveness for those keys when we're in regular insert mode.
 # In C-x submode, custom mappings should not interfere.
 
 # typed/returned by `completion#complete()`
-ino <plug>(MC_tab) <tab>
-ino <plug>(MC_c-d) <c-d>
+inoremap <Plug>(MC_tab) <Tab>
+inoremap <Plug>(MC_c-d) <C-D>
 
 # typed/returned by `completion#cycle()`
-ino <plug>(MC_c-e) <c-e>
-ino <plug>(MC_c-n) <c-n>
-ino <plug>(MC_c-p) <c-p>
-ino <plug>(MC_c-r) <c-r>
-ino <plug>(MC_c-x_c-v) <c-x><c-v>
-ino <plug>(MC_c-x_c-d) <c-x><c-d>
-ino <plug>(MC_c-x_c-k) <c-x><c-k>
-ino <plug>(MC_c-x_c-i) <c-x><c-i>
-ino <plug>(MC_c-x_c-n) <c-x><c-n>
-ino <plug>(MC_c-x_c-p) <c-x><c-p>
-ino <plug>(MC_c-x_c-l) <c-x><c-l>
-ino <plug>(MC_c-x_c-o) <c-x><c-o>
-ino <plug>(MC_c-x_c-]) <c-x><c-]>
-ino <plug>(MC_c-x_c-t) <c-x><c-t>
-ino <plug>(MC_c-x_c-u) <c-x><c-u>
-ino <plug>(MC_down) <down>
-ino <plug>(MC_up) <up>
-cno          <plug>(MC_cr) <cr>
+inoremap <Plug>(MC_c-e) <C-E>
+inoremap <Plug>(MC_c-n) <C-N>
+inoremap <Plug>(MC_c-p) <C-P>
+inoremap <Plug>(MC_c-r) <C-R>
+inoremap <Plug>(MC_c-x_c-v) <C-X><C-V>
+inoremap <Plug>(MC_c-x_c-d) <C-X><C-D>
+inoremap <Plug>(MC_c-x_c-k) <C-X><C-K>
+inoremap <Plug>(MC_c-x_c-i) <C-X><C-I>
+inoremap <Plug>(MC_c-x_c-n) <C-X><C-N>
+inoremap <Plug>(MC_c-x_c-p) <C-X><C-P>
+inoremap <Plug>(MC_c-x_c-l) <C-X><C-L>
+inoremap <Plug>(MC_c-x_c-o) <C-X><C-O>
+inoremap <Plug>(MC_c-x_c-]) <C-X><C-]>
+inoremap <Plug>(MC_c-x_c-t) <C-X><C-T>
+inoremap <Plug>(MC_c-x_c-u) <C-X><C-U>
+inoremap <Plug>(MC_down) <Down>
+inoremap <Plug>(MC_up) <Up>
+cnoremap <Plug>(MC_cr) <CR>
 
 # Because  of a  mapping in  `vim-readline`, we've  lost the  ability to  exit a
-# completion menu.  Restore it on `c-q`.
+# completion menu.  Restore it on `C-q`.
 # TODO: Document why we need `#restore_base()`.
 # Hint: it's due to `longest` being in `'completeopt'`.
-# Also, document why we don't invoke `#restore_base()` in `<plug>(MC_c-e)`.
+# Also, document why we don't invoke `#restore_base()` in `<Plug>(MC_c-e)`.
 # Hint: it would break the dot command too frequently (as soon as we cycle).
-ino <c-q> <c-e><cmd>call completion#restoreBase()<cr>
+inoremap <C-Q> <C-E><Cmd>call completion#restoreBase()<CR>
 
 # cycling {{{2
 
-imap <expr><silent><unique> <c-j> pumvisible() ? completion#cycle(1) : '<plug>(MC_cr)'
-ino <plug>(MC_cr) <cr>
+imap <expr><silent><unique> <C-J> pumvisible() ? completion#cycle(1) : '<Plug>(MC_cr)'
+inoremap <Plug>(MC_cr) <CR>
 
-# To cycle back, we can't use `c-k` because it would be shadowed by `c-k c-k`
+# To cycle back, we can't use `C-k` because it would be shadowed by `C-k C-k`
 # (vimrc) which deletes from cursor till end of line.
-# It's hard to find a key for this mapping (can't use `c-h`, `c-l`, `c-k`, ...).
-# We'll try `c-o` with the mnemonic: Old (cycle back).
-imap <expr><silent><unique> <c-o> pumvisible() ? completion#cycle(-1) : '<plug>(MC_c-o)'
-ino <plug>(MC_c-o) <c-o>
+# It's hard to find a key for this mapping (can't use `C-h`, `C-l`, `C-k`, ...).
+# We'll try `C-o` with the mnemonic: Old (cycle back).
+imap <expr><silent><unique> <C-O> pumvisible() ? completion#cycle(-1) : '<Plug>(MC_c-o)'
+inoremap <Plug>(MC_c-o) <C-O>
 
-imap <expr><silent> <plug>(MC_next_method) completion#verifyCompletion()
-imap <expr><silent> <plug>(MC_Auto)        completion#complete(1)
+imap <expr><silent> <Plug>(MC_next_method) completion#verifyCompletion()
+imap <expr><silent> <Plug>(MC_Auto)        completion#complete(1)
 
-nno [oM <cmd>call completion#enableAuto()<cr>
-nno ]oM <cmd>call completion#disableAuto()<cr>
-nno coM <cmd>call completion#toggleAuto()<cr>
+nnoremap [oM <Cmd>call completion#enableAuto()<CR>
+nnoremap ]oM <Cmd>call completion#disableAuto()<CR>
+nnoremap coM <Cmd>call completion#toggleAuto()<CR>
 
 # improved default methods {{{2
 # C-p         &friends {{{3
@@ -93,9 +93,9 @@ nno coM <cmd>call completion#toggleAuto()<cr>
 #
 # So we invoke this function to temporarily add it.
 #}}}
-ino <unique> <c-p>      <cmd>call completion#util#customIsk('-')<cr><c-p>
-ino <unique> <c-x><c-n> <cmd>call completion#util#customIsk('-')<cr><c-x><c-n>
-ino <unique> <c-x><c-p> <cmd>call completion#util#customIsk('-')<cr><c-x><c-p>
+inoremap <unique> <C-P>      <Cmd>call completion#util#customIsk('-')<CR><C-P>
+inoremap <unique> <C-X><C-N> <Cmd>call completion#util#customIsk('-')<CR><C-X><C-N>
+inoremap <unique> <C-X><C-P> <Cmd>call completion#util#customIsk('-')<CR><C-X><C-P>
 
 # C-x C-]     tag {{{3
 
@@ -107,16 +107,16 @@ ino <unique> <c-x><c-p> <cmd>call completion#util#customIsk('-')<cr><c-x><c-p>
 #
 # But it doesn't seem necessary atm.
 #}}}
-#                                                                   │
-ino <unique> <c-x><c-]> <cmd>call completion#util#customIsk('-' .. (&filetype ==# 'vim' ? ':<' : ''))<cr><c-x><c-]>
+#                                                                        │
+inoremap <unique> <C-X><C-]> <Cmd>call completion#util#customIsk('-' .. (&filetype ==# 'vim' ? ':<' : ''))<CR><C-X><C-]>
 
 # C-x C-k     dictionary {{{3
 
-ino <unique> <c-x><c-k> <cmd>call completion#util#setupDict()<cr><c-x><c-k>
+inoremap <unique> <C-X><C-K> <Cmd>call completion#util#setupDict()<CR><C-X><C-K>
 
 # C-x C-s     fix Spelling error {{{3
 
-ino <expr><unique> <c-x><c-s> completion#spel#fix()
+inoremap <expr><unique> <C-X><C-S> completion#spel#fix()
 
 # C-x C-t     synonym {{{3
 
@@ -135,7 +135,7 @@ ino <expr><unique> <c-x><c-s> completion#spel#fix()
 # space in 'iskeyword', the completion function  only tries to complete the last
 # word before the cursor.
 
-ino <unique> <c-x><c-t> <cmd>call completion#util#customIsk(' -')<cr><c-x><c-t>
+inoremap <unique> <C-X><C-T> <Cmd>call completion#util#customIsk(' -')<CR><C-X><C-T>
 #}}}2
 # new methods {{{2
 # C-x s       function Signature {{{3
@@ -146,14 +146,14 @@ ino <unique> <c-x><c-t> <cmd>call completion#util#customIsk(' -')<cr><c-x><c-t>
 #    2. press `C-x s`
 #    3. you get `call matchadd({group}, {pattern} [, {priority} [, {id} [, {dict}]]])`
 
-ino <unique> <c-x>s <cmd>call mode()->completion#custom#signature()<cr>
-cno <unique> <c-x>s <c-\>e mode()->completion#custom#signature()<cr>
+inoremap <unique> <C-X>s <Cmd>call mode()->completion#custom#signature()<CR>
+cnoremap <unique> <C-X>s <C-\>e mode()->completion#custom#signature()<CR>
 
 # C-z         easy C-x C-p {{{3
 
 # Inspiration:
 # https://www.reddit.com/r/vim/comments/78h4pr/plugins_andor_keybindings_you_couldnt_live_without/dou7z5n/
-ino <unique> <c-z> <cmd>call completion#custom#easyCXCP()<cr><c-x><c-p>
+inoremap <unique> <C-Z> <Cmd>call completion#custom#easyCXCP()<CR><C-X><C-P>
 #}}}1
 # Options {{{1
 # complete {{{2
@@ -180,7 +180,7 @@ ino <unique> <c-z> <cmd>call completion#custom#easyCXCP()<cr><c-x><c-p>
 #    - when there's only 1 match and `noinsert` is in `'completeopt'`,
 #      *all* completion commands fail:
 #
-#         $ vim +"pu ='xxabc'" +"pu ='xx'" +'startinsert!' +'set completeopt=menu,noinsert'
+#         $ vim +"put ='xxabc'" +"put ='xx'" +'startinsert!' +'set completeopt=menu,noinsert'
 #         " press `C-x C-n`: nothing is inserted
 #}}}
 set completeopt+=menuone
@@ -273,9 +273,9 @@ set completeopt-=noselect
 #                 .. range(10)->mapnew((_, _) => (65 + rand(seed) % 26)->nr2char())
 #                  ->join(''))
 #
-#         sil :0 put =lines
+#         silent :0 put =lines
 #         :100 copy 100
-#         s/$/_actually_we_do_want_this_one/
+#         substitute/$/_actually_we_do_want_this_one/
 #         :0 put ='# press C-x C-n to complete the next line into `' .. getline(101) .. '`'
 #         set completeopt=menu,longest
 #         :1 put ='we_'
@@ -312,7 +312,7 @@ set completeopt+=longest
 # around the unicode.vim  plugin issue with an autocmd which  closes the preview
 # window automatically each time we complete a text:
 #
-#     au CompleteDone * if pumvisible() == 0 | pclose | endif
+#     autocmd CompleteDone * if pumvisible() == 0 | pclose | endif
 
 set completeopt-=preview
 

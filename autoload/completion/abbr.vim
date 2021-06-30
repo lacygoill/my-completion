@@ -26,7 +26,7 @@ def completion#abbr#complete(): string
     #
     # ... the rhs will look like this:
     #
-    #     <c-r>=<snr>42_ExpandAdv('ctl', 'actuellement')<cr>
+    #     <C-R>=<SNR>42_ExpandAdv('ctl', 'actuellement')<CR>
     #
     # To make the description less noisy, we need to extract the expansion (`actuellement`).
     # To do this, we'll follow this algorithm:

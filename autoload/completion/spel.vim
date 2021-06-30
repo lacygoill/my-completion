@@ -31,8 +31,8 @@ def completion#spel#fix(): string #{{{1
     # Alternative:
     #
     #     var winview: dict<number> = winsaveview()
-    #     norm! [S1z=
-    #     norm! `^
+    #     normal! [S1z=
+    #     normal! `^
     #     winrestview(winview)
 
     var spell_save: bool = &l:spell
@@ -68,12 +68,12 @@ def completion#spel#fix(): string #{{{1
 
         if found_a_badword
             if exists('#User#AddToUndolistI')
-                do <nomodeline> User AddToUndolistI
+                doautocmd <nomodeline> User AddToUndolistI
             endif
             var new_line: string = getline('.')
                 ->substitute('\V\<' .. badword .. '\>', suggestion, 'g')
             FixWord = () => setline('.', new_line)
-            au SafeState * ++once FixWord()
+            autocmd SafeState * ++once FixWord()
         endif
     catch
         Catch()
@@ -88,7 +88,7 @@ def completion#spel#fix(): string #{{{1
     endtry
     # Break undo sequence before `setline()` edits the line, so that we can undo
     # if the fix is wrong.
-    return "\<c-g>u"
+    return "\<C-G>u"
 enddef
 
 var FixWord: func
