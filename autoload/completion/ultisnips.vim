@@ -1,8 +1,5 @@
 vim9script noclear
 
-if exists('loaded') | finish | endif
-var loaded = true
-
 def completion#ultisnips#complete(): string
     # UltiSnips#SnippetsInCurrentScope() is a public function provided by the{{{
     # UltiSnips plugin.
@@ -49,7 +46,7 @@ def completion#ultisnips#complete(): string
 
     # `complete()` waits for 2 arguments: {startcol} and {matches}
     # {matches} MUST be a list.
-    # Here, the result of `filter(…)`is a list, so we're good.
+    # Here, the result of `filter(...)`is a list, so we're good.
     #
     # The items of the list can be simple strings, OR dictionaries.
     # The OR is not exlusive: some item may be strings, while others are
@@ -83,7 +80,7 @@ def completion#ultisnips#complete(): string
     # →
     # convert the triggers into dictionaries with additional info (description)
     #
-    # The output of `map(…)` is a valid list to pass to `complete()`, because
+    # The output of `map(...)` is a valid list to pass to `complete()`, because
     # its dictionaries contain only valid keys:
     #
     #    - word
@@ -98,7 +95,8 @@ def completion#ultisnips#complete(): string
     # IOW, `dup` = duplicate detector.
     #}}}
 
-    var matches: list<dict<any>> = keys(g:current_ulti_dict_info)
+    var matches: list<dict<any>> = g:current_ulti_dict_info
+        ->keys()
         ->filter(Contain_word)
         ->mapnew((_, v: string): dict<any> => ({
             word: v,

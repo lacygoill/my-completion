@@ -1,8 +1,5 @@
 vim9script noclear
 
-if exists('loaded') | finish | endif
-var loaded = true
-
 def completion#file#complete(): string
     var filepath: string = getline('.')
         ->strpart(0, col('.') - 1)

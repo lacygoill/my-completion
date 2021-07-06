@@ -1,8 +1,5 @@
 vim9script noclear
 
-if exists('loaded') | finish | endif
-var loaded = true
-
 import Catch from 'lg.vim'
 
 def completion#util#customIsk(chars: string): bool #{{{1

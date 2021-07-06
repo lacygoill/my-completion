@@ -1,8 +1,5 @@
 vim9script noclear
 
-if exists('loaded') | finish | endif
-var loaded = true
-
 # FIXME: {{{1
 #
 # I  keep  this section,  but  it's  not a  good  idea  because it  could  cause
@@ -77,13 +74,16 @@ var loaded = true
 #
 # `:help 'completeopt /ctrl-l` doesn't work with `C-x C-p` and `C-p`:
 #
-#     $ vim -Nu NONE +'set completeopt=menu,longest|startinsert!' =(cat <<'EOF'
+#     var lines =<< trim END
 #         xx
 #         xxabc
 #         xxab
 #         xxa
-#     EOF
-#     )
+#     END
+#     lines->setline(1)
+#
+#     set completeopt=menu,longest
+#     startinsert!
 #
 # If you press `C-x C-p`: `xxa` is completed.
 # If you then press `C-l`: no character is inserted.
@@ -877,8 +877,7 @@ def NextMethod(): string #{{{2
         # But when the value of `i` is  -1, adding `N` will convert the negative
         # index into a positive one, which matches the same method in the chain.
         # The last one.
-        #
-        # "}}}
+        #}}}
         i = (i + dir + N) % N
 
         # Why is there no risk to be stuck in a loop? {{{

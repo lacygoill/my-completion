@@ -79,9 +79,9 @@ inoremap <Plug>(MC_c-o) <C-O>
 imap <expr><silent> <Plug>(MC_next_method) completion#verifyCompletion()
 imap <expr><silent> <Plug>(MC_Auto)        completion#complete(1)
 
-nnoremap [oM <Cmd>call completion#enableAuto()<CR>
-nnoremap ]oM <Cmd>call completion#disableAuto()<CR>
-nnoremap coM <Cmd>call completion#toggleAuto()<CR>
+nnoremap <unique> [oM <Cmd>call completion#enableAuto()<CR>
+nnoremap <unique> ]oM <Cmd>call completion#disableAuto()<CR>
+nnoremap <unique> coM <Cmd>call completion#toggleAuto()<CR>
 
 # improved default methods {{{2
 # C-p         &friends {{{3
@@ -180,8 +180,11 @@ inoremap <unique> <C-Z> <Cmd>call completion#custom#easyCXCP()<CR><C-X><C-P>
 #    - when there's only 1 match and `noinsert` is in `'completeopt'`,
 #      *all* completion commands fail:
 #
-#         $ vim +"put ='xxabc'" +"put ='xx'" +'startinsert!' +'set completeopt=menu,noinsert'
-#         " press `C-x C-n`: nothing is inserted
+#         ['xxabc', 'xx']->setline(1)
+#         :2
+#         startinsert!
+#         set completeopt=menu,noinsert
+#         # press `C-x C-n`: nothing is inserted
 #}}}
 set completeopt+=menuone
 
@@ -264,24 +267,24 @@ set completeopt-=noselect
 #
 # MWE:
 #
-#     $ vim -Nu <(cat <<'EOF'
-#         vim9script
+#     var seed: list<number> = srand()
+#     var lines: list<string>
+#     for i in range(200)
+#         var random_chars: string
+#         for j in range(10)
+#             random_chars ..= (65 + rand(seed) % 26)->nr2char()
+#         endfor
+#         lines += [ 'we_dont_want_this_' .. random_chars]
+#     endfor
 #
-#         var seed: list<number> = srand()
-#         var lines = range(200)
-#             ->mapnew((_, _) => 'we_dont_want_this_'
-#                 .. range(10)->mapnew((_, _) => (65 + rand(seed) % 26)->nr2char())
-#                  ->join(''))
-#
-#         silent :0 put =lines
-#         :100 copy 100
-#         substitute/$/_actually_we_do_want_this_one/
-#         :0 put ='# press C-x C-n to complete the next line into `' .. getline(101) .. '`'
-#         set completeopt=menu,longest
-#         :1 put ='we_'
-#         startinsert!
-#     EOF
-#     )
+#     lines->setline(1)
+#     :100 copy 100
+#     substitute/$/_actually_we_do_want_this_one/
+#     ('# press C-x C-n to complete the next line into `' .. getline(101) .. '`')->append(0)
+#     ('we_')->append(1)
+#     :2
+#     set completeopt=menu,longest
+#     startinsert!
 #
 # On the first line of the file, you should see sth like:
 #

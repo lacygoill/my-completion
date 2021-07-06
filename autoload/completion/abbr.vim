@@ -1,8 +1,5 @@
 vim9script noclear
 
-if exists('loaded') | finish | endif
-var loaded = true
-
 var table: string = execute('iab')
 var lines: list<string> = split(table, '\n')->reverse()
 const ABBREV: list<dict<string>> = lines
@@ -46,7 +43,7 @@ def completion#abbr#complete(): string
     var matching_abbrev: list<dict<string>> = copy(ABBREV)
         ->filter((_, v: dict<string>): bool =>
                     stridx(v.lhs, word_to_complete) == 0)
-        ->map((_, v: dict<string>): dict<string> => ({
+        ->map((_, v: dict<string>) => ({
                     word: v.lhs,
                     menu: AbbrevRhs(v.rhs)->stridx('expand_') >= 0
                         ?    AbbrevRhs(v.rhs)->matchstr('.*,\s*''\zs.*\ze'')')
