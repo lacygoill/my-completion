@@ -271,7 +271,7 @@ set completeopt-=noselect
 #     var lines: list<string>
 #     for i in range(200)
 #         var random_chars: string
-#         for j in range(10)
+#         for j: number in range(10)
 #             random_chars ..= (65 + rand(seed) % 26)->nr2char()
 #         endfor
 #         lines += [ 'we_dont_want_this_' .. random_chars]

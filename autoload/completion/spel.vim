@@ -49,7 +49,7 @@ def completion#spel#fix(): string #{{{1
         var badword: string
         var suggestion: string
         var found_a_badword: bool = false
-        for word in words
+        for word: string in words
             badword = spellbadword(word)->get(0, '')
             if empty(badword)
                 continue

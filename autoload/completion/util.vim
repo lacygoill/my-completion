@@ -14,7 +14,7 @@ def completion#util#customIsk(chars: string): bool #{{{1
     iskeyword_save = &l:iskeyword
     bufnr = bufnr('%')
     try
-        for char in chars
+        for char: string in chars
             execute 'setlocal iskeyword+=' .. char2nr(char)
         endfor
         augroup CompletionUtilRestoreIsk | autocmd!
