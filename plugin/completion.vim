@@ -269,9 +269,9 @@ set completeopt-=noselect
 #
 #     var seed: list<number> = srand()
 #     var lines: list<string>
-#     for i in range(200)
+#     for _ in range(200)
 #         var random_chars: string
-#         for j: number in range(10)
+#         for _ in range(10)
 #             random_chars ..= (65 + rand(seed) % 26)->nr2char()
 #         endfor
 #         lines += [ 'we_dont_want_this_' .. random_chars]
